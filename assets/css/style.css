@@ -231,6 +231,12 @@ h1 .hl {
 /* ---------- Sections ---------- */
 .section { padding: 72px 0; }
 .section-alt { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.section-offers {
+  background: linear-gradient(180deg, rgba(200, 233, 76, 0.16), rgba(200, 233, 76, 0.03));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.eyebrow-center { text-align: center; margin-bottom: 8px; }
 .section-title { font-size: clamp(1.6rem, 3vw, 2.1rem); text-align: center; }
 .section-sub {
   text-align: center;
