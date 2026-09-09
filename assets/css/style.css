@@ -591,13 +591,7 @@ h1 .hl {
   color: var(--court);
 }
 
-/* Nosotros */
-.nosotros-inner {
-  display: grid;
-  grid-template-columns: 1.3fr 0.9fr;
-  gap: 48px;
-  align-items: center;
-}
+/* Quien soy: stats */
 .stat-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -647,6 +641,7 @@ h1 .hl {
   box-shadow: var(--shadow);
 }
 .sobre-mi-text .eyebrow { margin-bottom: 8px; }
+.sobre-mi-text .stat-list { margin-top: 8px; }
 .sobre-mi-text h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); margin-bottom: 18px; }
 
 /* Testimonios */
@@ -756,7 +751,6 @@ h1 .hl {
   .schedule-flex { grid-template-columns: 1fr; }
   .metodologia-inner { grid-template-columns: 1fr; }
   .metodologia-photo { order: -1; max-width: 420px; margin: 0 auto; }
-  .nosotros-inner { grid-template-columns: 1fr; }
   .sobre-mi-inner { grid-template-columns: 1fr; }
   .sobre-mi-photos { max-width: 280px; margin-bottom: 44px; }
   .sobre-mi-photos .photo-secondary { right: -14px; bottom: -20px; }
