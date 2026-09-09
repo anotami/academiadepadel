@@ -191,14 +191,42 @@ h1 .hl {
 }
 .hero-trust li::before { content: "✓ "; color: var(--court); font-weight: 800; }
 
-.court-illustration {
-  width: 100%;
-  max-width: 420px;
+.hero-photo-wrap {
+  position: relative;
+  max-width: 360px;
   margin: 0 auto;
-  filter: drop-shadow(0 20px 30px rgba(15, 30, 46, 0.18));
 }
-:root { --court-svg: var(--court); }
-.court-illustration rect:first-child { fill: var(--court); }
+.hero-photo-wrap::before {
+  content: "";
+  position: absolute;
+  top: -28px;
+  right: -24px;
+  width: 200px;
+  height: 200px;
+  background: var(--accent);
+  opacity: 0.4;
+  border-radius: 42% 58% 65% 35% / 45% 40% 60% 55%;
+  z-index: 0;
+}
+.hero-photo-wrap::after {
+  content: "";
+  position: absolute;
+  bottom: -16px;
+  left: -16px;
+  width: 56px;
+  height: 56px;
+  background: var(--court);
+  border-radius: 50%;
+  z-index: 0;
+}
+.hero-photo {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: 0 20px 40px rgba(15, 30, 46, 0.22);
+}
 
 /* ---------- Sections ---------- */
 .section { padding: 72px 0; }
