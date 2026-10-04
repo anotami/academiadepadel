@@ -269,6 +269,14 @@ h1 .hl {
   gap: 24px;
 }
 .program-cards.program-cards-3 { grid-template-columns: repeat(3, 1fr); }
+.clinicas-level {
+  font-family: "Sora", sans-serif;
+  font-size: 1.1rem;
+  color: var(--court);
+  margin: 0 0 18px;
+  padding-top: 8px;
+}
+.program-cards + .clinicas-level { margin-top: 40px; }
 .program-card {
   background: var(--surface);
   border: 1px solid var(--border);
