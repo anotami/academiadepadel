@@ -23,8 +23,8 @@ Los puntos marcados como referenciales (que debes confirmar y actualizar tú mis
 - **Sede / dirección exacta** — sección `#horarios`, bloque `.location-card`.
 - **Horarios** — tabla en `#horarios`.
 - **Precios** — tarjetas en `#precios` (hoy usan rangos de mercado de Lima, no precios reales).
-- **Número de WhatsApp** — actualmente `+51 932 900 134`, aparece en 6 lugares
-  (busca `51932900134` en `index.html` y reemplaza en todos a la vez).
+- **Número de WhatsApp** — actualmente `+51 957 085 531`, aparece en 6 lugares
+  (busca `51957085531` en `index.html` y reemplaza en todos a la vez).
 
 ## Cómo correr el sitio en local
 
