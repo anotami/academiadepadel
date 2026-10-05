@@ -836,27 +836,68 @@ h1 .hl {
   margin-bottom: 10px;
 }
 
-.quiz {
+.test-timer-badge {
+  display: block;
+  width: fit-content;
+  margin: 18px auto 0;
+  background: var(--callout-bg);
+  border: 1px solid var(--callout-border);
+  color: var(--court-dark);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 8px 18px;
+  border-radius: 999px;
+}
+
+.quiz, .quiz-result {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 32px;
   margin-top: 36px;
+  overflow: hidden;
+}
+.quiz-media {
+  width: 100%;
+  height: 200px;
+  background: var(--bg);
+}
+.quiz-media-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.quiz-body { padding: 28px 32px 32px; }
+
+.quiz-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 .quiz-progress {
-  height: 6px;
+  flex: 1;
+  height: 12px;
   background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 16px;
 }
 .quiz-progress-bar {
   height: 100%;
   width: 0%;
-  background: var(--court);
+  background: linear-gradient(90deg, var(--court), var(--accent));
   border-radius: 999px;
-  transition: width 0.25s ease;
+  transition: width 0.3s ease;
+}
+.quiz-progress-pct {
+  font-family: "Sora", sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--court);
+  min-width: 36px;
+  text-align: right;
 }
 .quiz-step {
   font-size: 0.8rem;
@@ -890,15 +931,8 @@ h1 .hl {
 .quiz-option:hover { border-color: var(--court); }
 .quiz-option.selected { border-color: var(--court); background: var(--surface); }
 
-.quiz-result {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 40px 32px;
-  margin-top: 36px;
-  text-align: center;
-}
+.quiz-result { text-align: center; }
+.quiz-result-body { padding: 32px 32px 40px; }
 .quiz-result-badge { font-size: 2.6rem; margin-bottom: 8px; }
 .quiz-result-title {
   font-size: 1.7rem;
@@ -953,6 +987,7 @@ h1 .hl {
 .quiz-retry:hover { color: var(--court); }
 
 @media (max-width: 600px) {
-  .quiz, .quiz-result { padding: 24px 20px; }
+  .quiz-body, .quiz-result-body { padding: 22px 20px 28px; }
+  .quiz-media { height: 160px; }
   .quiz-result-plans { grid-template-columns: 1fr; }
 }

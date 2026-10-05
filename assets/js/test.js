@@ -4,6 +4,8 @@
   var QUESTIONS = [
     {
       text: "¿Cuántas veces has jugado pádel en tu vida?",
+      image: "assets/img/court/paddles-court.jpg",
+      alt: "Palas de pádel sobre la cancha",
       options: [
         { label: "Nunca", points: 0 },
         { label: "Entre 1 y 10 veces", points: 1 },
@@ -12,6 +14,8 @@
     },
     {
       text: "¿Has tomado clases de pádel antes?",
+      image: "assets/img/court/grip-detail.jpg",
+      alt: "Jugador ajustando el agarre de la pala antes de una clase",
       options: [
         { label: "Nunca tomé una clase", points: 0 },
         { label: "Alguna clase suelta o de prueba", points: 1 },
@@ -20,6 +24,8 @@
     },
     {
       text: "¿Conoces golpes como la bandeja, la víbora o el remate?",
+      image: "assets/img/court/paddle-bouquet.jpg",
+      alt: "Varias palas de pádel de distintos modelos",
       options: [
         { label: "No, ni idea de qué son", points: 0 },
         { label: "Los he escuchado pero no los domino", points: 1 },
@@ -28,6 +34,8 @@
     },
     {
       text: "Cuando juegas un partido recreativo...",
+      image: "assets/img/court/aerial-court.jpg",
+      alt: "Vista aérea de dos jugadores en un partido de pádel",
       options: [
         { label: "Me cuesta hasta devolver la pelota", points: 0 },
         { label: "Sostengo el peloteo pero fallo seguido", points: 1 },
@@ -41,6 +49,8 @@
       min: 0,
       max: 2,
       badge: "🌱",
+      image: "assets/img/court/grip-detail.jpg",
+      alt: "Jugador ajustando el agarre de la pala",
       level: "Nivel Inicial",
       desc: "Recién vas a empezar, o casi no tienes experiencia en cancha — es el punto de partida perfecto para aprender bien desde el primer golpe.",
       plans: [
@@ -53,6 +63,8 @@
       min: 3,
       max: 5,
       badge: "📈",
+      image: "assets/img/court/paddle-bouquet.jpg",
+      alt: "Varias palas de pádel de distintos modelos",
       level: "Nivel Inicial-Intermedio",
       desc: "Ya tienes algo de cancha, pero te conviene afirmar fundamentos antes de jugar con más soltura y consistencia.",
       plans: [
@@ -65,6 +77,8 @@
       min: 6,
       max: 8,
       badge: "🏆",
+      image: "assets/img/court/net-ball.jpg",
+      alt: "Pelota de pádel golpeando la red en plena jugada",
       level: "Nivel Intermedio",
       desc: "Ya sostienes peloteos y piensas la táctica del punto. Te conviene pulir golpes específicos y consolidar con clases regulares.",
       plans: [
@@ -79,17 +93,23 @@
   var totalScore = 0;
 
   var progressBar = document.getElementById("quizProgressBar");
+  var progressPct = document.getElementById("quizProgressPct");
   var stepLabel = document.getElementById("quizStep");
   var questionText = document.getElementById("quizQuestionText");
   var optionsWrap = document.getElementById("quizOptions");
+  var quizImage = document.getElementById("quizImage");
   var quizEl = document.getElementById("quiz");
   var resultEl = document.getElementById("quizResult");
 
   function renderQuestion() {
     var q = QUESTIONS[currentQuestion];
+    var pct = Math.round((currentQuestion / QUESTIONS.length) * 100);
     stepLabel.textContent = "Pregunta " + (currentQuestion + 1) + " de " + QUESTIONS.length;
-    progressBar.style.width = (((currentQuestion) / QUESTIONS.length) * 100) + "%";
+    progressBar.style.width = pct + "%";
+    progressPct.textContent = pct + "%";
     questionText.textContent = q.text;
+    quizImage.src = q.image;
+    quizImage.alt = q.alt;
     optionsWrap.innerHTML = "";
 
     q.options.forEach(function (opt) {
@@ -112,12 +132,17 @@
       renderQuestion();
     } else {
       progressBar.style.width = "100%";
+      progressPct.textContent = "100%";
       setTimeout(showResult, 200);
     }
   }
 
   function showResult() {
     var result = RESULTS.find(function (r) { return totalScore >= r.min && totalScore <= r.max; }) || RESULTS[0];
+
+    var resultImage = document.getElementById("quizResultImage");
+    resultImage.src = result.image;
+    resultImage.alt = result.alt;
 
     document.getElementById("quizResultBadge").textContent = result.badge;
     document.getElementById("quizResultTitle").textContent = result.level;
