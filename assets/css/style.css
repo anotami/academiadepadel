@@ -89,6 +89,20 @@ ul { padding: 0; margin: 0; list-style: none; }
   padding: 9px 16px;
 }
 
+.test-banner {
+  display: block;
+  background: var(--accent);
+  color: var(--court-dark);
+  text-align: center;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 11px 16px;
+  transition: background 0.15s ease;
+}
+.test-banner strong { font-weight: 800; }
+.test-banner:hover { background: var(--accent-dark); }
+
 /* ---------- Header ---------- */
 .site-header {
   position: sticky;
