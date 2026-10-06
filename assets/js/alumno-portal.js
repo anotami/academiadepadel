@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc, collection,
   query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=4";
+} from "./firebase-app.js?v=5";
 import {
   DIAS, FRANJAS, HORAS_RESERVA, TIPOS_CLASE,
-  formatearFecha, diaDeSemana, horaAFranja, estaDisponible
-} from "./portal-common.js?v=4";
+  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
+} from "./portal-common.js?v=5";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -264,7 +264,7 @@ function cargarReservas(uid) {
       return;
     }
     wrap.innerHTML = snap.docs.map((d) => {
-      const r = d.data();
+      const r = { id: d.id, ...d.data() };
       return `
         <div class="request-card">
           <div class="request-info">
@@ -272,11 +272,37 @@ function cargarReservas(uid) {
             <p>${formatearFecha(r.fecha)} · ${r.hora} hrs · Prof. ${r.profesorNombre}</p>
             ${r.nota ? `<p>"${r.nota}"</p>` : ""}
             ${bloqueFeedback(r)}
+            ${bloqueNps(r)}
           </div>
           <span class="badge badge-${r.estado}">${r.estado}</span>
         </div>`;
     }).join("");
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+// Delegación de eventos: un solo listener para todos los botones de NPS que se vayan creando.
+document.getElementById("lista-reservas").addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-nps-score]");
+  if (!btn) return;
+  const reservaId = btn.closest("[data-reserva-id]").dataset.reservaId;
+  const score = Number(btn.dataset.npsScore);
+  try {
+    await updateDoc(doc(db, "reservas", reservaId), { nps: score, npsEn: serverTimestamp() });
+  } catch (err) {
+    alert("No se pudo enviar tu respuesta: " + err.message);
+  }
+});
+
+function bloqueNps(r) {
+  if (r.estado !== "confirmada" || !fechaYaPaso(r.fecha) || r.nps !== undefined) return "";
+  const botones = Array.from({ length: 11 }, (_, n) =>
+    `<button type="button" class="btn btn-outline btn-small" data-nps-score="${n}" style="padding:6px 11px; margin:2px;">${n}</button>`
+  ).join("");
+  return `
+    <div class="callout" data-reserva-id="${r.id}" style="margin:10px 0 0; flex-direction:column; align-items:stretch;">
+      <p style="margin-bottom:6px;"><strong>¿Qué tan probable es que recomiendes tu clase de hoy?</strong> (0 = nada, 10 = totalmente)</p>
+      <div>${botones}</div>
+    </div>`;
 }
 
 function bloqueFeedback(r) {

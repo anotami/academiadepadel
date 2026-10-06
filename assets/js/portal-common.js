@@ -78,3 +78,9 @@ export function esProgramaRegular(tipoClase) {
 }
 
 export const TIPOS_PAQUETE = ["4 clases", "8 clases"];
+
+// Deja solo dígitos para armar un link wa.me a partir de un teléfono guardado
+// con formato "+51 999 111 222".
+export function soloDigitos(telefono) {
+  return (telefono || "").replace(/\D/g, "");
+}

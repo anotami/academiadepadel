@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=4";
+} from "./firebase-app.js?v=5";
 import {
-  DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, esProgramaRegular,
+  DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
-} from "./portal-common.js?v=4";
+} from "./portal-common.js?v=5";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -230,7 +230,10 @@ function cargarConfirmadas(uid) {
               <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
               <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
             </div>
-            <span class="badge badge-confirmada">confirmada</span>
+            <div class="request-actions">
+              <span class="badge badge-confirmada">confirmada</span>
+              ${linkRecordatorio(r)}
+            </div>
           </div>`).join("");
   }, (err) => {
     mostrarErrorConsulta(wrapFuturas, err);
@@ -377,4 +380,12 @@ function cargarPaquetes() {
       return `<div class="court-card"><h3>${paquetes[0].alumnoNombre}</h3>${filas}</div>`;
     }).join("");
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+// ---- Recordatorio por WhatsApp (link manual, no se envía solo) ----
+function linkRecordatorio(r) {
+  const telefono = soloDigitos(r.alumnoTelefono);
+  if (!telefono) return "";
+  const texto = `Hola ${r.alumnoNombre}, te recuerdo tu clase de pádel el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre}. ¡Nos vemos en la cancha!`;
+  return `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Recordar</a>`;
 }
