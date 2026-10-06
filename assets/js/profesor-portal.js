@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=9";
+} from "./firebase-app.js?v=10";
 import {
   DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
-} from "./portal-common.js?v=9";
+} from "./portal-common.js?v=10";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -369,6 +369,8 @@ async function cargarAlumnos() {
       <div class="court-card">
         <h3>${a.nombre}</h3>
         <p class="court-meta">${a.telefono || "Sin teléfono"} · Nivel ${a.nivel || "—"}</p>
+        ${a.apoderado ? `<p class="court-meta">👪 Apoderado: ${a.apoderado.nombre} · ${a.apoderado.telefono}</p>` : ""}
+        ${a.referidoPor ? `<p class="court-meta">🤝 Invitado por: ${a.referidoPor}</p>` : ""}
         <p>${chips || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
       </div>`;
   }).join("");

@@ -2,8 +2,8 @@ import {
   auth, db, CONFIG_IS_PLACEHOLDER,
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
   doc, setDoc, getDoc, serverTimestamp
-} from "./firebase-app.js?v=3";
-import { DIAS, FRANJAS } from "./portal-common.js?v=3";
+} from "./firebase-app.js?v=10";
+import { DIAS, FRANJAS } from "./portal-common.js?v=10";
 
 const tabs = document.querySelectorAll(".auth-tab");
 const panels = {
@@ -32,6 +32,14 @@ DIAS.forEach((dia) => {
     input.addEventListener("change", () => label.classList.toggle("checked", input.checked));
     disponibilidadWrap.appendChild(label);
   });
+});
+
+// --- Mostrar datos de apoderado si el alumno es menor de edad ---
+const edadInput = document.getElementById("su-edad");
+const apoderadoWrap = document.getElementById("su-apoderado-wrap");
+edadInput.addEventListener("input", () => {
+  const esMenor = Number(edadInput.value) > 0 && Number(edadInput.value) < 18;
+  apoderadoWrap.hidden = !esMenor;
 });
 
 function configWarning(el) {
@@ -90,7 +98,19 @@ formSignup.addEventListener("submit", async (e) => {
   const telefono = document.getElementById("su-telefono").value.trim();
   const edad = Number(document.getElementById("su-edad").value);
   const nivel = document.getElementById("su-nivel").value;
+  const referidoPor = document.getElementById("su-referido").value.trim();
   const password = document.getElementById("su-password").value;
+
+  if (edad < 18) {
+    const nombreApoderado = document.getElementById("su-apoderado-nombre").value.trim();
+    const telefonoApoderado = document.getElementById("su-apoderado-telefono").value.trim();
+    const autoriza = document.getElementById("su-apoderado-autoriza").checked;
+    if (!nombreApoderado || !telefonoApoderado || !autoriza) {
+      signupMsg.textContent = "Al ser menor de edad, completa los datos del apoderado y marca la autorización.";
+      signupMsg.className = "form-msg error";
+      return;
+    }
+  }
 
   const disponibilidad = Array.from(
     disponibilidadWrap.querySelectorAll("input:checked")
@@ -108,6 +128,16 @@ formSignup.addEventListener("submit", async (e) => {
       telefono,
       edad,
       nivel,
+      referidoPor,
+      ...(edad < 18
+        ? {
+            apoderado: {
+              nombre: document.getElementById("su-apoderado-nombre").value.trim(),
+              telefono: document.getElementById("su-apoderado-telefono").value.trim(),
+              autorizo: true
+            }
+          }
+        : {}),
       disponibilidad,
       creadoEn: serverTimestamp()
     });

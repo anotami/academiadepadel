@@ -82,10 +82,34 @@
                 <option>Intermedio</option>
               </select>
             </div>
+            <div class="field">
+              <label for="su-referido">¿Alguien te invitó? (opcional)</label>
+              <input type="text" id="su-referido" placeholder="Nombre de quien te recomendó la academia">
+            </div>
             <div class="field field-full">
               <label for="su-password">Contraseña (mínimo 6 caracteres)</label>
               <input type="password" id="su-password" minlength="6" required autocomplete="new-password">
             </div>
+          </div>
+
+          <div class="field-full" id="su-apoderado-wrap" hidden style="margin-top:14px;">
+            <div class="callout">
+              <span class="callout-icon">👪</span>
+              <p>Como eres menor de edad, necesitamos los datos de tu apoderado.</p>
+            </div>
+            <div class="form-grid" style="margin-top:10px;">
+              <div class="field">
+                <label for="su-apoderado-nombre">Nombre del apoderado</label>
+                <input type="text" id="su-apoderado-nombre">
+              </div>
+              <div class="field">
+                <label for="su-apoderado-telefono">Teléfono del apoderado</label>
+                <input type="tel" id="su-apoderado-telefono">
+              </div>
+            </div>
+            <label class="avail-slot" style="display:inline-flex; margin-top:10px;">
+              <input type="checkbox" id="su-apoderado-autoriza"> El apoderado autoriza la inscripción a la academia
+            </label>
           </div>
 
           <h3 style="margin-top:22px;">Tu disponibilidad habitual</h3>
@@ -111,7 +135,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=2"></script>
-<script type="module" src="assets/js/login-page.js?v=2"></script>
+<script src="assets/js/main.js?v=10"></script>
+<script type="module" src="assets/js/login-page.js?v=10"></script>
 </body>
 </html>
