@@ -6,7 +6,7 @@ import {
 } from "./firebase-app.js?v=5";
 import {
   DIAS, FRANJAS, HORAS_RESERVA, TIPOS_CLASE,
-  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
+  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos
 } from "./portal-common.js?v=5";
 
 let currentUid = null;
@@ -40,7 +40,61 @@ onAuthStateChanged(auth, async (user) => {
   cargarReservas(user.uid);
   cargarPaquete(user.uid);
   cargarProgreso(user.uid);
+  cargarJugar();
 });
+
+// ---- Busco con quién jugar ----
+document.getElementById("form-jugar").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("jugar-msg");
+  const fecha = document.getElementById("jg-fecha").value;
+  const nota = document.getElementById("jg-nota").value.trim();
+  try {
+    await addDoc(collection(db, "partidos"), {
+      alumnoId: currentUid,
+      alumnoNombre: currentPerfil.nombre,
+      alumnoTelefono: currentPerfil.telefono || "",
+      nivel: currentPerfil.nivel || "",
+      fecha,
+      nota,
+      creadoEn: serverTimestamp()
+    });
+    msg.textContent = "¡Publicado! Otros alumnos ya pueden verte.";
+    msg.className = "form-msg ok";
+    e.target.reset();
+  } catch (err) {
+    msg.textContent = "No se pudo publicar: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
+
+function cargarJugar() {
+  const wrap = document.getElementById("lista-jugar");
+  onSnapshot(collection(db, "partidos"), (snap) => {
+    const otros = snap.docs
+      .map((d) => d.data())
+      .filter((p) => p.alumnoId !== currentUid && !fechaYaPaso(p.fecha))
+      .sort((a, b) => a.fecha.localeCompare(b.fecha));
+    if (otros.length === 0) {
+      wrap.innerHTML = '<p class="empty-state">Nadie más está buscando partido por ahora.</p>';
+      return;
+    }
+    wrap.innerHTML = otros.map((p) => {
+      const telefono = soloDigitos(p.alumnoTelefono);
+      const texto = `Hola ${p.alumnoNombre}, vi en academiadepadel.pe que buscabas con quién jugar el ${formatearFecha(p.fecha)}. ¿Jugamos?`;
+      const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Escribirle</a>` : "";
+      return `
+        <div class="request-card">
+          <div class="request-info">
+            <p class="request-title">${p.alumnoNombre}${p.nivel ? " · Nivel " + p.nivel : ""}</p>
+            <p>${formatearFecha(p.fecha)}${p.nota ? " · " + p.nota : ""}</p>
+          </div>
+          ${link}
+        </div>`;
+    }).join("");
+  }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
 
 // ---- Mi progreso (línea de tiempo del feedback de sesiones) ----
 function cargarProgreso(uid) {
