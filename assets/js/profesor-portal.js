@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=5";
+} from "./firebase-app.js?v=6";
 import {
   DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
-} from "./portal-common.js?v=5";
+} from "./portal-common.js?v=6";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -43,6 +43,7 @@ onAuthStateChanged(auth, async (user) => {
   await cargarAlumnos();
   cargarPaquetes();
   poblarSelectPaquete();
+  cargarMetricas(user.uid);
 });
 
 function poblarSelectPaquete() {
@@ -388,4 +389,41 @@ function linkRecordatorio(r) {
   if (!telefono) return "";
   const texto = `Hola ${r.alumnoNombre}, te recuerdo tu clase de pádel el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre}. ¡Nos vemos en la cancha!`;
   return `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Recordar</a>`;
+}
+
+// ---- Resumen / métricas ----
+async function cargarMetricas(uid) {
+  const wrap = document.getElementById("metricas");
+  try {
+    const snap = await getDocs(query(collection(db, "reservas"), where("profesorId", "==", uid)));
+    const reservas = snap.docs.map((d) => d.data());
+
+    const confirmadas = reservas.filter((r) => r.estado === "confirmada").length;
+    const rechazadas = reservas.filter((r) => r.estado === "rechazada").length;
+    const pendientes = reservas.filter((r) => r.estado === "pendiente").length;
+
+    const conteoPistas = {};
+    reservas.filter((r) => r.estado === "confirmada").forEach((r) => {
+      conteoPistas[r.pistaNombre] = (conteoPistas[r.pistaNombre] || 0) + 1;
+    });
+    const pistaTop = Object.entries(conteoPistas).sort((a, b) => b[1] - a[1])[0];
+
+    const conNps = reservas.filter((r) => typeof r.nps === "number");
+    const npsPromedio = conNps.length
+      ? (conNps.reduce((sum, r) => sum + r.nps, 0) / conNps.length).toFixed(1)
+      : "—";
+
+    const alumnosActivos = new Set(reservas.filter((r) => r.estado === "confirmada").map((r) => r.alumnoId)).size;
+
+    wrap.innerHTML = `
+      <div class="card"><div class="card-icon">✅</div><h3>${confirmadas}</h3><p>Clases confirmadas</p></div>
+      <div class="card"><div class="card-icon">🚫</div><h3>${rechazadas}</h3><p>Rechazadas</p></div>
+      <div class="card"><div class="card-icon">⏳</div><h3>${pendientes}</h3><p>Pendientes ahora</p></div>
+      <div class="card"><div class="card-icon">📍</div><h3>${pistaTop ? pistaTop[0] : "—"}</h3><p>Pista más usada${pistaTop ? ` (${pistaTop[1]})` : ""}</p></div>
+      <div class="card"><div class="card-icon">⭐</div><h3>${npsPromedio}</h3><p>NPS promedio (${conNps.length} respuestas)</p></div>
+      <div class="card"><div class="card-icon">👥</div><h3>${alumnosActivos}</h3><p>Alumnos con clase confirmada</p></div>
+    `;
+  } catch (err) {
+    mostrarErrorConsulta(wrap, err);
+  }
 }
