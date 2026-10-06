@@ -40,6 +40,20 @@
       <div class="portal-card">
         <h2>Resumen</h2>
         <div class="cards grid-4" id="metricas"><p class="empty-state">Cargando...</p></div>
+        <h3 style="margin-top:22px;">Rentabilidad (paquetes ya pagados)</h3>
+        <p class="field-hint">Usa el costo de cancha que cargaste en cada pista y tu costo por hora en "Mis datos". Carga esos dos datos para que esto sea exacto.</p>
+        <div class="cards grid-4" id="rentabilidad"></div>
+      </div>
+
+      <!-- Seguimiento: riesgo de abandono, renovaciones, cobros -->
+      <div class="portal-card">
+        <h2>Seguimiento</h2>
+        <h3>Alumnos sin actividad reciente</h3>
+        <div id="lista-riesgo" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
+        <h3>Paquetes por renovar</h3>
+        <div id="lista-renovar" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
+        <h3>Cobros pendientes</h3>
+        <div id="lista-cobros"><p class="empty-state">Cargando...</p></div>
       </div>
 
       <!-- Solicitudes pendientes -->
@@ -112,6 +126,10 @@
               <label for="p-especialidad">Especialidad</label>
               <input type="text" id="p-especialidad" required>
             </div>
+            <div class="field">
+              <label for="p-costo-hora">Tu costo por hora de clase (S/, para calcular rentabilidad)</label>
+              <input type="number" id="p-costo-hora" min="0" step="1">
+            </div>
             <div class="field field-full">
               <label for="p-bio">Bio corta</label>
               <input type="text" id="p-bio">
@@ -138,7 +156,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=6"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=6"></script>
+<script src="assets/js/main.js?v=7"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=7"></script>
 </body>
 </html>

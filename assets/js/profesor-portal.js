@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=6";
+} from "./firebase-app.js?v=7";
 import {
   DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
-} from "./portal-common.js?v=6";
+} from "./portal-common.js?v=7";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -44,6 +44,7 @@ onAuthStateChanged(auth, async (user) => {
   cargarPaquetes();
   poblarSelectPaquete();
   cargarMetricas(user.uid);
+  cargarSeguimiento(user.uid);
 });
 
 function poblarSelectPaquete() {
@@ -72,6 +73,7 @@ DIAS.forEach((dia) => {
 function rellenarPerfil(perfil) {
   document.getElementById("p-telefono").value = perfil.telefono || "";
   document.getElementById("p-especialidad").value = perfil.especialidad || "";
+  document.getElementById("p-costo-hora").value = perfil.costoHora || 0;
   document.getElementById("p-bio").value = perfil.bio || "";
   const marcadas = new Set((perfil.disponibilidad || []).map((d) => `${d.dia}|${d.franja}`));
   dispWrap.querySelectorAll("input[type=checkbox]").forEach((input) => {
@@ -90,13 +92,16 @@ document.getElementById("form-perfil").addEventListener("submit", async (e) => {
     return { dia, franja };
   });
   try {
+    const costoHora = Number(document.getElementById("p-costo-hora").value) || 0;
     await updateDoc(doc(db, "usuarios", currentUid), {
       telefono: document.getElementById("p-telefono").value.trim(),
       especialidad: document.getElementById("p-especialidad").value.trim(),
       bio: document.getElementById("p-bio").value.trim(),
+      costoHora,
       disponibilidad
     });
     currentPerfil.disponibilidad = disponibilidad;
+    currentPerfil.costoHora = costoHora;
     msg.textContent = "Datos actualizados.";
     msg.className = "form-msg ok";
   } catch (err) {
@@ -394,9 +399,10 @@ function linkRecordatorio(r) {
 // ---- Resumen / métricas ----
 async function cargarMetricas(uid) {
   const wrap = document.getElementById("metricas");
+  const wrapRent = document.getElementById("rentabilidad");
   try {
     const snap = await getDocs(query(collection(db, "reservas"), where("profesorId", "==", uid)));
-    const reservas = snap.docs.map((d) => d.data());
+    const reservas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
     const confirmadas = reservas.filter((r) => r.estado === "confirmada").length;
     const rechazadas = reservas.filter((r) => r.estado === "rechazada").length;
@@ -423,7 +429,154 @@ async function cargarMetricas(uid) {
       <div class="card"><div class="card-icon">⭐</div><h3>${npsPromedio}</h3><p>NPS promedio (${conNps.length} respuestas)</p></div>
       <div class="card"><div class="card-icon">👥</div><h3>${alumnosActivos}</h3><p>Alumnos con clase confirmada</p></div>
     `;
+
+    await calcularRentabilidad(wrapRent, reservas);
   } catch (err) {
     mostrarErrorConsulta(wrap, err);
   }
+}
+
+async function calcularRentabilidad(wrap, reservas) {
+  const paquetesSnap = await getDocs(collection(db, "paquetes"));
+  const paquetesPagados = paquetesSnap.docs.map((d) => d.data()).filter((p) => p.pagado);
+
+  if (paquetesPagados.length === 0) {
+    wrap.innerHTML = '<p class="empty-state">Todavía no hay paquetes pagados para calcular rentabilidad.</p>';
+    return;
+  }
+
+  const costoPromedioPistas = pistasCache.length
+    ? pistasCache.reduce((sum, p) => sum + (p.costoHora || 0), 0) / pistasCache.length
+    : 0;
+  const costoProfesorHora = currentPerfil.costoHora || 0;
+
+  let ingresoTotal = 0;
+  let costoTotal = 0;
+
+  paquetesPagados.forEach((paquete) => {
+    const reservasDelPaquete = reservas.filter((r) => r.paqueteId && r.paqueteId === paquete.id);
+    const pistasUsadas = reservasDelPaquete
+      .map((r) => pistasCache.find((p) => p.id === r.pistaId))
+      .filter(Boolean);
+    const costoCanchaHora = pistasUsadas.length
+      ? pistasUsadas.reduce((sum, p) => sum + (p.costoHora || 0), 0) / pistasUsadas.length
+      : costoPromedioPistas;
+
+    ingresoTotal += paquete.monto || 0;
+    costoTotal += paquete.clasesTotales * (costoCanchaHora + costoProfesorHora);
+  });
+
+  const margenTotal = ingresoTotal - costoTotal;
+  const margenPct = ingresoTotal ? Math.round((margenTotal / ingresoTotal) * 100) : 0;
+  const sinDatos = costoPromedioPistas === 0 && costoProfesorHora === 0;
+
+  wrap.innerHTML = `
+    <div class="card"><div class="card-icon">💵</div><h3>S/ ${ingresoTotal.toFixed(0)}</h3><p>Ingreso (paquetes pagados)</p></div>
+    <div class="card"><div class="card-icon">🧾</div><h3>S/ ${costoTotal.toFixed(0)}</h3><p>Costo estimado (cancha + tu hora)</p></div>
+    <div class="card"><div class="card-icon">${margenTotal >= 0 ? "📈" : "📉"}</div><h3>S/ ${margenTotal.toFixed(0)}</h3><p>Margen neto</p></div>
+    <div class="card"><div class="card-icon">%</div><h3>${margenPct}%</h3><p>Margen sobre ingreso</p></div>
+    ${sinDatos ? '<p class="empty-state" style="grid-column:1/-1;">⚠ No cargaste costo de cancha ni tu costo por hora todavía, así que el costo estimado es S/0 y no refleja la realidad. Cárgalos en pistas.html y en "Mis datos".</p>' : ""}
+  `;
+}
+
+// ---- Seguimiento: riesgo de abandono, renovaciones, cobros pendientes ----
+const DIAS_RIESGO_ABANDONO = 14;
+
+async function cargarSeguimiento(uid) {
+  const wrapRiesgo = document.getElementById("lista-riesgo");
+  const wrapRenovar = document.getElementById("lista-renovar");
+  const wrapCobros = document.getElementById("lista-cobros");
+
+  try {
+    const [reservasSnap, paquetesSnap] = await Promise.all([
+      getDocs(query(collection(db, "reservas"), where("profesorId", "==", uid))),
+      getDocs(collection(db, "paquetes"))
+    ]);
+    const reservas = reservasSnap.docs.map((d) => d.data());
+    const paquetes = paquetesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    renderRiesgoAbandono(wrapRiesgo, reservas);
+    renderPorRenovar(wrapRenovar, paquetes);
+    renderCobrosPendientes(wrapCobros, paquetes);
+  } catch (err) {
+    mostrarErrorConsulta(wrapRiesgo, err);
+    mostrarErrorConsulta(wrapRenovar, err);
+    mostrarErrorConsulta(wrapCobros, err);
+  }
+}
+
+function renderRiesgoAbandono(wrap, reservas) {
+  const hoyMs = Date.now();
+  const enRiesgo = alumnosCache.map((a) => {
+    const confirmadasAlumno = reservas.filter((r) => r.alumnoId === a.id && r.estado === "confirmada");
+    const ultimaFecha = confirmadasAlumno.map((r) => r.fecha).sort().pop();
+    const diasSinClase = ultimaFecha
+      ? Math.floor((hoyMs - new Date(ultimaFecha + "T00:00:00").getTime()) / 86400000)
+      : null;
+    return { alumno: a, ultimaFecha, diasSinClase };
+  }).filter((x) => x.diasSinClase === null || x.diasSinClase >= DIAS_RIESGO_ABANDONO);
+
+  if (enRiesgo.length === 0) {
+    wrap.innerHTML = '<p class="empty-state">Todos tus alumnos tuvieron clase en los últimos ' + DIAS_RIESGO_ABANDONO + ' días.</p>';
+    return;
+  }
+
+  wrap.innerHTML = enRiesgo.map(({ alumno, ultimaFecha, diasSinClase }) => {
+    const telefono = soloDigitos(alumno.telefono);
+    const texto = `Hola ${alumno.nombre}, hace tiempo no te vemos por la academia — ¿coordinamos tu próxima clase de pádel?`;
+    const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Escribirle</a>` : "";
+    return `
+      <div class="request-card">
+        <div class="request-info">
+          <p class="request-title">${alumno.nombre}</p>
+          <p>${ultimaFecha ? `Última clase: ${formatearFecha(ultimaFecha)} (${diasSinClase} días)` : "Nunca tuvo una clase confirmada"}</p>
+        </div>
+        ${link}
+      </div>`;
+  }).join("");
+}
+
+function renderPorRenovar(wrap, paquetes) {
+  const porRenovar = paquetes.filter((p) => p.clasesTotales - p.clasesUsadas <= 1);
+  if (porRenovar.length === 0) {
+    wrap.innerHTML = '<p class="empty-state">Ningún paquete está por agotarse.</p>';
+    return;
+  }
+  wrap.innerHTML = porRenovar.map((p) => {
+    const alumno = alumnosCache.find((a) => a.id === p.alumnoId);
+    const telefono = soloDigitos(alumno?.telefono);
+    const restantes = p.clasesTotales - p.clasesUsadas;
+    const texto = `Hola ${p.alumnoNombre}, ${restantes <= 0 ? "ya usaste todas las clases de tu paquete" : "te queda solo " + restantes + " clase de tu paquete"} "${p.tipo}" — ¿coordinamos la renovación?`;
+    const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Ofrecer renovación</a>` : "";
+    return `
+      <div class="request-card">
+        <div class="request-info">
+          <p class="request-title">${p.alumnoNombre} — ${p.tipo}</p>
+          <p>${restantes <= 0 ? "Agotado" : `${restantes} clase restante`}</p>
+        </div>
+        ${link}
+      </div>`;
+  }).join("");
+}
+
+function renderCobrosPendientes(wrap, paquetes) {
+  const pendientes = paquetes.filter((p) => !p.pagado);
+  if (pendientes.length === 0) {
+    wrap.innerHTML = '<p class="empty-state">No hay cobros pendientes.</p>';
+    return;
+  }
+  wrap.innerHTML = pendientes.map((p) => {
+    const alumno = alumnosCache.find((a) => a.id === p.alumnoId);
+    const telefono = soloDigitos(alumno?.telefono);
+    const texto = `Hola ${p.alumnoNombre}, te recuerdo que el pago de tu paquete "${p.tipo}" (S/ ${p.monto}) está pendiente.`;
+    const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Cobrar</a>` : "";
+    return `
+      <div class="request-card">
+        <div class="request-info">
+          <p class="request-title">${p.alumnoNombre} — ${p.tipo}</p>
+          <p>S/ ${p.monto}</p>
+        </div>
+        ${link}
+      </div>`;
+  }).join("");
 }

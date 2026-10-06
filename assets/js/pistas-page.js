@@ -1,5 +1,5 @@
-import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=5";
-import { DIAS, FRANJAS, estaDisponible } from "./portal-common.js?v=5";
+import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=7";
+import { DIAS, FRANJAS, estaDisponible } from "./portal-common.js?v=7";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];
 const BADGE_POR_ESTADO = { Habilitada: "badge-confirmada", Reservada: "badge-pendiente", Bloqueada: "badge-rechazada" };
@@ -39,7 +39,8 @@ function construirFormularioNuevaPista() {
       <div class="field"><label>Dirección</label><input type="text" data-campo="direccion" required></div>
       <div class="field"><label>Teléfono</label><input type="text" data-campo="telefono"></div>
       <div class="field"><label>Horario (texto libre)</label><input type="text" data-campo="horario" placeholder="Ej: Lunes a domingo, 6:00 - 22:00"></div>
-      <div class="field"><label>Precio</label><input type="text" data-campo="precio" placeholder="Ej: S/ 90 - S/ 130 / hr"></div>
+      <div class="field"><label>Precio (público, el que ve el alumno)</label><input type="text" data-campo="precio" placeholder="Ej: S/ 90 - S/ 130 / hr"></div>
+      <div class="field"><label>Tu costo real por hora (S/, solo lo ves tú)</label><input type="number" min="0" step="1" data-campo="costoHora" placeholder="Ej: 100"></div>
       <div class="field"><label>Web / redes</label><input type="text" data-campo="web" placeholder="Ej: sitio.com | @usuario"></div>
       <div class="field">
         <label>Estado</label>
@@ -88,6 +89,7 @@ function construirFormularioNuevaPista() {
         telefono: campo("telefono"),
         horario: campo("horario"),
         precio: campo("precio"),
+        costoHora: Number(campo("costoHora")) || 0,
         web: campo("web"),
         estadoPista: card.querySelector('[data-campo="estadoPista"]').value,
         notas: "",
@@ -152,16 +154,23 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
   card.appendChild(grid);
 
   if (esProfesor) {
-    const estadoField = document.createElement("div");
-    estadoField.className = "field";
-    estadoField.style.maxWidth = "220px";
-    estadoField.style.marginTop = "14px";
-    estadoField.innerHTML = `
-      <label>Estado de la pista</label>
-      <select>${ESTADOS_PISTA.map((e) => `<option ${e === estado ? "selected" : ""}>${e}</option>`).join("")}</select>
+    const fieldsWrap = document.createElement("div");
+    fieldsWrap.className = "form-grid";
+    fieldsWrap.style.maxWidth = "460px";
+    fieldsWrap.style.marginTop = "14px";
+    fieldsWrap.innerHTML = `
+      <div class="field">
+        <label>Estado de la pista</label>
+        <select data-campo="estadoPista">${ESTADOS_PISTA.map((e) => `<option ${e === estado ? "selected" : ""}>${e}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Tu costo real por hora (S/)</label>
+        <input type="number" min="0" step="1" data-campo="costoHora" value="${pista.costoHora || 0}">
+      </div>
     `;
-    const estadoSelect = estadoField.querySelector("select");
-    card.appendChild(estadoField);
+    const estadoSelect = fieldsWrap.querySelector('[data-campo="estadoPista"]');
+    const costoInput = fieldsWrap.querySelector('[data-campo="costoHora"]');
+    card.appendChild(fieldsWrap);
 
     const msg = document.createElement("p");
     msg.className = "form-msg";
@@ -177,7 +186,11 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
         franja: input.dataset.franja
       }));
       try {
-        await updateDoc(doc(db, "pistas", pistaId), { disponibilidad, estadoPista: estadoSelect.value });
+        await updateDoc(doc(db, "pistas", pistaId), {
+          disponibilidad,
+          estadoPista: estadoSelect.value,
+          costoHora: Number(costoInput.value) || 0
+        });
         msg.textContent = "Guardado.";
         msg.className = "form-msg ok";
       } catch (err) {
