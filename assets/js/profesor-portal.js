@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=7";
+} from "./firebase-app.js?v=8";
 import {
-  DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, esProgramaRegular, soloDigitos,
+  DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
-} from "./portal-common.js?v=7";
+} from "./portal-common.js?v=8";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -45,6 +45,7 @@ onAuthStateChanged(auth, async (user) => {
   poblarSelectPaquete();
   cargarMetricas(user.uid);
   cargarSeguimiento(user.uid);
+  cargarEsperas();
 });
 
 function poblarSelectPaquete() {
@@ -228,23 +229,71 @@ function cargarConfirmadas(uid) {
       porRegistrar.forEach((r) => wrapPorRegistrar.appendChild(construirTarjetaRegistro(r)));
     }
 
-    wrapFuturas.innerHTML = futuras.length === 0
-      ? '<p class="empty-state">Aún no tienes clases confirmadas.</p>'
-      : futuras.map((r) => `
-          <div class="request-card">
-            <div class="request-info">
-              <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
-              <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
-            </div>
-            <div class="request-actions">
-              <span class="badge badge-confirmada">confirmada</span>
-              ${linkRecordatorio(r)}
-            </div>
-          </div>`).join("");
+    wrapFuturas.innerHTML = "";
+    if (futuras.length === 0) {
+      wrapFuturas.innerHTML = '<p class="empty-state">Aún no tienes clases confirmadas.</p>';
+    } else {
+      futuras.forEach((r) => wrapFuturas.appendChild(construirTarjetaFutura(r)));
+    }
   }, (err) => {
     mostrarErrorConsulta(wrapFuturas, err);
     mostrarErrorConsulta(wrapPorRegistrar, err);
   });
+}
+
+function construirTarjetaFutura(r) {
+  const card = document.createElement("div");
+  card.className = "request-card";
+  card.innerHTML = `
+    <div class="request-info">
+      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+      <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
+      <div class="field-full" data-reprogramar-form hidden style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+        <div class="field"><label>Nueva fecha</label><input type="date" data-campo="fecha" value="${r.fecha}"></div>
+        <div class="field"><label>Nueva hora</label><select data-campo="hora">${HORAS_RESERVA.map((h) => `<option ${h === r.hora ? "selected" : ""}>${h}</option>`).join("")}</select></div>
+        <button class="btn btn-primary btn-small" type="button" data-guardar-reprogramacion>Guardar</button>
+      </div>
+      <p class="form-msg"></p>
+    </div>
+    <div class="request-actions">
+      <span class="badge badge-confirmada">confirmada</span>
+      ${linkRecordatorio(r)}
+      <button class="btn btn-outline btn-small" type="button" data-toggle-reprogramar>Reprogramar</button>
+    </div>`;
+
+  const form = card.querySelector("[data-reprogramar-form]");
+  card.querySelector("[data-toggle-reprogramar]").addEventListener("click", () => {
+    form.hidden = !form.hidden;
+  });
+  const msg = card.querySelector(".form-msg");
+  card.querySelector("[data-guardar-reprogramacion]").addEventListener("click", async () => {
+    const fecha = form.querySelector('[data-campo="fecha"]').value;
+    const hora = form.querySelector('[data-campo="hora"]').value;
+    const choque = await getDocs(
+      query(
+        collection(db, "reservas"),
+        where("pistaId", "==", r.pistaId),
+        where("fecha", "==", fecha),
+        where("hora", "==", hora),
+        where("estado", "==", "confirmada")
+      )
+    );
+    if (choque.docs.some((d) => d.id !== r.id)) {
+      msg.textContent = "Esa pista ya tiene otra clase confirmada en ese horario.";
+      msg.className = "form-msg error";
+      return;
+    }
+    try {
+      await updateDoc(doc(db, "reservas", r.id), { fecha, hora });
+      msg.textContent = "Reprogramada.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo reprogramar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
+
+  return card;
 }
 
 function construirTarjetaRegistro(r) {
@@ -579,4 +628,30 @@ function renderCobrosPendientes(wrap, paquetes) {
         ${link}
       </div>`;
   }).join("");
+}
+
+// ---- Lista de espera ----
+function cargarEsperas() {
+  const wrap = document.getElementById("lista-esperas");
+  onSnapshot(collection(db, "esperas"), (snap) => {
+    if (snap.empty) {
+      wrap.innerHTML = '<p class="empty-state">Nadie está esperando un horario ahora mismo.</p>';
+      return;
+    }
+    const esperas = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.creadoEn?.seconds || 0) - (b.creadoEn?.seconds || 0));
+    wrap.innerHTML = esperas.map((e) => {
+      const telefono = soloDigitos(e.alumnoTelefono);
+      const texto = `Hola ${e.alumnoNombre}, se liberó el horario que esperabas: ${e.pistaNombre}, ${formatearFecha(e.fecha)} ${e.hora} hrs. ¿Lo confirmamos?`;
+      const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Avisarle</a>` : "";
+      return `
+        <div class="request-card">
+          <div class="request-info">
+            <p class="request-title">${e.alumnoNombre}${e.tipoClase ? " — " + e.tipoClase : ""}</p>
+            <p>${e.pistaNombre} · ${formatearFecha(e.fecha)} · ${e.hora} hrs</p>
+          </div>
+          ${link}
+        </div>`;
+    }).join("");
+  }, (err) => mostrarErrorConsulta(wrap, err));
 }

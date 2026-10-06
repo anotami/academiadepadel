@@ -222,8 +222,29 @@ document.getElementById("form-reserva").addEventListener("submit", async (e) => 
       )
     );
     if (!conflicto.empty) {
-      msg.textContent = "Ese horario ya está confirmado para otro alumno en esa pista. Elige otra hora.";
+      msg.innerHTML = `Ese horario ya está confirmado para otro alumno en esa pista. Elige otra hora, o
+        <button type="button" class="btn btn-outline btn-small" id="btn-anotar-espera" style="margin-top:8px;">Anotarme en lista de espera</button>`;
       msg.className = "form-msg error";
+      document.getElementById("btn-anotar-espera").addEventListener("click", async () => {
+        try {
+          await addDoc(collection(db, "esperas"), {
+            alumnoId: currentUid,
+            alumnoNombre: currentPerfil.nombre,
+            alumnoTelefono: currentPerfil.telefono || "",
+            pistaId,
+            pistaNombre: `${pista.nombre} — ${pista.distrito}`,
+            fecha,
+            hora,
+            tipoClase,
+            creadoEn: serverTimestamp()
+          });
+          msg.textContent = "Anotado en lista de espera. Te avisamos si se libera ese horario.";
+          msg.className = "form-msg ok";
+        } catch (err) {
+          msg.textContent = "No se pudo anotar: " + err.message;
+          msg.className = "form-msg error";
+        }
+      });
       return;
     }
 
@@ -263,21 +284,47 @@ function cargarReservas(uid) {
       wrap.innerHTML = '<p class="empty-state">Aún no tienes reservas. Envía tu primera solicitud arriba.</p>';
       return;
     }
-    wrap.innerHTML = snap.docs.map((d) => {
+    wrap.innerHTML = "";
+    snap.docs.forEach((d) => {
       const r = { id: d.id, ...d.data() };
-      return `
-        <div class="request-card">
-          <div class="request-info">
-            <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.pistaNombre}</p>
-            <p>${formatearFecha(r.fecha)} · ${r.hora} hrs · Prof. ${r.profesorNombre}</p>
-            ${r.nota ? `<p>"${r.nota}"</p>` : ""}
-            ${bloqueFeedback(r)}
-            ${bloqueNps(r)}
-          </div>
-          <span class="badge badge-${r.estado}">${r.estado}</span>
+      const puedeCancelar = r.estado === "confirmada" && !fechaYaPaso(r.fecha);
+      const card = document.createElement("div");
+      card.className = "request-card";
+      card.innerHTML = `
+        <div class="request-info">
+          <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.pistaNombre}</p>
+          <p>${formatearFecha(r.fecha)} · ${r.hora} hrs · Prof. ${r.profesorNombre}</p>
+          ${r.nota ? `<p>"${r.nota}"</p>` : ""}
+          ${bloqueFeedback(r)}
+          ${bloqueNps(r)}
+        </div>
+        <div class="request-actions">
+          <span class="badge badge-${r.estado === "cancelada" ? "rechazada" : r.estado}">${r.estado}</span>
+          ${puedeCancelar ? '<button type="button" class="btn btn-outline btn-small" data-cancelar>Cancelar</button>' : ""}
         </div>`;
-    }).join("");
+      if (puedeCancelar) {
+        card.querySelector("[data-cancelar]").addEventListener("click", () => cancelarReserva(r));
+      }
+      wrap.appendChild(card);
+    });
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+async function cancelarReserva(r) {
+  if (!confirm("¿Seguro que quieres cancelar esta clase?")) return;
+  try {
+    const horasAntes = (new Date(`${r.fecha}T${r.hora}:00`).getTime() - Date.now()) / 3600000;
+    await updateDoc(doc(db, "reservas", r.id), { estado: "cancelada" });
+    if (r.paqueteId && horasAntes >= 24) {
+      const paqueteSnap = await getDoc(doc(db, "paquetes", r.paqueteId));
+      if (paqueteSnap.exists()) {
+        const clasesUsadas = Math.max(0, (paqueteSnap.data().clasesUsadas || 0) - 1);
+        await updateDoc(doc(db, "paquetes", r.paqueteId), { clasesUsadas });
+      }
+    }
+  } catch (err) {
+    alert("No se pudo cancelar: " + err.message);
+  }
 }
 
 // Delegación de eventos: un solo listener para todos los botones de NPS que se vayan creando.

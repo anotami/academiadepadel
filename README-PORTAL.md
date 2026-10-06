@@ -61,6 +61,10 @@ Datos ya precargados en `assets/js/seed-data.js`:
          allow read: if request.auth != null;
          allow write: if request.auth != null;
        }
+       match /esperas/{id} {
+         allow read: if request.auth != null;
+         allow write: if request.auth != null;
+       }
      }
    }
    ```
