@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=8";
+} from "./firebase-app.js?v=9";
 import {
-  DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
+  DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
-} from "./portal-common.js?v=8";
+} from "./portal-common.js?v=9";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -531,10 +531,13 @@ async function calcularRentabilidad(wrap, reservas) {
 // ---- Seguimiento: riesgo de abandono, renovaciones, cobros pendientes ----
 const DIAS_RIESGO_ABANDONO = 14;
 
+const TIPO_JORNADA_GRATIS = TIPOS_CLASE.find((g) => g.grupo === "Otros").opciones[0];
+
 async function cargarSeguimiento(uid) {
   const wrapRiesgo = document.getElementById("lista-riesgo");
   const wrapRenovar = document.getElementById("lista-renovar");
   const wrapCobros = document.getElementById("lista-cobros");
+  const wrapLeads = document.getElementById("lista-leads");
 
   try {
     const [reservasSnap, paquetesSnap] = await Promise.all([
@@ -547,11 +550,40 @@ async function cargarSeguimiento(uid) {
     renderRiesgoAbandono(wrapRiesgo, reservas);
     renderPorRenovar(wrapRenovar, paquetes);
     renderCobrosPendientes(wrapCobros, paquetes);
+    renderLeadsJornadaGratis(wrapLeads, reservas, paquetes);
   } catch (err) {
     mostrarErrorConsulta(wrapRiesgo, err);
     mostrarErrorConsulta(wrapRenovar, err);
     mostrarErrorConsulta(wrapCobros, err);
+    mostrarErrorConsulta(wrapLeads, err);
   }
+}
+
+function renderLeadsJornadaGratis(wrap, reservas, paquetes) {
+  const leads = reservas.filter((r) => r.tipoClase === TIPO_JORNADA_GRATIS && fechaYaPaso(r.fecha));
+  if (leads.length === 0) {
+    wrap.innerHTML = '<p class="empty-state">Nadie ha hecho la jornada gratis todavía.</p>';
+    return;
+  }
+  const alumnosConPaquete = new Set(paquetes.map((p) => p.alumnoId));
+  wrap.innerHTML = leads.map((r) => {
+    const convirtio = alumnosConPaquete.has(r.alumnoId);
+    const alumno = alumnosCache.find((a) => a.id === r.alumnoId);
+    const telefono = soloDigitos(alumno?.telefono);
+    const texto = `Hola ${r.alumnoNombre}, ¿qué te pareció la jornada "Conociendo el Pádel"? Te cuento los paquetes para seguir jugando.`;
+    const link = !convirtio && telefono
+      ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Dar seguimiento</a>`
+      : "";
+    return `
+      <div class="request-card">
+        <div class="request-info">
+          <p class="request-title">${r.alumnoNombre}</p>
+          <p>Jornada: ${formatearFecha(r.fecha)}</p>
+        </div>
+        <span class="badge ${convirtio ? "badge-confirmada" : "badge-pendiente"}">${convirtio ? "✓ Convirtió" : "Sin paquete aún"}</span>
+        ${link}
+      </div>`;
+  }).join("");
 }
 
 function renderRiesgoAbandono(wrap, reservas) {

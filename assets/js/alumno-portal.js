@@ -39,7 +39,35 @@ onAuthStateChanged(auth, async (user) => {
   await cargarProfesor();
   cargarReservas(user.uid);
   cargarPaquete(user.uid);
+  cargarProgreso(user.uid);
 });
+
+// ---- Mi progreso (línea de tiempo del feedback de sesiones) ----
+function cargarProgreso(uid) {
+  const wrap = document.getElementById("mi-progreso");
+  onSnapshot(
+    query(collection(db, "reservas"), where("alumnoId", "==", uid), where("registrada", "==", true)),
+    (snap) => {
+      if (snap.empty) {
+        wrap.innerHTML = '<p class="empty-state">Todavía no hay sesiones registradas por tu profesor.</p>';
+        return;
+      }
+      const sesiones = snap.docs.map((d) => d.data()).sort((a, b) => a.fecha.localeCompare(b.fecha));
+      wrap.innerHTML = sesiones.map((r) => {
+        const f = r.feedback || {};
+        return `
+          <div class="request-card">
+            <div class="request-info">
+              <p class="request-title">${formatearFecha(r.fecha)} · <span class="badge badge-confirmada">${f.nivelTrabajado || "—"}</span></p>
+              ${f.comentario ? `<p>${f.comentario}</p>` : ""}
+              ${f.siguienteObjetivo ? `<p><em>Próximo objetivo: ${f.siguienteObjetivo}</em></p>` : ""}
+            </div>
+          </div>`;
+      }).join("");
+    },
+    (err) => mostrarErrorConsulta(wrap, err)
+  );
+}
 
 // ---- Mi paquete de clases ----
 function cargarPaquete(uid) {
