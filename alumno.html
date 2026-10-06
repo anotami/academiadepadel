@@ -43,6 +43,10 @@
         <form id="form-reserva">
           <div class="form-grid">
             <div class="field field-full">
+              <label for="r-tipo">Tipo de clase</label>
+              <select id="r-tipo" required></select>
+            </div>
+            <div class="field field-full">
               <label for="r-pista">Pista</label>
               <select id="r-pista" required></select>
             </div>
@@ -59,6 +63,7 @@
               <input type="text" id="r-nota" placeholder="Ej: primera vez, quiero practicar saque...">
             </div>
           </div>
+          <p class="field-hint" id="r-disponibilidad-hint"></p>
           <button class="btn btn-primary" type="submit" style="margin-top:16px;">Enviar solicitud</button>
           <p class="form-msg" id="reserva-msg"></p>
         </form>

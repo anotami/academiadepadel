@@ -1102,6 +1102,7 @@ h1 .hl {
 }
 .avail-slot input { margin: 0; }
 .avail-slot.checked { border-color: var(--court); background: var(--callout-bg); }
+.avail-slot:has(input:disabled) { cursor: default; opacity: 0.6; }
 
 .badge {
   display: inline-block;

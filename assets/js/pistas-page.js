@@ -1,24 +1,82 @@
-import { auth, db, onAuthStateChanged, collection, getDocs } from "./firebase-app.js";
+import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, collection, getDocs } from "./firebase-app.js";
+import { DIAS, FRANJAS, estaDisponible } from "./portal-common.js";
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
     return;
   }
+  const usuarioSnap = await getDoc(doc(db, "usuarios", user.uid));
+  const esProfesor = usuarioSnap.exists() && usuarioSnap.data().rol === "profesor";
+
   const wrap = document.getElementById("lista-pistas");
   const snap = await getDocs(collection(db, "pistas"));
   if (snap.empty) {
     wrap.innerHTML = '<p class="empty-state">Aún no hay pistas cargadas.</p>';
     return;
   }
-  wrap.innerHTML = snap.docs.map((d) => {
-    const p = d.data();
-    return `
-      <div class="court-card">
-        <h3>${p.nombre}</h3>
-        <p>${p.direccion}</p>
-        <p class="court-meta">📞 ${p.telefono || "No publicado"} · 🕒 ${p.horario || "Por confirmar"}</p>
-        ${p.notas ? `<p class="court-meta">${p.notas}</p>` : ""}
-      </div>`;
-  }).join("");
+
+  wrap.innerHTML = "";
+  snap.docs.forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor)));
 });
+
+function construirTarjetaPista(pistaId, pista, esProfesor) {
+  const card = document.createElement("div");
+  card.className = "court-card";
+
+  const header = document.createElement("div");
+  header.innerHTML = `
+    <h3>${pista.nombre}</h3>
+    <p>${pista.direccion}</p>
+    <p class="court-meta">📞 ${pista.telefono || "No publicado"} · 🕒 ${pista.horario || "Por confirmar"}</p>
+    ${pista.notas ? `<p class="court-meta">${pista.notas}</p>` : ""}
+    <h3 style="margin-top:16px; font-size:0.92rem;">${esProfesor ? "Disponibilidad habitual (editable)" : "Disponibilidad habitual"}</h3>
+  `;
+  card.appendChild(header);
+
+  const grid = document.createElement("div");
+  grid.className = "availability-grid";
+  DIAS.forEach((dia) => {
+    FRANJAS.forEach((franja) => {
+      const checked = estaDisponible(pista.disponibilidad, dia, franja);
+      const label = document.createElement("label");
+      label.className = "avail-slot" + (checked ? " checked" : "");
+      label.innerHTML = `<input type="checkbox" data-dia="${dia}" data-franja="${franja}" ${checked ? "checked" : ""} ${esProfesor ? "" : "disabled"}> ${dia} · ${franja}`;
+      if (esProfesor) {
+        const input = label.querySelector("input");
+        input.addEventListener("change", () => label.classList.toggle("checked", input.checked));
+      }
+      grid.appendChild(label);
+    });
+  });
+  card.appendChild(grid);
+
+  if (esProfesor) {
+    const msg = document.createElement("p");
+    msg.className = "form-msg";
+
+    const btn = document.createElement("button");
+    btn.className = "btn btn-outline btn-small";
+    btn.type = "button";
+    btn.textContent = "Guardar disponibilidad";
+    btn.style.marginTop = "10px";
+    btn.addEventListener("click", async () => {
+      const disponibilidad = Array.from(grid.querySelectorAll("input:checked")).map((input) => ({
+        dia: input.dataset.dia,
+        franja: input.dataset.franja
+      }));
+      try {
+        await updateDoc(doc(db, "pistas", pistaId), { disponibilidad });
+        msg.textContent = "Disponibilidad guardada.";
+        msg.className = "form-msg ok";
+      } catch (err) {
+        msg.textContent = "No se pudo guardar: " + err.message;
+        msg.className = "form-msg error";
+      }
+    });
+    card.appendChild(btn);
+    card.appendChild(msg);
+  }
+
+  return card;
+}

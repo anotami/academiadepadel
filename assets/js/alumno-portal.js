@@ -4,7 +4,10 @@ import {
   doc, getDoc, updateDoc, addDoc, collection,
   query, where, orderBy, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js";
-import { DIAS, FRANJAS, HORAS_RESERVA, formatearFecha } from "./portal-common.js";
+import {
+  DIAS, FRANJAS, HORAS_RESERVA, TIPOS_CLASE,
+  formatearFecha, diaDeSemana, horaAFranja, estaDisponible
+} from "./portal-common.js";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -33,6 +36,7 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("who-nombre").textContent = currentPerfil.nombre || user.email;
   rellenarPerfil(currentPerfil);
   await cargarPistasEnSelect();
+  await cargarProfesor();
   cargarReservas(user.uid);
 });
 
@@ -45,6 +49,48 @@ HORAS_RESERVA.forEach((h) => {
   horaSelect.appendChild(opt);
 });
 document.getElementById("r-fecha").min = new Date().toISOString().slice(0, 10);
+
+// ---- Tipo de clase select ----
+const tipoSelect = document.getElementById("r-tipo");
+tipoSelect.innerHTML = TIPOS_CLASE.map((grupo) => `
+  <optgroup label="${grupo.grupo}">
+    ${grupo.opciones.map((op) => `<option value="${op}">${op}</option>`).join("")}
+  </optgroup>
+`).join("");
+
+// ---- Aviso en vivo: ¿el horario elegido calza con la disponibilidad habitual? ----
+const hintEl = document.getElementById("r-disponibilidad-hint");
+function actualizarHint() {
+  const pistaId = document.getElementById("r-pista").value;
+  const fecha = document.getElementById("r-fecha").value;
+  const hora = document.getElementById("r-hora").value;
+  if (!pistaId || !fecha || !hora) {
+    hintEl.textContent = "";
+    return;
+  }
+  const pista = pistasCache.find((p) => p.id === pistaId);
+  const dia = diaDeSemana(fecha);
+  const franja = horaAFranja(hora);
+  const okProfesor = profesorCache ? estaDisponible(profesorCache.disponibilidad, dia, franja) : null;
+  const okPista = pista ? estaDisponible(pista.disponibilidad, dia, franja) : null;
+
+  if (okProfesor === false || okPista === false) {
+    const partes = [];
+    if (okProfesor === false) partes.push("fuera de la disponibilidad habitual del profesor");
+    if (okPista === false) partes.push("fuera del horario habitual de la pista");
+    hintEl.textContent = `⚠ Este horario está ${partes.join(" y ")}. Igual puedes enviarlo, pero puede tardar más en confirmarse.`;
+    hintEl.className = "form-msg error";
+  } else if (okProfesor && okPista) {
+    hintEl.textContent = "✓ Este horario calza con la disponibilidad habitual del profesor y de la pista.";
+    hintEl.className = "form-msg ok";
+  } else {
+    hintEl.textContent = "";
+    hintEl.className = "field-hint";
+  }
+}
+["r-pista", "r-fecha", "r-hora"].forEach((id) => {
+  document.getElementById(id).addEventListener("change", actualizarHint);
+});
 
 // ---- Disponibilidad grid (perfil) ----
 const dispWrap = document.getElementById("p-disponibilidad");
@@ -107,11 +153,13 @@ async function cargarPistasEnSelect() {
 }
 
 // ---- Buscar al profesor (hay uno solo por ahora) ----
-async function obtenerProfesor() {
+let profesorCache = null;
+async function cargarProfesor() {
   const snap = await getDocs(query(collection(db, "usuarios"), where("rol", "==", "profesor")));
-  if (snap.empty) return null;
-  const docu = snap.docs[0];
-  return { id: docu.id, ...docu.data() };
+  if (!snap.empty) {
+    const docu = snap.docs[0];
+    profesorCache = { id: docu.id, ...docu.data() };
+  }
 }
 
 document.getElementById("form-reserva").addEventListener("submit", async (e) => {
@@ -120,6 +168,7 @@ document.getElementById("form-reserva").addEventListener("submit", async (e) => 
   msg.textContent = "";
   msg.className = "form-msg";
 
+  const tipoClase = document.getElementById("r-tipo").value;
   const pistaId = document.getElementById("r-pista").value;
   const fecha = document.getElementById("r-fecha").value;
   const hora = document.getElementById("r-hora").value;
@@ -149,14 +198,13 @@ document.getElementById("form-reserva").addEventListener("submit", async (e) => 
       return;
     }
 
-    const profesor = await obtenerProfesor();
-
     await addDoc(collection(db, "reservas"), {
       alumnoId: currentUid,
       alumnoNombre: currentPerfil.nombre,
       alumnoTelefono: currentPerfil.telefono || "",
-      profesorId: profesor ? profesor.id : null,
-      profesorNombre: profesor ? profesor.nombre : "Por asignar",
+      profesorId: profesorCache ? profesorCache.id : null,
+      profesorNombre: profesorCache ? profesorCache.nombre : "Por asignar",
+      tipoClase,
       pistaId,
       pistaNombre: `${pista.nombre} — ${pista.distrito}`,
       fecha,
@@ -170,6 +218,7 @@ document.getElementById("form-reserva").addEventListener("submit", async (e) => 
     msg.className = "form-msg ok";
     e.target.reset();
     document.getElementById("r-fecha").min = new Date().toISOString().slice(0, 10);
+    hintEl.textContent = "";
   } catch (err) {
     msg.textContent = "No se pudo enviar la solicitud: " + err.message;
     msg.className = "form-msg error";
@@ -190,7 +239,7 @@ function cargarReservas(uid) {
       return `
         <div class="request-card">
           <div class="request-info">
-            <p class="request-title">${r.pistaNombre}</p>
+            <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.pistaNombre}</p>
             <p>${formatearFecha(r.fecha)} · ${r.hora} hrs · Prof. ${r.profesorNombre}</p>
             ${r.nota ? `<p>"${r.nota}"</p>` : ""}
           </div>

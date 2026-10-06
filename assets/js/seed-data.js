@@ -2,6 +2,16 @@
 // Las pistas son canchas de pádel reales de Lima (datos públicos recogidos en oct. 2026);
 // confirma precios y disponibilidad real con cada club antes de coordinar una clase ahí.
 
+import { DIAS, FRANJAS } from "./portal-common.js";
+
+const TODOS_LOS_DIAS_TODAS_LAS_FRANJAS = DIAS.flatMap((dia) =>
+  FRANJAS.map((franja) => ({ dia, franja }))
+);
+
+function disponibilidadDias(dias, franjas = FRANJAS) {
+  return dias.flatMap((dia) => franjas.map((franja) => ({ dia, franja })));
+}
+
 export const PISTAS_SEED = [
   {
     nombre: "La Once — Complejo Deportivo",
@@ -10,7 +20,8 @@ export const PISTAS_SEED = [
     telefono: "+51 957 085 531",
     horario: "Lunes a domingo, 6:00 am – 11:00 pm",
     notas: "Sede principal de academiadepadel.pe.",
-    fuente: "Sede propia"
+    fuente: "Sede propia",
+    disponibilidad: TODOS_LOS_DIAS_TODAS_LAS_FRANJAS
   },
   {
     nombre: "Peru Padel Center — Mendiburu",
@@ -19,7 +30,11 @@ export const PISTAS_SEED = [
     telefono: "+51 934 377 679",
     horario: "Lunes a viernes 6:00 am – 9:00 pm · Sábado 6:30 am – 6:00 pm · Domingo cerrado",
     notas: "",
-    fuente: "limapadel.pe / perupadelcenter-pe.matchpoint.com.es"
+    fuente: "limapadel.pe / perupadelcenter-pe.matchpoint.com.es",
+    disponibilidad: [
+      ...disponibilidadDias(["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]),
+      ...disponibilidadDias(["Sábado"], [FRANJAS[0], FRANJAS[1], FRANJAS[2]])
+    ]
   },
   {
     nombre: "One Padel",
@@ -28,7 +43,8 @@ export const PISTAS_SEED = [
     telefono: "+51 959 881 552",
     horario: "Lunes a domingo, 6:00 am – 10:30 pm",
     notas: "",
-    fuente: "haycancha.com"
+    fuente: "haycancha.com",
+    disponibilidad: TODOS_LOS_DIAS_TODAS_LAS_FRANJAS
   },
   {
     nombre: "Bohemia Padel Club",
@@ -37,7 +53,8 @@ export const PISTAS_SEED = [
     telefono: "+51 975 613 680 (WhatsApp)",
     horario: "Lunes a domingo, 6:00 am – 10:30 pm",
     notas: "",
-    fuente: "bohemiapadel.com"
+    fuente: "bohemiapadel.com",
+    disponibilidad: TODOS_LOS_DIAS_TODAS_LAS_FRANJAS
   },
   {
     nombre: "Top Padel La Molina",
@@ -46,7 +63,8 @@ export const PISTAS_SEED = [
     telefono: "No publicado — confirmar al reservar",
     horario: "Por confirmar con el club",
     notas: "",
-    fuente: "limapadel.pe"
+    fuente: "limapadel.pe",
+    disponibilidad: []
   },
   {
     nombre: "Club X3",
@@ -55,7 +73,8 @@ export const PISTAS_SEED = [
     telefono: "No publicado — confirmar al reservar",
     horario: "Por confirmar con el club",
     notas: "",
-    fuente: "limapadel.pe"
+    fuente: "limapadel.pe",
+    disponibilidad: []
   }
 ];
 

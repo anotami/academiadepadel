@@ -4,9 +4,11 @@ import {
   doc, getDoc, updateDoc,
   collection, query, where, orderBy, onSnapshot, getDocs
 } from "./firebase-app.js";
-import { DIAS, FRANJAS, formatearFecha } from "./portal-common.js";
+import { DIAS, FRANJAS, formatearFecha, diaDeSemana, horaAFranja, estaDisponible } from "./portal-common.js";
 
 let currentUid = null;
+let currentPerfil = null;
+let pistasCache = [];
 
 function mostrarErrorConsulta(wrap, err) {
   const match = err.message && err.message.match(/https:\/\/\S+/);
@@ -28,12 +30,19 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
   currentUid = user.uid;
-  const perfil = snap.data();
-  document.getElementById("who-nombre").textContent = perfil.nombre || user.email;
-  rellenarPerfil(perfil);
+  currentPerfil = snap.data();
+  document.getElementById("who-nombre").textContent = currentPerfil.nombre || user.email;
+  rellenarPerfil(currentPerfil);
+  await cargarPistasCache();
   cargarPendientes(user.uid);
   cargarConfirmadas(user.uid);
+  cargarAlumnos();
 });
+
+async function cargarPistasCache() {
+  const snap = await getDocs(collection(db, "pistas"));
+  pistasCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
 
 // ---- Disponibilidad grid ----
 const dispWrap = document.getElementById("p-disponibilidad");
@@ -76,6 +85,7 @@ document.getElementById("form-perfil").addEventListener("submit", async (e) => {
       bio: document.getElementById("p-bio").value.trim(),
       disponibilidad
     });
+    currentPerfil.disponibilidad = disponibilidad;
     msg.textContent = "Datos actualizados.";
     msg.className = "form-msg ok";
   } catch (err) {
@@ -105,9 +115,10 @@ function cargarPendientes(uid) {
       card.className = "request-card";
       card.innerHTML = `
         <div class="request-info">
-          <p class="request-title">${r.alumnoNombre} — ${r.pistaNombre}</p>
-          <p>${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
+          <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+          <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
           ${r.nota ? `<p>"${r.nota}"</p>` : ""}
+          ${badgesDisponibilidad(r)}
         </div>
         <div class="request-actions">
           <button class="btn btn-primary btn-small" data-action="confirmar">Confirmar</button>
@@ -119,6 +130,18 @@ function cargarPendientes(uid) {
       wrap.appendChild(card);
     });
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+// Compara el horario pedido contra tu disponibilidad y la de la pista.
+function badgesDisponibilidad(r) {
+  const dia = diaDeSemana(r.fecha);
+  const franja = horaAFranja(r.hora);
+  const pista = pistasCache.find((p) => p.id === r.pistaId);
+  const okProfesor = estaDisponible(currentPerfil.disponibilidad, dia, franja);
+  const okPista = pista ? estaDisponible(pista.disponibilidad, dia, franja) : false;
+  const badge = (ok, label) =>
+    `<span class="badge ${ok ? "badge-confirmada" : "badge-rechazada"}">${ok ? "✓" : "⚠"} ${label}</span>`;
+  return `<p>${badge(okProfesor, "tu disponibilidad")} ${badge(okPista, "disponibilidad de la pista")}</p>`;
 }
 
 async function confirmar(reservaId, reserva) {
@@ -161,11 +184,33 @@ function cargarConfirmadas(uid) {
       return `
         <div class="request-card">
           <div class="request-info">
-            <p class="request-title">${r.alumnoNombre} — ${r.pistaNombre}</p>
-            <p>${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
+            <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+            <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
           </div>
           <span class="badge badge-confirmada">confirmada</span>
         </div>`;
     }).join("");
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+// ---- Disponibilidad de alumnos ----
+async function cargarAlumnos() {
+  const wrap = document.getElementById("lista-alumnos");
+  const snap = await getDocs(query(collection(db, "usuarios"), where("rol", "==", "alumno")));
+  if (snap.empty) {
+    wrap.innerHTML = '<p class="empty-state">Todavía no hay alumnos registrados.</p>';
+    return;
+  }
+  wrap.innerHTML = snap.docs.map((d) => {
+    const a = d.data();
+    const chips = (a.disponibilidad || [])
+      .map((x) => `<span class="badge badge-confirmada">${x.dia} · ${x.franja}</span>`)
+      .join(" ");
+    return `
+      <div class="court-card">
+        <h3>${a.nombre}</h3>
+        <p class="court-meta">${a.telefono || "Sin teléfono"} · Nivel ${a.nivel || "—"}</p>
+        <p>${chips || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
+      </div>`;
+  }).join("");
 }
