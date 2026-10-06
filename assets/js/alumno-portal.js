@@ -148,7 +148,11 @@ async function cargarPistasEnSelect() {
   const snap = await getDocs(collection(db, "pistas"));
   pistasCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   select.innerHTML = pistasCache
-    .map((p) => `<option value="${p.id}">${p.nombre} — ${p.distrito}</option>`)
+    .filter((p) => p.estadoPista !== "Bloqueada")
+    .map((p) => {
+      const aviso = p.estadoPista === "Reservada" ? " (reservada, confirma disponibilidad)" : "";
+      return `<option value="${p.id}">${p.nombre} — ${p.distrito}${aviso}</option>`;
+    })
     .join("");
 }
 

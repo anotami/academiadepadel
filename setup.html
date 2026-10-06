@@ -54,6 +54,25 @@
         </form>
         <div id="log" style="margin-top:16px; font-size:0.88rem; color:var(--ink-soft); white-space:pre-line;"></div>
       </div>
+
+      <div class="portal-card">
+        <h2>Reemplazar la lista de pistas</h2>
+        <p>
+          Borra TODAS las pistas que haya ahora mismo en la base de datos y las reemplaza por
+          la lista actual de <code>assets/js/seed-data.js</code> (34 canchas de Lima). Úsalo
+          cuando actualices esa lista en el código y quieras que el sitio en vivo la refleje —
+          cualquier disponibilidad que hayas editado a mano en <code>pistas.html</code> para las
+          pistas viejas se pierde.
+        </p>
+        <form id="form-reseed-pistas">
+          <div class="field">
+            <label for="pw-profesor-pistas">Contraseña del profesor (anotami@gmail.com)</label>
+            <input type="password" id="pw-profesor-pistas" minlength="6" required autocomplete="current-password">
+          </div>
+          <button class="btn btn-outline" id="btn-reseed-pistas" type="submit" style="margin-top:16px;">Borrar y recargar las 34 pistas</button>
+        </form>
+        <div id="log-pistas" style="margin-top:16px; font-size:0.88rem; color:var(--ink-soft); white-space:pre-line;"></div>
+      </div>
     </div>
   </section>
 </main>

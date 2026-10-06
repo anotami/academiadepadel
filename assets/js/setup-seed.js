@@ -1,7 +1,7 @@
 import {
   auth, db, CONFIG_IS_PLACEHOLDER,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-  doc, setDoc, collection, getDocs, serverTimestamp
+  doc, setDoc, deleteDoc, collection, getDocs, serverTimestamp
 } from "./firebase-app.js";
 import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js";
 
@@ -80,3 +80,40 @@ async function crearSesionTemporalYsembrarPistas(email, password) {
     await signOut(auth);
   }
 }
+
+// ---- Reemplazar por completo la lista de pistas ----
+const logPistasEl = document.getElementById("log-pistas");
+function logPistas(msg) {
+  logPistasEl.textContent += (logPistasEl.textContent ? "\n" : "") + msg;
+}
+
+document.getElementById("form-reseed-pistas").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (CONFIG_IS_PLACEHOLDER) {
+    logPistas("Falta configurar assets/js/firebase-config.js con tu proyecto de Firebase antes de usar esta página.");
+    return;
+  }
+  const password = document.getElementById("pw-profesor-pistas").value;
+  const btn = document.getElementById("btn-reseed-pistas");
+  btn.disabled = true;
+
+  try {
+    await signInWithEmailAndPassword(auth, PROFESOR_SEED.email, password);
+
+    const actuales = await getDocs(collection(db, "pistas"));
+    logPistas(`Borrando ${actuales.size} pista(s) existentes...`);
+    for (const d of actuales.docs) {
+      await deleteDoc(doc(db, "pistas", d.id));
+    }
+
+    for (const pista of PISTAS_SEED) {
+      await setDoc(doc(collection(db, "pistas")), pista);
+    }
+    logPistas(`✔ ${PISTAS_SEED.length} pistas cargadas de nuevo.`);
+  } catch (err) {
+    logPistas(`✘ No se pudo actualizar: ${err.message}`);
+  } finally {
+    await signOut(auth);
+    btn.disabled = false;
+  }
+});
