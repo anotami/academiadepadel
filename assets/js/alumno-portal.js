@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc, collection,
   query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=3";
+} from "./firebase-app.js?v=4";
 import {
   DIAS, FRANJAS, HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible
-} from "./portal-common.js?v=3";
+} from "./portal-common.js?v=4";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -38,7 +38,32 @@ onAuthStateChanged(auth, async (user) => {
   await cargarPistasEnSelect();
   await cargarProfesor();
   cargarReservas(user.uid);
+  cargarPaquete(user.uid);
 });
+
+// ---- Mi paquete de clases ----
+function cargarPaquete(uid) {
+  const wrap = document.getElementById("mi-paquete");
+  onSnapshot(query(collection(db, "paquetes"), where("alumnoId", "==", uid)), (snap) => {
+    if (snap.empty) {
+      wrap.innerHTML = '<p class="empty-state">No tienes un paquete activo. Coordina con tu profesor por WhatsApp para contratar uno.</p>';
+      return;
+    }
+    const paquetes = snap.docs.map((d) => d.data()).sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0));
+    const activo = paquetes.find((p) => p.clasesUsadas < p.clasesTotales);
+    if (!activo) {
+      wrap.innerHTML = '<p class="empty-state">Ya usaste todas tus clases del último paquete. Coordina la renovación con tu profesor.</p>';
+      return;
+    }
+    const restantes = activo.clasesTotales - activo.clasesUsadas;
+    wrap.innerHTML = `
+      <div class="callout">
+        <span class="callout-icon">🎾</span>
+        <p><strong>Te quedan ${restantes} de ${activo.clasesTotales} clases</strong> de tu paquete "${activo.tipo}".
+        ${activo.pagado ? "" : " (pago pendiente de confirmar)"}</p>
+      </div>`;
+  }, (err) => mostrarErrorConsulta(wrap, err));
+}
 
 // ---- Horas select ----
 const horaSelect = document.getElementById("r-hora");

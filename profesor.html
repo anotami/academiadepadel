@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 </head>
 <body>
 
@@ -54,6 +54,36 @@
       <div class="portal-card">
         <h2>Próximas clases confirmadas</h2>
         <div id="lista-confirmadas"><p class="empty-state">Cargando...</p></div>
+      </div>
+
+      <!-- Paquetes de clases -->
+      <div class="portal-card">
+        <h2>Paquetes de clases</h2>
+        <p class="field-hint">Actívalo cuando el alumno pague (coordinado por WhatsApp, como el resto del sitio). Solo los programas Junior/Adultos descuentan clases del paquete — las clínicas y ofertas se cobran aparte.</p>
+        <form id="form-paquete">
+          <div class="form-grid">
+            <div class="field">
+              <label for="pq-alumno">Alumno</label>
+              <select id="pq-alumno" required></select>
+            </div>
+            <div class="field">
+              <label for="pq-tipo">Paquete</label>
+              <select id="pq-tipo"></select>
+            </div>
+            <div class="field">
+              <label for="pq-monto">Monto (S/)</label>
+              <input type="number" id="pq-monto" min="0" step="1" required>
+            </div>
+            <div class="field" style="justify-content:flex-end;">
+              <label class="avail-slot" style="display:inline-flex;">
+                <input type="checkbox" id="pq-pagado" checked> Ya pagó
+              </label>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-small" type="submit" style="margin-top:14px;">Activar paquete</button>
+          <p class="form-msg" id="paquete-msg"></p>
+        </form>
+        <div id="lista-paquetes" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
       </div>
 
       <!-- Disponibilidad de alumnos -->
@@ -102,7 +132,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=3"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=3"></script>
+<script src="assets/js/main.js?v=4"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=4"></script>
 </body>
 </html>

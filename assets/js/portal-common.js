@@ -70,3 +70,11 @@ export const NIVELES = ["Iniciación", "Intermedio", "Consolidación"];
 export function fechaYaPaso(fechaStr) {
   return fechaStr < new Date().toISOString().slice(0, 10);
 }
+
+// Solo los programas regulares (Junior / Adultos) se pagan por paquete de clases;
+// las clínicas y ofertas de index.html se cobran aparte, por sesión.
+export function esProgramaRegular(tipoClase) {
+  return TIPOS_CLASE[0].opciones.includes(tipoClase);
+}
+
+export const TIPOS_PAQUETE = ["4 clases", "8 clases"];

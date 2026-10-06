@@ -51,6 +51,10 @@ No hay recordatorios automáticos por WhatsApp/email todavía — ver "Sugerenci
          allow create: if request.auth != null && request.resource.data.alumnoId == request.auth.uid;
          allow update: if request.auth != null;
        }
+       match /paquetes/{id} {
+         allow read: if request.auth != null;
+         allow write: if request.auth != null;
+       }
      }
    }
    ```

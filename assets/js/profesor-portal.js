@@ -1,15 +1,17 @@
 import {
   auth, db,
   onAuthStateChanged, signOut,
-  doc, getDoc, updateDoc,
-  collection, query, where, orderBy, onSnapshot, getDocs
-} from "./firebase-app.js?v=3";
+  doc, getDoc, updateDoc, addDoc,
+  collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
+} from "./firebase-app.js?v=4";
 import {
-  DIAS, FRANJAS, NIVELES, formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
-} from "./portal-common.js?v=3";
+  DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, esProgramaRegular,
+  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
+} from "./portal-common.js?v=4";
 
 let currentUid = null;
 let currentPerfil = null;
+let alumnosCache = [];
 let pistasCache = [];
 
 function mostrarErrorConsulta(wrap, err) {
@@ -38,8 +40,14 @@ onAuthStateChanged(auth, async (user) => {
   await cargarPistasCache();
   cargarPendientes(user.uid);
   cargarConfirmadas(user.uid);
-  cargarAlumnos();
+  await cargarAlumnos();
+  cargarPaquetes();
+  poblarSelectPaquete();
 });
+
+function poblarSelectPaquete() {
+  document.getElementById("pq-tipo").innerHTML = TIPOS_PAQUETE.map((t) => `<option>${t}</option>`).join("");
+}
 
 async function cargarPistasCache() {
   const snap = await getDocs(collection(db, "pistas"));
@@ -161,6 +169,25 @@ async function confirmar(reservaId, reserva) {
     return;
   }
   await updateDoc(doc(db, "reservas", reservaId), { estado: "confirmada" });
+
+  if (esProgramaRegular(reserva.tipoClase)) {
+    await descontarClaseDePaquete(reservaId, reserva.alumnoId);
+  }
+}
+
+// Busca el paquete activo más antiguo del alumno y le descuenta una clase.
+// Si no tiene paquete activo, confirma igual pero sin tocar paquetes (ej. alumno nuevo sin paquete).
+async function descontarClaseDePaquete(reservaId, alumnoId) {
+  const snap = await getDocs(query(collection(db, "paquetes"), where("alumnoId", "==", alumnoId)));
+  const activos = snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((p) => p.clasesUsadas < p.clasesTotales)
+    .sort((a, b) => (a.creadoEn?.seconds || 0) - (b.creadoEn?.seconds || 0));
+  if (activos.length === 0) return;
+
+  const paquete = activos[0];
+  await updateDoc(doc(db, "paquetes", paquete.id), { clasesUsadas: paquete.clasesUsadas + 1 });
+  await updateDoc(doc(db, "reservas", reservaId), { paqueteId: paquete.id });
 }
 
 async function rechazar(reservaId) {
@@ -266,6 +293,11 @@ function construirTarjetaRegistro(r) {
 async function cargarAlumnos() {
   const wrap = document.getElementById("lista-alumnos");
   const snap = await getDocs(query(collection(db, "usuarios"), where("rol", "==", "alumno")));
+  alumnosCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  const selectAlumno = document.getElementById("pq-alumno");
+  selectAlumno.innerHTML = alumnosCache.map((a) => `<option value="${a.id}">${a.nombre}</option>`).join("");
+
   if (snap.empty) {
     wrap.innerHTML = '<p class="empty-state">Todavía no hay alumnos registrados.</p>';
     return;
@@ -282,4 +314,67 @@ async function cargarAlumnos() {
         <p>${chips || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
       </div>`;
   }).join("");
+}
+
+// ---- Paquetes de clases ----
+document.getElementById("form-paquete").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("paquete-msg");
+  const alumnoId = document.getElementById("pq-alumno").value;
+  const alumno = alumnosCache.find((a) => a.id === alumnoId);
+  const tipo = document.getElementById("pq-tipo").value;
+  const monto = Number(document.getElementById("pq-monto").value);
+  const pagado = document.getElementById("pq-pagado").checked;
+
+  if (!alumno) {
+    msg.textContent = "Elige un alumno (primero debe existir al menos uno registrado).";
+    msg.className = "form-msg error";
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "paquetes"), {
+      alumnoId,
+      alumnoNombre: alumno.nombre,
+      tipo,
+      clasesTotales: Number(tipo.split(" ")[0]),
+      clasesUsadas: 0,
+      monto,
+      pagado,
+      creadoEn: serverTimestamp()
+    });
+    msg.textContent = `Paquete de ${alumno.nombre} activado.`;
+    msg.className = "form-msg ok";
+    e.target.reset();
+    document.getElementById("pq-pagado").checked = true;
+  } catch (err) {
+    msg.textContent = "No se pudo activar: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
+
+function cargarPaquetes() {
+  const wrap = document.getElementById("lista-paquetes");
+  onSnapshot(collection(db, "paquetes"), (snap) => {
+    if (snap.empty) {
+      wrap.innerHTML = '<p class="empty-state">Todavía no activaste ningún paquete.</p>';
+      return;
+    }
+    const porAlumno = {};
+    snap.docs.forEach((d) => {
+      const p = d.data();
+      (porAlumno[p.alumnoId] ||= []).push(p);
+    });
+    wrap.innerHTML = Object.values(porAlumno).map((paquetes) => {
+      paquetes.sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0));
+      const filas = paquetes.map((p) => {
+        const agotado = p.clasesUsadas >= p.clasesTotales;
+        return `<p>${p.tipo}: ${p.clasesUsadas}/${p.clasesTotales} usadas
+          <span class="badge ${agotado ? "badge-rechazada" : "badge-confirmada"}">${agotado ? "agotado" : "activo"}</span>
+          <span class="badge ${p.pagado ? "badge-confirmada" : "badge-pendiente"}">${p.pagado ? "pagado" : "pendiente de pago"}</span>
+          · S/ ${p.monto}</p>`;
+      }).join("");
+      return `<div class="court-card"><h3>${paquetes[0].alumnoNombre}</h3>${filas}</div>`;
+    }).join("");
+  }, (err) => mostrarErrorConsulta(wrap, err));
 }
