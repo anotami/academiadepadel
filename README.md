@@ -13,7 +13,16 @@ assets/js/main.js       → menú móvil + año del footer
 assets/img/logo.svg     → logo / favicon
 CNAME                   → dominio canónico para GitHub Pages
 DOMINIOS.md             → cómo conectar los 5 dominios
+login.html, alumno.html,
+profesor.html, pistas.html → portal de reservas (alumnos/profesor/pistas), ver README-PORTAL.md
 ```
+
+## Portal de reservas (alumnos, profesor, pistas)
+
+Hay un módulo aparte para que los alumnos pidan clase y el profesor confirme según
+la cancha disponible — requiere conectar un proyecto gratuito de Firebase (no cambia
+el hosting estático del sitio). Guía completa de puesta en marcha y sugerencias de
+mejora en [`README-PORTAL.md`](./README-PORTAL.md).
 
 ## Editar contenido
 

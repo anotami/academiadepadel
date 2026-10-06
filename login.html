@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal de reservas | academiadepadel.pe</title>
+<meta name="description" content="Ingresa o crea tu cuenta de alumno para reservar clases de pádel en academiadepadel.pe.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>academiadepadel.pe</span>
+    </a>
+    <a href="index.html" class="test-back-link">← Volver al sitio</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section portal-section">
+    <div class="container portal-narrow">
+      <p class="eyebrow eyebrow-center">Portal de reservas</p>
+      <h1 class="test-title">Alumnos y profesores</h1>
+      <p class="section-sub">Ingresa a tu cuenta o crea una como alumno para reservar tus clases.</p>
+
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" data-tab="login" type="button">Iniciar sesión</button>
+        <button class="auth-tab" data-tab="signup" type="button">Crear cuenta de alumno</button>
+      </div>
+
+      <!-- Login -->
+      <div class="auth-panel active" id="panel-login">
+        <form class="portal-card" id="form-login">
+          <div class="field field-full">
+            <label for="login-email">Correo</label>
+            <input type="email" id="login-email" required autocomplete="email">
+          </div>
+          <div class="field field-full" style="margin-top:14px;">
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" required autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary" type="submit" style="margin-top:18px; width:100%; justify-content:center;">Ingresar</button>
+          <p class="form-msg" id="login-msg"></p>
+        </form>
+      </div>
+
+      <!-- Signup (solo alumnos) -->
+      <div class="auth-panel" id="panel-signup">
+        <form class="portal-card" id="form-signup">
+          <div class="form-grid">
+            <div class="field field-full">
+              <label for="su-nombre">Nombre completo</label>
+              <input type="text" id="su-nombre" required>
+            </div>
+            <div class="field">
+              <label for="su-email">Correo</label>
+              <input type="email" id="su-email" required autocomplete="email">
+            </div>
+            <div class="field">
+              <label for="su-telefono">Teléfono / WhatsApp</label>
+              <input type="tel" id="su-telefono" required>
+            </div>
+            <div class="field">
+              <label for="su-edad">Edad</label>
+              <input type="number" id="su-edad" min="5" max="99" required>
+            </div>
+            <div class="field">
+              <label for="su-nivel">Nivel</label>
+              <select id="su-nivel">
+                <option>Inicial</option>
+                <option>Inicial-Intermedio</option>
+                <option>Intermedio</option>
+              </select>
+            </div>
+            <div class="field field-full">
+              <label for="su-password">Contraseña (mínimo 6 caracteres)</label>
+              <input type="password" id="su-password" minlength="6" required autocomplete="new-password">
+            </div>
+          </div>
+
+          <h3 style="margin-top:22px;">Tu disponibilidad habitual</h3>
+          <p class="field-hint">Marca los bloques en los que normalmente podrías tomar clase (puedes ajustarlo luego).</p>
+          <div class="availability-grid" id="su-disponibilidad"></div>
+
+          <button class="btn btn-primary" type="submit" style="margin-top:20px; width:100%; justify-content:center;">Crear mi cuenta</button>
+          <p class="form-msg" id="signup-msg"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="brand footer-brand">
+      <img src="assets/img/logo.svg" alt="" width="28" height="28">
+      <span>academiadepadel.pe</span>
+    </div>
+    <p>Lima, Perú · <a href="https://wa.me/51957085531" target="_blank" rel="noopener">WhatsApp</a></p>
+    <p class="footer-copy">© <span id="year"></span> academiadepadel.pe. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+<script type="module" src="assets/js/login-page.js"></script>
+</body>
+</html>

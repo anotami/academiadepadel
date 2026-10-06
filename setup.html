@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuración inicial del portal | academiadepadel.pe</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>academiadepadel.pe</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section portal-section">
+    <div class="container portal-shell">
+      <p class="eyebrow eyebrow-center">Solo para el dueño del sitio</p>
+      <h1 class="test-title">Configuración inicial del portal</h1>
+      <p class="section-sub">
+        Esta página crea, UNA SOLA VEZ, las cuentas y datos de ejemplo del portal
+        (profesor, 2 alumnos genéricos y las pistas de Lima). Úsala después de conectar
+        Firebase (ver README-PORTAL.md) y bórrala o déjala sin enlazar una vez usada —
+        no está enlazada desde ningún menú del sitio.
+      </p>
+
+      <div class="portal-card">
+        <h2>Paso único de inicialización</h2>
+        <p>Se van a crear estas cuentas. Elige tú mismo una contraseña para cada una (mínimo 6 caracteres) — no quedan guardadas en ningún archivo del sitio, solo se usan en el momento de crear la cuenta en Firebase:</p>
+        <form id="form-seed">
+          <div class="form-grid">
+            <div class="field">
+              <label for="pw-profesor">Contraseña — profesor (anotami@gmail.com)</label>
+              <input type="password" id="pw-profesor" minlength="6" required autocomplete="new-password">
+            </div>
+            <div class="field">
+              <label for="pw-alumno1">Contraseña — alumno1@academiadepadel.pe</label>
+              <input type="password" id="pw-alumno1" minlength="6" required autocomplete="new-password">
+            </div>
+            <div class="field">
+              <label for="pw-alumno2">Contraseña — alumno2@academiadepadel.pe</label>
+              <input type="password" id="pw-alumno2" minlength="6" required autocomplete="new-password">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-seed" type="submit" style="margin-top:16px;">Crear datos de ejemplo</button>
+        </form>
+        <div id="log" style="margin-top:16px; font-size:0.88rem; color:var(--ink-soft); white-space:pre-line;"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="assets/js/setup-seed.js"></script>
+</body>
+</html>
