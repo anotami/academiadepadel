@@ -2,8 +2,8 @@ import {
   auth, db, CONFIG_IS_PLACEHOLDER,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   doc, setDoc, deleteDoc, collection, getDocs, serverTimestamp
-} from "./firebase-app.js";
-import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js";
+} from "./firebase-app.js?v=2";
+import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=2";
 
 const logEl = document.getElementById("log");
 function log(msg) {

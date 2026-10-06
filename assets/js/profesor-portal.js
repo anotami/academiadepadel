@@ -3,8 +3,8 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc,
   collection, query, where, orderBy, onSnapshot, getDocs
-} from "./firebase-app.js";
-import { DIAS, FRANJAS, formatearFecha, diaDeSemana, horaAFranja, estaDisponible } from "./portal-common.js";
+} from "./firebase-app.js?v=2";
+import { DIAS, FRANJAS, formatearFecha, diaDeSemana, horaAFranja, estaDisponible } from "./portal-common.js?v=2";
 
 let currentUid = null;
 let currentPerfil = null;
