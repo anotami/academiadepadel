@@ -8,6 +8,13 @@ import { DIAS, FRANJAS, formatearFecha } from "./portal-common.js";
 
 let currentUid = null;
 
+function mostrarErrorConsulta(wrap, err) {
+  const match = err.message && err.message.match(/https:\/\/\S+/);
+  wrap.innerHTML = `<p class="empty-state">No se pudo cargar: ${err.message}${
+    match ? ` — <a href="${match[0]}" target="_blank" rel="noopener">crear el índice aquí</a> y recargar la página.` : ""
+  }</p>`;
+}
+
 document.getElementById("btn-logout").addEventListener("click", () => signOut(auth));
 
 onAuthStateChanged(auth, async (user) => {
@@ -111,7 +118,7 @@ function cargarPendientes(uid) {
       card.querySelector('[data-action="rechazar"]').addEventListener("click", () => rechazar(d.id));
       wrap.appendChild(card);
     });
-  });
+  }, (err) => mostrarErrorConsulta(wrap, err));
 }
 
 async function confirmar(reservaId, reserva) {
@@ -160,5 +167,5 @@ function cargarConfirmadas(uid) {
           <span class="badge badge-confirmada">confirmada</span>
         </div>`;
     }).join("");
-  });
+  }, (err) => mostrarErrorConsulta(wrap, err));
 }
