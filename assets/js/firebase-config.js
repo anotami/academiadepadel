@@ -8,10 +8,10 @@
 // Ver README-PORTAL.md para la guía completa paso a paso.
 
 export const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyAqmQDLukmLCP0o8vhPlbLE9_FzbtTFMIo",
+  authDomain: "academiadepadel-e5441.firebaseapp.com",
+  projectId: "academiadepadel-e5441",
+  storageBucket: "academiadepadel-e5441.firebasestorage.app",
+  messagingSenderId: "1032953560889",
+  appId: "1:1032953560889:web:f98ffb1139ef2d1506f2e8"
 };
