@@ -55,13 +55,7 @@ document.getElementById("form-seed").addEventListener("submit", async (e) => {
   }
 
   log("Revisando pistas...");
-  const pistasSnap = await getDocs(collection(db, "pistas"));
-  if (!pistasSnap.empty) {
-    log("– Ya había pistas cargadas, no se duplican.");
-  } else {
-    // Requiere estar autenticado para escribir: entra brevemente con la cuenta del profesor.
-    await crearSesionTemporalYsembrarPistas(emailProfesor, pwProfesor);
-  }
+  await crearSesionTemporalYsembrarPistas(emailProfesor, pwProfesor);
 
   log("\nListo. Ve a login.html e inicia sesión con cualquiera de las cuentas de arriba.");
   document.getElementById("btn-seed").disabled = false;
@@ -69,7 +63,13 @@ document.getElementById("form-seed").addEventListener("submit", async (e) => {
 
 async function crearSesionTemporalYsembrarPistas(email, password) {
   try {
+    // Leer y escribir "pistas" requiere estar autenticado: entra brevemente con el profesor.
     await signInWithEmailAndPassword(auth, email, password);
+    const pistasSnap = await getDocs(collection(db, "pistas"));
+    if (!pistasSnap.empty) {
+      log("– Ya había pistas cargadas, no se duplican.");
+      return;
+    }
     for (const pista of PISTAS_SEED) {
       await setDoc(doc(collection(db, "pistas")), pista);
     }
