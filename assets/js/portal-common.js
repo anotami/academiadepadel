@@ -62,3 +62,11 @@ export function horaAFranja(hora) {
 export function estaDisponible(disponibilidad, dia, franja) {
   return (disponibilidad || []).some((d) => d.dia === dia && d.franja === franja);
 }
+
+// Niveles de la metodología del sitio (sección #metodologia de index.html).
+export const NIVELES = ["Iniciación", "Intermedio", "Consolidación"];
+
+// ¿La fecha "YYYY-MM-DD" ya pasó (antes de hoy, no cuenta hoy)?
+export function fechaYaPaso(fechaStr) {
+  return fechaStr < new Date().toISOString().slice(0, 10);
+}

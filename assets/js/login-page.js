@@ -2,8 +2,8 @@ import {
   auth, db, CONFIG_IS_PLACEHOLDER,
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
   doc, setDoc, getDoc, serverTimestamp
-} from "./firebase-app.js?v=2";
-import { DIAS, FRANJAS } from "./portal-common.js?v=2";
+} from "./firebase-app.js?v=3";
+import { DIAS, FRANJAS } from "./portal-common.js?v=3";
 
 const tabs = document.querySelectorAll(".auth-tab");
 const panels = {

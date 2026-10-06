@@ -3,8 +3,10 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc,
   collection, query, where, orderBy, onSnapshot, getDocs
-} from "./firebase-app.js?v=2";
-import { DIAS, FRANJAS, formatearFecha, diaDeSemana, horaAFranja, estaDisponible } from "./portal-common.js?v=2";
+} from "./firebase-app.js?v=3";
+import {
+  DIAS, FRANJAS, NIVELES, formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
+} from "./portal-common.js?v=3";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -165,9 +167,12 @@ async function rechazar(reservaId) {
   await updateDoc(doc(db, "reservas", reservaId), { estado: "rechazada" });
 }
 
-// ---- Próximas confirmadas ----
+// ---- Próximas confirmadas + clases por registrar ----
+// Una sola consulta (confirmadas) que se reparte en dos listas según la fecha:
+// pasadas sin registrar (asistencia + feedback) y futuras.
 function cargarConfirmadas(uid) {
-  const wrap = document.getElementById("lista-confirmadas");
+  const wrapFuturas = document.getElementById("lista-confirmadas");
+  const wrapPorRegistrar = document.getElementById("lista-por-registrar");
   const q = query(
     collection(db, "reservas"),
     where("profesorId", "==", uid),
@@ -175,22 +180,86 @@ function cargarConfirmadas(uid) {
     orderBy("fecha", "asc")
   );
   onSnapshot(q, (snap) => {
-    if (snap.empty) {
-      wrap.innerHTML = '<p class="empty-state">Aún no tienes clases confirmadas.</p>';
-      return;
+    const porRegistrar = [];
+    const futuras = [];
+    snap.docs.forEach((d) => {
+      const r = { id: d.id, ...d.data() };
+      if (fechaYaPaso(r.fecha) && !r.registrada) porRegistrar.push(r);
+      else if (!r.registrada || !fechaYaPaso(r.fecha)) futuras.push(r);
+    });
+
+    wrapPorRegistrar.innerHTML = "";
+    if (porRegistrar.length === 0) {
+      wrapPorRegistrar.innerHTML = '<p class="empty-state">No hay clases pendientes de registrar.</p>';
+    } else {
+      porRegistrar.forEach((r) => wrapPorRegistrar.appendChild(construirTarjetaRegistro(r)));
     }
-    wrap.innerHTML = snap.docs.map((d) => {
-      const r = d.data();
-      return `
-        <div class="request-card">
-          <div class="request-info">
-            <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
-            <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
-          </div>
-          <span class="badge badge-confirmada">confirmada</span>
-        </div>`;
-    }).join("");
-  }, (err) => mostrarErrorConsulta(wrap, err));
+
+    wrapFuturas.innerHTML = futuras.length === 0
+      ? '<p class="empty-state">Aún no tienes clases confirmadas.</p>'
+      : futuras.map((r) => `
+          <div class="request-card">
+            <div class="request-info">
+              <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+              <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
+            </div>
+            <span class="badge badge-confirmada">confirmada</span>
+          </div>`).join("");
+  }, (err) => {
+    mostrarErrorConsulta(wrapFuturas, err);
+    mostrarErrorConsulta(wrapPorRegistrar, err);
+  });
+}
+
+function construirTarjetaRegistro(r) {
+  const card = document.createElement("div");
+  card.className = "request-card";
+  card.innerHTML = `
+    <div class="request-info" style="flex:1 1 100%;">
+      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+      <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs</p>
+      <label class="avail-slot" style="display:inline-flex; margin:8px 0;">
+        <input type="checkbox" checked data-campo="asistio"> Asistió a la clase
+      </label>
+      <div class="form-grid">
+        <div class="field">
+          <label>Nivel trabajado</label>
+          <select data-campo="nivel">${NIVELES.map((n) => `<option>${n}</option>`).join("")}</select>
+        </div>
+        <div class="field">
+          <label>Próximo objetivo</label>
+          <input type="text" data-campo="objetivo" placeholder="Ej: afirmar la volea">
+        </div>
+        <div class="field field-full">
+          <label>Comentario de la sesión</label>
+          <input type="text" data-campo="comentario" placeholder="Qué se trabajó, cómo le fue...">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-small" type="button" style="margin-top:10px;">Guardar registro</button>
+      <p class="form-msg"></p>
+    </div>`;
+
+  const msg = card.querySelector(".form-msg");
+  card.querySelector("button").addEventListener("click", async () => {
+    const asistio = card.querySelector('[data-campo="asistio"]').checked;
+    const nivelTrabajado = card.querySelector('[data-campo="nivel"]').value;
+    const siguienteObjetivo = card.querySelector('[data-campo="objetivo"]').value.trim();
+    const comentario = card.querySelector('[data-campo="comentario"]').value.trim();
+    try {
+      await updateDoc(doc(db, "reservas", r.id), {
+        registrada: true,
+        asistio,
+        feedback: { nivelTrabajado, comentario, siguienteObjetivo }
+      });
+      msg.textContent = "Registrado. El alumno ya puede verlo.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo guardar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
+
+  return card;
 }
 
 // ---- Disponibilidad de alumnos ----

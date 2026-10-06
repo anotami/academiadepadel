@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc, collection,
   query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=2";
+} from "./firebase-app.js?v=3";
 import {
   DIAS, FRANJAS, HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible
-} from "./portal-common.js?v=2";
+} from "./portal-common.js?v=3";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -246,9 +246,26 @@ function cargarReservas(uid) {
             <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.pistaNombre}</p>
             <p>${formatearFecha(r.fecha)} · ${r.hora} hrs · Prof. ${r.profesorNombre}</p>
             ${r.nota ? `<p>"${r.nota}"</p>` : ""}
+            ${bloqueFeedback(r)}
           </div>
           <span class="badge badge-${r.estado}">${r.estado}</span>
         </div>`;
     }).join("");
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+function bloqueFeedback(r) {
+  if (!r.registrada) return "";
+  if (r.asistio === false) {
+    return '<p class="court-meta">No se registró asistencia en esta clase.</p>';
+  }
+  const f = r.feedback || {};
+  return `
+    <div class="callout" style="margin:10px 0 0;">
+      <span class="callout-icon">📝</span>
+      <p>
+        <strong>${f.nivelTrabajado || ""}</strong>${f.comentario ? " — " + f.comentario : ""}
+        ${f.siguienteObjetivo ? `<br><em>Próximo objetivo: ${f.siguienteObjetivo}</em>` : ""}
+      </p>
+    </div>`;
 }
