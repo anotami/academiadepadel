@@ -51,7 +51,10 @@ Datos ya precargados en `assets/js/seed-data.js`:
        }
        match /reservas/{id} {
          allow read: if request.auth != null;
-         allow create: if request.auth != null && request.resource.data.alumnoId == request.auth.uid;
+         allow create: if request.auth != null && (
+           request.resource.data.alumnoId == request.auth.uid ||
+           get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor'
+         );
          allow update: if request.auth != null;
        }
        match /paquetes/{id} {
