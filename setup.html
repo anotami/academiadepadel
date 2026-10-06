@@ -73,10 +73,27 @@
         </form>
         <div id="log-pistas" style="margin-top:16px; font-size:0.88rem; color:var(--ink-soft); white-space:pre-line;"></div>
       </div>
+
+      <div class="portal-card">
+        <h2>Herramienta de prueba: reserva confirmada de ayer</h2>
+        <p>
+          Crea una reserva ya <strong>confirmada</strong> con fecha de <strong>ayer</strong> para el primer
+          alumno y la primera pista que encuentre. Sirve para probar "Clases por registrar" (asistencia +
+          feedback) en <code>profesor.html</code> sin esperar a que pase una clase real ni editar Firestore a mano.
+        </p>
+        <form id="form-reserva-prueba">
+          <div class="field">
+            <label for="pw-profesor-prueba">Contraseña del profesor (anotami@gmail.com)</label>
+            <input type="password" id="pw-profesor-prueba" minlength="6" required autocomplete="current-password">
+          </div>
+          <button class="btn btn-outline" id="btn-reserva-prueba" type="submit" style="margin-top:16px;">Crear reserva de prueba (ayer)</button>
+        </form>
+        <div id="log-prueba" style="margin-top:16px; font-size:0.88rem; color:var(--ink-soft); white-space:pre-line;"></div>
+      </div>
     </div>
   </section>
 </main>
 
-<script type="module" src="assets/js/setup-seed.js?v=2"></script>
+<script type="module" src="assets/js/setup-seed.js?v=3"></script>
 </body>
 </html>

@@ -1,9 +1,10 @@
 import {
   auth, db, CONFIG_IS_PLACEHOLDER,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-  doc, setDoc, deleteDoc, collection, getDocs, serverTimestamp
+  doc, setDoc, deleteDoc, addDoc, collection, getDocs, serverTimestamp
 } from "./firebase-app.js?v=3";
 import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=3";
+import { TIPOS_CLASE } from "./portal-common.js?v=6";
 
 const logEl = document.getElementById("log");
 function log(msg) {
@@ -112,6 +113,62 @@ document.getElementById("form-reseed-pistas").addEventListener("submit", async (
     logPistas(`✔ ${PISTAS_SEED.length} pistas cargadas de nuevo.`);
   } catch (err) {
     logPistas(`✘ No se pudo actualizar: ${err.message}`);
+  } finally {
+    await signOut(auth);
+    btn.disabled = false;
+  }
+});
+
+// ---- Herramienta de prueba: reserva confirmada de ayer ----
+const logPruebaEl = document.getElementById("log-prueba");
+function logPrueba(msg) {
+  logPruebaEl.textContent += (logPruebaEl.textContent ? "\n" : "") + msg;
+}
+
+document.getElementById("form-reserva-prueba").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (CONFIG_IS_PLACEHOLDER) {
+    logPrueba("Falta configurar assets/js/firebase-config.js con tu proyecto de Firebase antes de usar esta página.");
+    return;
+  }
+  const password = document.getElementById("pw-profesor-prueba").value;
+  const btn = document.getElementById("btn-reserva-prueba");
+  btn.disabled = true;
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, PROFESOR_SEED.email, password);
+
+    const alumnosSnap = await getDocs(collection(db, "usuarios"));
+    const alumno = alumnosSnap.docs.map((d) => ({ id: d.id, ...d.data() })).find((u) => u.rol === "alumno");
+    if (!alumno) throw new Error("No hay ningún alumno registrado todavía. Crea uno primero en login.html.");
+
+    const pistasSnap = await getDocs(collection(db, "pistas"));
+    if (pistasSnap.empty) throw new Error("No hay ninguna pista cargada todavía.");
+    const pista = { id: pistasSnap.docs[0].id, ...pistasSnap.docs[0].data() };
+
+    const ayer = new Date();
+    ayer.setDate(ayer.getDate() - 1);
+    const fecha = ayer.toISOString().slice(0, 10);
+
+    await addDoc(collection(db, "reservas"), {
+      alumnoId: alumno.id,
+      alumnoNombre: alumno.nombre,
+      alumnoTelefono: alumno.telefono || "",
+      profesorId: cred.user.uid,
+      profesorNombre: PROFESOR_SEED.nombre,
+      tipoClase: TIPOS_CLASE[0].opciones[0],
+      pistaId: pista.id,
+      pistaNombre: `${pista.nombre} — ${pista.distrito}`,
+      fecha,
+      hora: "18:00",
+      nota: "Reserva de prueba generada desde setup.html",
+      estado: "confirmada",
+      creadoEn: serverTimestamp()
+    });
+
+    logPrueba(`✔ Reserva de prueba creada: ${alumno.nombre}, ${fecha} 18:00, ${pista.nombre}. Ve a profesor.html → "Clases por registrar".`);
+  } catch (err) {
+    logPrueba(`✘ No se pudo crear: ${err.message}`);
   } finally {
     await signOut(auth);
     btn.disabled = false;
