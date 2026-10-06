@@ -2,9 +2,9 @@ import {
   auth, db, CONFIG_IS_PLACEHOLDER,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   doc, setDoc, deleteDoc, addDoc, collection, getDocs, serverTimestamp
-} from "./firebase-app.js?v=3";
-import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=3";
-import { TIPOS_CLASE } from "./portal-common.js?v=6";
+} from "./firebase-app.js?v=12";
+import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=12";
+import { TIPOS_CLASE } from "./portal-common.js?v=12";
 
 const logEl = document.getElementById("log");
 function log(msg) {

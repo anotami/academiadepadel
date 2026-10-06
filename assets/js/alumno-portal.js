@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc, collection,
   query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=5";
+} from "./firebase-app.js?v=12";
 import {
   DIAS, FRANJAS, HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos
-} from "./portal-common.js?v=5";
+} from "./portal-common.js?v=12";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -263,13 +263,23 @@ async function cargarPistasEnSelect() {
     .join("");
 }
 
-// ---- Buscar al profesor (hay uno solo por ahora) ----
+// ---- Buscar profesor(es) ----
 let profesorCache = null;
+let profesoresCache = [];
 async function cargarProfesor() {
   const snap = await getDocs(query(collection(db, "usuarios"), where("rol", "==", "profesor")));
-  if (!snap.empty) {
-    const docu = snap.docs[0];
-    profesorCache = { id: docu.id, ...docu.data() };
+  profesoresCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  profesorCache = profesoresCache[0] || null;
+
+  if (profesoresCache.length > 1) {
+    const wrap = document.getElementById("r-profesor-wrap");
+    const select = document.getElementById("r-profesor");
+    wrap.hidden = false;
+    select.innerHTML = profesoresCache.map((p) => `<option value="${p.id}">${p.nombre}</option>`).join("");
+    select.addEventListener("change", () => {
+      profesorCache = profesoresCache.find((p) => p.id === select.value) || profesorCache;
+      actualizarHint();
+    });
   }
 }
 

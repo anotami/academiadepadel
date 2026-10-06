@@ -1,5 +1,5 @@
-import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=7";
-import { DIAS, FRANJAS, estaDisponible } from "./portal-common.js?v=7";
+import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=12";
+import { DIAS, FRANJAS, estaDisponible } from "./portal-common.js?v=12";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];
 const BADGE_POR_ESTADO = { Habilitada: "badge-confirmada", Reservada: "badge-pendiente", Bloqueada: "badge-rechazada" };

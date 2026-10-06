@@ -3,11 +3,11 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=10";
+} from "./firebase-app.js?v=12";
 import {
   DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
-} from "./portal-common.js?v=10";
+} from "./portal-common.js?v=12";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -689,3 +689,58 @@ function cargarEsperas() {
     }).join("");
   }, (err) => mostrarErrorConsulta(wrap, err));
 }
+
+// ---- Exportar a CSV ----
+function descargarCSV(nombreArchivo, filas) {
+  if (filas.length === 0) {
+    alert("No hay datos para exportar todavía.");
+    return;
+  }
+  const encabezados = Object.keys(filas[0]);
+  const escapar = (valor) => `"${String(valor ?? "").replace(/"/g, '""')}"`;
+  const csv = [encabezados.join(",")]
+    .concat(filas.map((fila) => encabezados.map((h) => escapar(fila[h])).join(",")))
+    .join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombreArchivo;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("btn-exportar-reservas").addEventListener("click", async () => {
+  const snap = await getDocs(query(collection(db, "reservas"), where("profesorId", "==", currentUid)));
+  const filas = snap.docs.map((d) => {
+    const r = d.data();
+    return {
+      fecha: r.fecha,
+      hora: r.hora,
+      alumno: r.alumnoNombre,
+      telefono: r.alumnoTelefono || "",
+      tipoClase: r.tipoClase || "",
+      pista: r.pistaNombre,
+      estado: r.estado,
+      asistio: r.asistio === undefined ? "" : r.asistio ? "si" : "no",
+      nps: r.nps === undefined ? "" : r.nps
+    };
+  });
+  descargarCSV("reservas.csv", filas);
+});
+
+document.getElementById("btn-exportar-paquetes").addEventListener("click", async () => {
+  const snap = await getDocs(collection(db, "paquetes"));
+  const filas = snap.docs.map((d) => {
+    const p = d.data();
+    return {
+      alumno: p.alumnoNombre,
+      tipo: p.tipo,
+      clasesTotales: p.clasesTotales,
+      clasesUsadas: p.clasesUsadas,
+      monto: p.monto,
+      pagado: p.pagado ? "si" : "no"
+    };
+  });
+  descargarCSV("paquetes.csv", filas);
+});

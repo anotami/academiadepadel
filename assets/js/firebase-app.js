@@ -24,7 +24,7 @@ import {
   getDocs,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js?v=3";
+import { firebaseConfig } from "./firebase-config.js?v=12";
 
 export const CONFIG_IS_PLACEHOLDER = firebaseConfig.apiKey === "TU_API_KEY";
 

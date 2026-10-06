@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=5">
+<link rel="stylesheet" href="assets/css/style.css?v=12">
 </head>
 <body>
 
@@ -43,6 +43,10 @@
         <h3 style="margin-top:22px;">Rentabilidad (paquetes ya pagados)</h3>
         <p class="field-hint">Usa el costo de cancha que cargaste en cada pista y tu costo por hora en "Mis datos". Carga esos dos datos para que esto sea exacto.</p>
         <div class="cards grid-4" id="rentabilidad"></div>
+        <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-outline btn-small" type="button" id="btn-exportar-reservas">Exportar reservas a CSV</button>
+          <button class="btn btn-outline btn-small" type="button" id="btn-exportar-paquetes">Exportar paquetes a CSV</button>
+        </div>
       </div>
 
       <!-- Seguimiento: riesgo de abandono, renovaciones, cobros -->
@@ -165,7 +169,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=10"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=10"></script>
+<script src="assets/js/main.js?v=12"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=12"></script>
 </body>
 </html>
