@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Árbitro de pádel | academiadepadel.pe</title>
+<meta name="description" content="Herramienta gratuita de arbitraje de pádel: marcador con reglas FIP, tiempos reglamentarios, cambio de bolas e incidencias. Funciona offline, instalable en el celular.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14495a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/arbitro-icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=12">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=1">
+</head>
+<body class="arbitro-body">
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>academiadepadel.pe</span>
+    </a>
+    <div class="arbitro-header-actions">
+      <span class="arbitro-install-hint" id="installHint" hidden>Instálala: menú del navegador → "Añadir a pantalla de inicio"</span>
+      <button class="btn btn-outline btn-small" id="btnInstall" hidden>Instalar app</button>
+      <a href="index.html" class="test-back-link">Volver al sitio</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<section class="section portal-section arbitro-section">
+  <div class="container portal-shell">
+
+    <div class="portal-topbar">
+      <div>
+        <h1>🎾 Árbitro de pádel</h1>
+        <p class="portal-whoami">Marcador, tiempos reglamentarios e incidencias — estándar FIP. Funciona sin internet una vez cargada.</p>
+      </div>
+      <span class="badge" id="modoOfflineBadge" hidden>Sin conexión — modo offline ✓</span>
+    </div>
+
+    <!-- ===================== PANTALLA 1: CONFIGURACIÓN ===================== -->
+    <div id="pantallaSetup">
+
+      <div class="portal-card">
+        <h2>Datos del partido</h2>
+        <form id="formSetup" class="form-grid">
+          <div class="field">
+            <label for="s-clubA">Pareja A — Jugador 1</label>
+            <input type="text" id="s-a1" required placeholder="Nombre y apellido">
+          </div>
+          <div class="field">
+            <label for="s-a2">Pareja A — Jugador 2</label>
+            <input type="text" id="s-a2" required placeholder="Nombre y apellido">
+          </div>
+          <div class="field">
+            <label for="s-b1">Pareja B — Jugador 1</label>
+            <input type="text" id="s-b1" required placeholder="Nombre y apellido">
+          </div>
+          <div class="field">
+            <label for="s-b2">Pareja B — Jugador 2</label>
+            <input type="text" id="s-b2" required placeholder="Nombre y apellido">
+          </div>
+          <div class="field">
+            <label for="s-club">Club / sede</label>
+            <input type="text" id="s-club" placeholder="Ej. Academia de Pádel Lima">
+          </div>
+          <div class="field">
+            <label for="s-pais">País</label>
+            <input type="text" id="s-pais" placeholder="Perú" value="Perú">
+          </div>
+          <div class="field">
+            <label for="s-pista">Pista</label>
+            <input type="text" id="s-pista" placeholder="Ej. Pista 2">
+          </div>
+          <div class="field">
+            <label for="s-entrenadorA">Entrenador acreditado — Pareja A (opcional)</label>
+            <input type="text" id="s-entrenadorA" placeholder="Nombre">
+          </div>
+          <div class="field">
+            <label for="s-entrenadorB">Entrenador acreditado — Pareja B (opcional)</label>
+            <input type="text" id="s-entrenadorB" placeholder="Nombre">
+          </div>
+
+          <div class="field field-full">
+            <label>Modalidad de puntuación</label>
+            <div class="arbitro-toggle-group" id="g-modalidad">
+              <button type="button" class="arbitro-toggle active" data-value="ventaja">Tradicional (con ventajas)</button>
+              <button type="button" class="arbitro-toggle" data-value="oro">Punto de oro</button>
+            </div>
+          </div>
+
+          <div class="field field-full">
+            <label>Tercer set</label>
+            <div class="arbitro-toggle-group" id="g-tercerset">
+              <button type="button" class="arbitro-toggle active" data-value="set">Set completo</button>
+              <button type="button" class="arbitro-toggle" data-value="super">Super tie-break a 10</button>
+            </div>
+          </div>
+
+          <div class="field field-full">
+            <label>Peloteo previo oficial</label>
+            <div class="arbitro-toggle-group" id="g-peloteo">
+              <button type="button" class="arbitro-toggle active" data-value="3">3 minutos</button>
+              <button type="button" class="arbitro-toggle" data-value="5">5 minutos</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="s-bolas-marca">Marca/modelo de pelotas</label>
+            <input type="text" id="s-bolas-marca" placeholder="Ej. Head Padel Pro S">
+          </div>
+          <div class="field">
+            <label for="s-bolas-cantidad">Cantidad de pelotas anunciada</label>
+            <input type="number" id="s-bolas-cantidad" min="1" placeholder="Ej. 3">
+          </div>
+        </form>
+      </div>
+
+      <div class="portal-card">
+        <h2>Checklist pre-partido</h2>
+        <p class="field-hint">Estándar FIP — llega con 20 minutos de anticipación. Marca cada punto antes de iniciar.</p>
+        <ul class="arbitro-checklist" id="checklist"></ul>
+      </div>
+
+      <div class="arbitro-start-bar">
+        <p class="form-msg" id="setupMsg"></p>
+        <button class="btn btn-primary btn-large" id="btnIniciarPartido">Iniciar partido ▶</button>
+      </div>
+    </div>
+
+    <!-- ===================== PANTALLA 2: PARTIDO EN CURSO ===================== -->
+    <div id="pantallaPartido" hidden>
+
+      <div class="portal-card arbitro-scoreboard-card">
+        <div class="arbitro-meta-row">
+          <span id="metaInfo"></span>
+          <button class="btn btn-outline btn-small" id="btnDeshacer">↺ Deshacer último punto</button>
+        </div>
+
+        <table class="arbitro-scoreboard" id="scoreboard">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Set 1</th>
+              <th>Set 2</th>
+              <th>Set 3</th>
+              <th class="arbitro-points-col">Puntos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="rowA">
+              <td class="arbitro-team-name" id="nombreEquipoA"></td>
+              <td id="setA1">0</td><td id="setA2">0</td><td id="setA3">0</td>
+              <td class="arbitro-points-col"><span id="ptsA">0</span></td>
+            </tr>
+            <tr id="rowB">
+              <td class="arbitro-team-name" id="nombreEquipoB"></td>
+              <td id="setB1">0</td><td id="setB2">0</td><td id="setB3">0</td>
+              <td class="arbitro-points-col"><span id="ptsB">0</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="arbitro-estado-juego" id="estadoJuego"></p>
+
+        <div class="arbitro-point-buttons">
+          <button class="btn btn-primary btn-large arbitro-btn-punto" id="btnPuntoA">+ Punto Pareja A</button>
+          <button class="btn btn-primary btn-large arbitro-btn-punto" id="btnPuntoB">+ Punto Pareja B</button>
+        </div>
+      </div>
+
+      <div class="arbitro-alert" id="alertaBolas" hidden>
+        🎾 <strong>Cambio de pelotas</strong> — corresponde cambiarlas ahora.
+      </div>
+      <div class="arbitro-alert" id="alertaLado" hidden>
+        🔁 <strong>Cambio de lado</strong> — recuerda a los jugadores cambiar de campo.
+      </div>
+
+      <div class="portal-card">
+        <h3>Tiempos reglamentarios</h3>
+        <div class="arbitro-timers-grid" id="timersGrid"></div>
+        <div class="arbitro-timer-display" id="timerDisplay" hidden>
+          <span id="timerLabel"></span>
+          <span id="timerCountdown">00:00</span>
+          <button class="btn btn-outline btn-small" id="btnTimerPausa">Pausar</button>
+          <button class="btn btn-outline btn-small" id="btnTimerCancelar">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="portal-card">
+        <h3>Código de conducta / incidencias</h3>
+        <div class="arbitro-incident-buttons">
+          <button class="btn btn-outline btn-small arbitro-inc-warning" data-tipo="Warning">⚠ Warning</button>
+          <button class="btn btn-outline btn-small arbitro-inc-point" data-tipo="Point Penalty">➖ Point Penalty</button>
+          <button class="btn btn-outline btn-small arbitro-inc-game" data-tipo="Game Penalty">➖➖ Game Penalty</button>
+          <button class="btn btn-outline btn-small arbitro-inc-desc" data-tipo="Descalificación">⛔ Descalificación</button>
+        </div>
+        <ul class="arbitro-incident-log" id="incidentLog"></ul>
+        <p class="empty-state" id="incidentEmpty">Sin incidencias registradas.</p>
+      </div>
+
+      <div class="arbitro-end-bar">
+        <button class="btn btn-outline" id="btnTerminarPartido">Finalizar y ver acta →</button>
+      </div>
+    </div>
+
+    <!-- ===================== PANTALLA 3: ACTA FINAL ===================== -->
+    <div id="pantallaActa" hidden>
+      <div class="portal-card arbitro-acta" id="actaContenido"></div>
+      <div class="arbitro-end-bar arbitro-no-print">
+        <button class="btn btn-outline" id="btnVolverPartido">← Volver al marcador</button>
+        <button class="btn btn-primary" id="btnExportarPdf">Exportar acta (PDF)</button>
+        <button class="btn btn-whatsapp" id="btnExportarWhatsapp">Compartir por WhatsApp</button>
+        <button class="btn btn-outline" id="btnNuevoPartido">Nuevo partido</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+</main>
+
+<script src="assets/js/arbitro.js?v=1"></script>
+</body>
+</html>

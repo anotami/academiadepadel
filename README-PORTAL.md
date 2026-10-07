@@ -19,6 +19,31 @@ Datos ya precargados en `assets/js/seed-data.js`: tu perfil de profesor, 2 alumn
 genéricos (Valeria Ramos y Diego Fernández — reemplázalos cuando tengas alumnos
 reales) y 34 pistas reales de Lima.
 
+## Árbitro de pádel (`arbitro.html`)
+
+Herramienta aparte, sin relación con el portal ni con Firebase: una PWA instalable
+(enlazada como "🎾 Árbitro" en el menú principal) para arbitrar un partido completo.
+Todo el estado vive en `localStorage` del dispositivo, así que funciona sin internet
+en pista una vez que la cargaste una vez. Incluye:
+
+- Checklist pre-partido (pista, pelotas, equipamiento, entrenadores acreditados).
+- Marcador con reglas FIP: modalidad tradicional (ventajas) o punto de oro, sets a
+  mejor de 3, tie-break a 7 y tercer set configurable (set completo o super
+  tie-break a 10), con botón de deshacer último punto.
+- Temporizadores reglamentarios con un toque (peloteo, entre puntos, cambio de
+  lado, descanso entre sets, cambio de lado en tie-break, atención médica), con
+  sonido y vibración al terminar.
+- Aviso automático de cambio de pelotas (cada 9 juegos, contando el peloteo como 2)
+  y de cambio de lado.
+- Botones de sanciones (Warning, Point Penalty, Game Penalty, Descalificación) que
+  aplican el efecto en el marcador y quedan en el registro de incidencias.
+- Acta final exportable a PDF (imprimir desde el navegador) o compartible por
+  WhatsApp.
+
+No necesita Firebase ni cuenta — es independiente del resto del sitio. Para
+instalarla en el celular: abre `arbitro.html`, usa el botón "Instalar app" (Android/
+desktop) o "Compartir → Añadir a pantalla de inicio" (iPhone).
+
 ## Cómo funciona, de punta a punta
 
 1. **Disponibilidad:** profesor, cada pista y cada alumno tienen su propia disponibilidad semanal (día + franja), editable en sus respectivos paneles.

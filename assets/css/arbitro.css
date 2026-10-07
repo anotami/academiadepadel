@@ -1,0 +1,183 @@
+/* Árbitro de pádel — estilos propios. Pensado para usarse con una mano,
+   al sol, en pista: botones grandes, alto contraste, poco scroll. */
+
+.arbitro-section { padding-top: 32px; }
+
+.arbitro-header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.arbitro-install-hint { font-size: 0.78rem; color: var(--ink-soft); }
+
+#modoOfflineBadge { background: #fff3cd; color: #8a6400; }
+
+/* Toggles tipo segmented control */
+.arbitro-toggle-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.arbitro-toggle {
+  flex: 1;
+  min-width: 140px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--ink-soft);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 11px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.arbitro-toggle.active { border-color: var(--court); background: var(--callout-bg); color: var(--court); }
+
+/* Checklist pre-partido */
+.arbitro-checklist { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.arbitro-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.arbitro-check-item input { margin-top: 2px; width: 18px; height: 18px; flex-shrink: 0; }
+.arbitro-check-item.checked { border-color: var(--court); background: var(--callout-bg); }
+
+.arbitro-start-bar { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; }
+.arbitro-start-bar .btn { width: 100%; max-width: 420px; justify-content: center; }
+
+/* Marcador */
+.arbitro-scoreboard-card { padding: 20px 18px; }
+.arbitro-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+}
+
+.arbitro-scoreboard {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.arbitro-scoreboard th { font-size: 0.72rem; color: var(--ink-soft); font-weight: 700; padding: 4px 6px; }
+.arbitro-scoreboard td {
+  padding: 10px 6px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  border-top: 1px solid var(--border);
+}
+.arbitro-team-name {
+  text-align: left !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  color: var(--ink);
+}
+.arbitro-points-col { background: var(--callout-bg); border-radius: 10px; font-size: 1.6rem !important; color: var(--court); }
+.arbitro-scoreboard tr.sirve .arbitro-team-name::before { content: "🎾 "; }
+
+.arbitro-estado-juego {
+  text-align: center;
+  font-weight: 700;
+  color: var(--court);
+  margin: 4px 0 16px;
+}
+
+.arbitro-point-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+.arbitro-btn-punto { flex: 1; min-width: 150px; justify-content: center; }
+
+.arbitro-alert {
+  background: #fff3cd;
+  border: 1.5px solid #f0d58c;
+  color: #6b4d00;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+/* Timers */
+.arbitro-timers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.arbitro-timer-btn {
+  border: 1.5px solid var(--border);
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 10px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--court);
+  cursor: pointer;
+  text-align: center;
+}
+.arbitro-timer-btn:hover { border-color: var(--court); }
+
+.arbitro-timer-display {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--court);
+  color: #fff;
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+#timerLabel { font-weight: 700; font-size: 0.9rem; flex: 1; min-width: 140px; }
+#timerCountdown { font-size: 1.8rem; font-weight: 800; font-family: "Sora", sans-serif; letter-spacing: 0.02em; }
+.arbitro-timer-display .btn { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.4); }
+
+/* Incidencias */
+.arbitro-incident-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.arbitro-inc-warning { border-color: #f0d58c; color: #8a6400; }
+.arbitro-inc-point { border-color: #f3b68c; color: #a05a1d; }
+.arbitro-inc-game { border-color: #f0a3a0; color: #b02a24; }
+.arbitro-inc-desc { border-color: #b02a24; color: #b02a24; background: #fde2e1; }
+
+.arbitro-incident-log { display: flex; flex-direction: column; gap: 8px; }
+.arbitro-incident-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.86rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.arbitro-incident-item .inc-tipo { font-weight: 700; }
+
+.arbitro-end-bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+
+/* Acta final */
+.arbitro-acta h2 { margin-bottom: 4px; }
+.arbitro-acta .acta-meta { font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 18px; }
+.arbitro-acta table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+.arbitro-acta table th, .arbitro-acta table td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 0.92rem;
+}
+.arbitro-acta .acta-resultado {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--court);
+  margin-bottom: 18px;
+}
+.arbitro-acta h3 { font-size: 0.95rem; margin-top: 18px; }
+
+@media (max-width: 640px) {
+  .arbitro-point-buttons { flex-direction: column; }
+  .arbitro-scoreboard td { font-size: 1.05rem; padding: 8px 4px; }
+  .arbitro-points-col { font-size: 1.3rem !important; }
+}
+
+@media print {
+  .site-header, .arbitro-no-print, .announce-bar { display: none !important; }
+  body { background: #fff; }
+  .portal-card { box-shadow: none; border: none; }
+}

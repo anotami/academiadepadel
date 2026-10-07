@@ -1,0 +1,17 @@
+{
+  "name": "Árbitro de Pádel — academiadepadel.pe",
+  "short_name": "Árbitro Pádel",
+  "description": "Herramienta de arbitraje para partidos de pádel: marcador, tiempos reglamentarios e incidencias.",
+  "start_url": "/arbitro.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d3140",
+  "theme_color": "#14495a",
+  "lang": "es-PE",
+  "icons": [
+    { "src": "assets/img/arbitro-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/img/arbitro-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/img/arbitro-icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
