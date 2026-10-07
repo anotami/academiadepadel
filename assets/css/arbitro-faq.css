@@ -1,0 +1,103 @@
+/* Página de preguntas frecuentes y evaluación de arbitraje. */
+
+.faq-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.faq-tab {
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--ink-soft);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.faq-tab.active { border-color: var(--court); background: var(--court); color: #fff; }
+.faq-view { display: none; }
+.faq-view.active { display: block; }
+
+#faqBuscar {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+/* Lista agrupada por categoría */
+.faq-categoria {
+  margin-bottom: 18px;
+}
+.faq-categoria-titulo {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--court-dark);
+  margin: 0 0 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.faq-categoria-titulo .faq-conteo { font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); }
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.faq-item summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::before { content: "▸ "; color: var(--court); }
+.faq-item[open] summary::before { content: "▾ "; }
+.faq-item-body { padding: 0 16px 14px; font-size: 0.88rem; }
+.faq-campo { margin: 8px 0; }
+.faq-campo-label { font-weight: 700; color: var(--court-dark); display: block; margin-bottom: 2px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.02em; }
+.faq-fuente { font-size: 0.76rem; color: var(--ink-soft); margin-top: 8px; }
+#faqContador { margin: 4px 0 0; }
+
+/* Evaluación */
+.eval-pregunta {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: #fff;
+}
+.eval-pregunta h4 { margin: 0 0 4px; font-size: 0.95rem; }
+.eval-pregunta .field-hint { margin-bottom: 10px; }
+.eval-opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+.eval-opcion input { margin-top: 3px; }
+.eval-opcion.correcta { border-color: #1a7f4e; background: #eaf7ef; }
+.eval-opcion.incorrecta { border-color: #c0392b; background: #fdecea; }
+.eval-pregunta-resultado { font-weight: 700; margin-top: 6px; font-size: 0.85rem; }
+.eval-pregunta-resultado.ok { color: #1a7f4e; }
+.eval-pregunta-resultado.fail { color: #c0392b; }
+.eval-explicacion { font-size: 0.82rem; color: var(--ink-soft); margin-top: 6px; }
+#evalResultado .portal-card { text-align: center; }
+#evalResultado .eval-puntaje { font-size: 2.4rem; font-weight: 800; color: var(--court); font-family: "Sora", sans-serif; }
+
+@media (max-width: 640px) {
+  .faq-tab { flex: 1 1 auto; text-align: center; }
+}

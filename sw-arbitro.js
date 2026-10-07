@@ -8,21 +8,23 @@
 // index.html, style.css, main.js, etc., sirviendo versiones viejas de todo
 // el sitio a cualquiera que haya visitado alguna vez una página del árbitro.
 // Por eso cada fetch se filtra contra ARBITRO_PATHS antes de tocarlo.
-const CACHE = "arbitro-v8";
+const CACHE = "arbitro-v9";
 
 // Páginas y archivos EXCLUSIVOS del árbitro: nunca los pide el sitio
 // principal, así que siempre es seguro cachearlos.
 const ARBITRO_PAGES = [
   "/arbitro.html", "/arbitro-vivo.html", "/arbitro-pistas.html",
   "/arbitro-historial.html", "/arbitro-torneo.html", "/arbitro-login.html",
-  "/arbitro-entrenador.html"
+  "/arbitro-entrenador.html", "/arbitro-faq.html"
 ];
 const ARBITRO_ONLY_ASSETS = [
   "/manifest.json",
-  "/assets/css/arbitro.css", "/assets/js/arbitro.js", "/assets/js/arbitro-common.js",
+  "/assets/css/arbitro.css", "/assets/css/arbitro-faq.css",
+  "/assets/js/arbitro.js", "/assets/js/arbitro-common.js",
   "/assets/js/arbitro-vivo.js", "/assets/js/arbitro-pistas.js",
   "/assets/js/arbitro-historial.js", "/assets/js/arbitro-torneo.js",
   "/assets/js/arbitro-login.js", "/assets/js/arbitro-entrenador.js",
+  "/assets/js/arbitro-faq.js", "/assets/js/arbitro-faq-data.js",
   "/assets/img/arbitro-icon-192.png", "/assets/img/arbitro-icon-512.png"
 ];
 // Archivos COMPARTIDOS con el sitio principal (style.css, logo, favicon):

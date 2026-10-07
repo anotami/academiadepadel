@@ -37,6 +37,7 @@ solo como capa opcional cuando el árbitro está logueado y hay conexión.
 | `arbitro-torneo.html` | El organizador | Torneo Americano/Mexicano: genera rondas con parejas rotativas (o por nivel), registra resultados por pista y arma la tabla de posiciones. 100% local, no usa Firebase. |
 | `arbitro-login.html` | El árbitro | Login/registro propio de árbitros (rol `arbitro`), separado del de alumnos — sin edad, apoderado ni disponibilidad; solo nombre, teléfono y club opcional. |
 | `arbitro-entrenador.html?id=...&equipo=A/B` | El entrenador de cada pareja (sin login) | Ventana aparte por pareja: marcador en vivo + alertas de conducta/demora de sus jugadores, y registro de feedback táctico punto a punto (golpe, resultado, zona, nota) con estadísticas e informe de devolución exportable. |
+| `arbitro-faq.html` | Cualquiera (sin login) | Preguntas frecuentes de arbitraje (112, por categoría, con buscador) + evaluación de 10 preguntas al azar con corrección automática. 100% local, no usa Firebase. |
 
 Funciones del marcador (`arbitro.html`):
 
@@ -133,6 +134,32 @@ Los datos quedan en Firestore, en `arbitrajes/{id}/feedback` — una
 subcolección aparte del documento del partido, así el entrenador puede
 guardar sin pisarle la escritura al árbitro (que reescribe todo el documento
 del partido en cada punto).
+
+### Preguntas frecuentes de arbitraje + evaluación
+
+`arbitro-faq.html` es un banco de 112 preguntas (`assets/js/arbitro-faq-data.js`),
+armado a partir de las Reglas del Pádel FIP y el Manual del Alumno de la
+Clínica de Arbitraje Perú 2026 que compartiste (incluye sus ~35 casos reales,
+más casos propios elaborados en el mismo formato). Cada pregunta sigue la
+misma estructura que usa el manual para sus casos:
+
+- **Pregunta** — la situación o consulta.
+- **Hechos comprobables** — lo que el árbitro puede verificar.
+- **Regla o procedimiento** — la norma aplicable, citando la regla FIP cuando corresponde.
+- **Decisión y comunicación** — la respuesta/consecuencia correcta.
+
+Están agrupadas en 13 categorías (rol del árbitro, puntuación, tiempos,
+posición/sorteo, saque, net/let/interferencia, punto perdido, juego
+exterior/pelotas, Código de Conducta, condiciones médicas, supervisión de
+varias canchas, juez de silla/anuncios, hechos/reglamento/apelaciones), con
+buscador por palabra clave y filtro por categoría.
+
+La pestaña "Evaluación" elige 10 preguntas al azar de todo el banco y genera
+4 opciones por pregunta: la respuesta correcta más 3 distractores tomados de
+las "decisiones" de otras preguntas (preferentemente de la misma categoría),
+así que no hace falta redactar opciones a mano para las 112. Corrige al
+instante, muestra la regla aplicable de cada una como retroalimentación y
+permite repetir con una selección nueva. Todo funciona 100% local, sin Firebase.
 
 ### Login de árbitros, separado del de alumnos
 
