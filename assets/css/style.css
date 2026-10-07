@@ -129,8 +129,21 @@ ul { padding: 0; margin: 0; list-style: none; }
   text-decoration: none;
   color: var(--ink);
   margin-right: auto;
+  min-width: 0;
 }
 .brand-logo { border-radius: 8px; flex-shrink: 0; }
+/* "academiadepadel.pe" no tiene espacios donde partir, así que por
+   default un navegador puede negarse a encogerlo por debajo de su ancho
+   completo (el cálculo del "automatic minimum size" de flexbox difiere
+   entre motores) y en vez de eso desborda la fila del header hacia la
+   derecha, empujando el botón ☰ fuera de la pantalla en vez de ocultarlo.
+   min-width:0 + elipsis garantiza que el texto ceda espacio primero. */
+.brand span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .main-nav {
   display: flex;
