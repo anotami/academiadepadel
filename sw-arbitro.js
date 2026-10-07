@@ -8,7 +8,7 @@
 // index.html, style.css, main.js, etc., sirviendo versiones viejas de todo
 // el sitio a cualquiera que haya visitado alguna vez una página del árbitro.
 // Por eso cada fetch se filtra contra ARBITRO_PATHS antes de tocarlo.
-const CACHE = "arbitro-v7";
+const CACHE = "arbitro-v8";
 
 // Páginas y archivos EXCLUSIVOS del árbitro: nunca los pide el sitio
 // principal, así que siempre es seguro cachearlos.
@@ -35,8 +35,8 @@ const ASSETS = [
   "arbitro.html",
   "manifest.json",
   "assets/css/style.css?v=12",
-  "assets/css/arbitro.css?v=6",
-  "assets/js/arbitro.js?v=6",
+  "assets/css/arbitro.css?v=7",
+  "assets/js/arbitro.js?v=7",
   "assets/js/arbitro-common.js?v=4",
   "assets/img/arbitro-icon-192.png",
   "assets/img/arbitro-icon-512.png",

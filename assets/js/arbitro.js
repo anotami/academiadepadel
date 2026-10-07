@@ -44,7 +44,7 @@ function estadoInicial() {
     config: {
       a1: "", a2: "", b1: "", b2: "", club: "", pais: "Perú", pista: "",
       entrenadorA: "", entrenadorB: "", arbitroNombre: "", juezArbitroNombre: "",
-      colorA: "#c0392b", colorB: "#2563eb",
+      colorA: "#c0392b", colorB: "#2563eb", posicionArbitro: "arriba",
       equipoSacaPrimero: "A", servidorInicialA: 1, servidorInicialB: 1,
       modalidad: "ventaja", tercerSet: "set", peloteoMin: 3,
       bolasMarca: "", bolasCantidad: ""
@@ -762,10 +762,13 @@ function construirSvgCancha() {
   const terminado = !!m.matchWinner;
 
   const GLASS = 10, SILLA = 44;
+  const posicionArbitro = c.posicionArbitro === "abajo" ? "abajo" : "arriba";
   const cx0 = GLASS, cw = 400;
-  const cy0 = GLASS + SILLA, ch = 200;
+  const cy0 = GLASS + (posicionArbitro === "arriba" ? SILLA : 0), ch = 200;
   const W = cx0 + cw + GLASS;
-  const H = cy0 + ch + GLASS;
+  const H = cy0 + ch + GLASS + (posicionArbitro === "abajo" ? SILLA : 0);
+  const glassY = posicionArbitro === "arriba" ? SILLA : 0;
+  const glassH = ch + 2 * GLASS;
   const netX = cx0 + cw / 2;
   const halfW = cw / 2;
   const svcOffset = (6.95 / 10) * halfW;
@@ -830,8 +833,8 @@ function construirSvgCancha() {
     </defs>
 
     <!-- Paredes de vidrio (marco) -->
-    <rect x="0" y="${SILLA}" width="${W}" height="${H - SILLA}" rx="10" fill="#bfe3f0" opacity="0.35"/>
-    ${Array.from({ length: Math.floor(W / 16) }, (_, i) => `<line x1="${i * 16}" y1="${SILLA + 2}" x2="${i * 16}" y2="${H - 2}" stroke="#ffffff" stroke-width="1" opacity="0.25"/>`).join("")}
+    <rect x="0" y="${glassY}" width="${W}" height="${glassH}" rx="10" fill="#bfe3f0" opacity="0.35"/>
+    ${Array.from({ length: Math.floor(W / 16) }, (_, i) => `<line x1="${i * 16}" y1="${glassY + 2}" x2="${i * 16}" y2="${glassY + glassH - 2}" stroke="#ffffff" stroke-width="1" opacity="0.25"/>`).join("")}
 
     <!-- Superficie de juego -->
     <rect x="${cx0}" y="${cy0}" width="${cw}" height="${ch}" rx="4" fill="url(#turf)" stroke="#ffffff" stroke-width="2.5"/>
@@ -851,9 +854,13 @@ function construirSvgCancha() {
 
     ${jugadores.map(marcador).join("")}
 
-    <!-- Posición del árbitro: en la silla, junto a la red, afuera y arriba de la pista -->
-    <text x="${netX}" y="${SILLA - 24}" text-anchor="middle" font-size="20">🧑‍⚖️</text>
-    <text x="${netX}" y="${SILLA - 6}" text-anchor="middle" font-size="9" fill="var(--ink-soft,#47586b)" class="arbitro-cancha-saque-txt">Árbitro</text>
+    <!-- Posición del árbitro: en la silla, junto a la red, afuera de la pista
+         (arriba o abajo, según lo elegido en el setup del partido) -->
+    ${posicionArbitro === "arriba"
+      ? `<text x="${netX}" y="${SILLA - 24}" text-anchor="middle" font-size="20">🧑‍⚖️</text>
+    <text x="${netX}" y="${SILLA - 6}" text-anchor="middle" font-size="9" fill="var(--ink-soft,#47586b)" class="arbitro-cancha-saque-txt">Árbitro</text>`
+      : `<text x="${netX}" y="${cy0 + ch + GLASS + 20}" text-anchor="middle" font-size="20">🧑‍⚖️</text>
+    <text x="${netX}" y="${cy0 + ch + GLASS + 38}" text-anchor="middle" font-size="9" fill="var(--ink-soft,#47586b)" class="arbitro-cancha-saque-txt">Árbitro</text>`}
   </svg>`;
 }
 
@@ -1187,6 +1194,42 @@ async function exportarTarjeta() {
   }, "image/png");
 }
 
+// ---------------- Sorteo inicial ----------------
+// Solo decide quién empieza sacando (lo único configurable en este
+// marcador); el árbitro sigue lanzando la moneda real frente a las
+// parejas, esto es nada más la forma de dejarlo registrado rápido.
+function fijarToggleGrupo(groupId, valor) {
+  document.querySelectorAll(`#${groupId} .arbitro-toggle`).forEach((b) => {
+    b.classList.toggle("active", b.dataset.value === valor);
+  });
+}
+
+function sortearInicio() {
+  const ganador = Math.random() < 0.5 ? "A" : "B";
+  const box = document.getElementById("sorteoResultado");
+  box.hidden = false;
+  box.innerHTML = `
+    <p>🪙 Ganó el sorteo: <strong>Pareja ${ganador}</strong>. ¿Qué elige?</p>
+    <div class="arbitro-incident-buttons">
+      <button type="button" class="btn btn-outline btn-small" data-eleccion="sacar">Elige sacar</button>
+      <button type="button" class="btn btn-outline btn-small" data-eleccion="restar">Elige restar</button>
+    </div>
+  `;
+  box.querySelectorAll("button[data-eleccion]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const equipoSaca = btn.dataset.eleccion === "sacar" ? ganador : otro(ganador);
+      state.config.equipoSacaPrimero = equipoSaca;
+      fijarToggleGrupo("g-equipo-saca", equipoSaca);
+      save();
+      const confirmacion = document.createElement("p");
+      confirmacion.className = "field-hint";
+      confirmacion.style.color = "#fff";
+      confirmacion.textContent = `✓ Pareja ${equipoSaca} empieza sacando.`;
+      box.appendChild(confirmacion);
+    });
+  });
+}
+
 // ---------------- Validación e inicio ----------------
 function leerFormularioSetup() {
   const c = state.config;
@@ -1272,6 +1315,14 @@ function init() {
   wireToggleGroup("g-equipo-saca", "equipoSacaPrimero");
   wireToggleGroup("g-servidor-a", "servidorInicialA");
   wireToggleGroup("g-servidor-b", "servidorInicialB");
+  wireToggleGroup("g-posicion-arbitro", "posicionArbitro");
+
+  document.getElementById("btnSortear").addEventListener("click", sortearInicio);
+  document.getElementById("btnChecklistTodos").addEventListener("click", () => {
+    state.checklist = state.checklist.map(() => true);
+    save();
+    renderChecklist();
+  });
 
   document.getElementById("btnIniciarPartido").addEventListener("click", iniciarPartido);
   document.getElementById("btnPuntoA").addEventListener("click", () => addPoint("A"));

@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=12">
-<link rel="stylesheet" href="assets/css/arbitro.css?v=6">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=7">
 </head>
 <body class="arbitro-body">
 
@@ -117,10 +117,24 @@
           </div>
 
           <div class="field field-full">
+            <label>Sorteo inicial (opcional)</label>
+            <p class="field-hint">Lanza la moneda frente a las parejas antes de empezar. El sistema sortea quién gana y deja marcar qué eligió — actualiza solo el campo de abajo.</p>
+            <button type="button" class="btn btn-outline btn-small" id="btnSortear">🪙 Sortear</button>
+            <div id="sorteoResultado" class="arbitro-sorteo-resultado" hidden></div>
+          </div>
+
+          <div class="field field-full">
             <label>¿Quién empieza sacando?</label>
             <div class="arbitro-toggle-group" id="g-equipo-saca">
               <button type="button" class="arbitro-toggle active" data-value="A">Pareja A</button>
               <button type="button" class="arbitro-toggle" data-value="B">Pareja B</button>
+            </div>
+          </div>
+          <div class="field field-full">
+            <label>Posición del árbitro en el diagrama de cancha</label>
+            <div class="arbitro-toggle-group" id="g-posicion-arbitro">
+              <button type="button" class="arbitro-toggle active" data-value="arriba">Arriba</button>
+              <button type="button" class="arbitro-toggle" data-value="abajo">Abajo</button>
             </div>
           </div>
           <div class="field">
@@ -186,6 +200,7 @@
       <div class="portal-card">
         <h2>Checklist pre-partido</h2>
         <p class="field-hint">Estándar FIP — llega con 20 minutos de anticipación. Marca cada punto antes de iniciar.</p>
+        <button type="button" class="btn btn-outline btn-small" id="btnChecklistTodos">✓ Marcar todos OK</button>
         <ul class="arbitro-checklist" id="checklist"></ul>
       </div>
 
@@ -403,6 +418,6 @@
 </section>
 </main>
 
-<script type="module" src="assets/js/arbitro.js?v=6"></script>
+<script type="module" src="assets/js/arbitro.js?v=7"></script>
 </body>
 </html>
