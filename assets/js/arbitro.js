@@ -4,9 +4,9 @@
 
 import {
   LABELS, CHECKLIST_ITEMS, INTERRUPTION_TYPES, CONDUCT_CATEGORIES,
-  nombreEquipo, otro, labelsDePuntos, formatMMSS,
+  nombreEquipo, nombreJugador, otro, labelsDePuntos, formatMMSS,
   consecuenciaConducta, consecuenciaDemora, peloteoSugeridoSeg
-} from "./arbitro-common.js?v=2";
+} from "./arbitro-common.js?v=3";
 
 // Firebase se carga de forma diferida (import dinámico) y nunca de forma
 // estática: si no hay internet o falla la red, el resto del árbitro (marcador,
@@ -43,7 +43,9 @@ function estadoInicial() {
     vozActiva: false,
     config: {
       a1: "", a2: "", b1: "", b2: "", club: "", pais: "Perú", pista: "",
-      entrenadorA: "", entrenadorB: "",
+      entrenadorA: "", entrenadorB: "", arbitroNombre: "", juezArbitroNombre: "",
+      colorA: "#c0392b", colorB: "#2563eb",
+      equipoSacaPrimero: "A", servidorInicialA: 1, servidorInicialB: 1,
       modalidad: "ventaja", tercerSet: "set", peloteoMin: 3,
       bolasMarca: "", bolasCantidad: ""
     },
@@ -65,6 +67,8 @@ function estadoInicial() {
       interrupcionActiva: null,
       interrupciones: [],
       demoras: [],
+      usosInterrupcion: {},
+      vecesSirvioEquipo: { A: 0, B: 0 },
       guardadoEnHistorial: false,
       log: []
     },
@@ -76,6 +80,7 @@ function estadoInicial() {
 let state = estadoInicial();
 let timer = null;
 let authUser = null;
+let interrupcionBotonesRefs = [];
 
 // ---------------- Persistencia local ----------------
 function save() {
@@ -211,7 +216,40 @@ function hablar(texto) {
 }
 
 // ---------------- Motor de puntuación ----------------
-function toggleServidor() { state.match.servidor = otro(state.match.servidor); }
+// Regla 6.8 FIP: dentro de un set, cada pareja alterna cuál de sus dos
+// integrantes saca, juego a juego que le toque sacar a ese equipo. El
+// jugador inicial se elige antes de empezar; a partir de ahí se alterna solo.
+// Durante el tie-break el orden de saque es individual por los 4 jugadores en
+// una secuencia fija — aquí seguimos mostrando el equipo, no el jugador exacto.
+function toggleServidor() {
+  const m = state.match;
+  m.servidor = otro(m.servidor);
+  if (!m.inTiebreak && !m.isSuperTiebreakSet) {
+    m.vecesSirvioEquipo[m.servidor] = (m.vecesSirvioEquipo[m.servidor] || 0) + 1;
+  }
+}
+
+function jugadorQueSirve(team) {
+  const m = state.match;
+  const c = state.config;
+  const inicial = team === "A" ? Number(c.servidorInicialA) : Number(c.servidorInicialB);
+  const vueltas = m.vecesSirvioEquipo[team] || 0;
+  const impar = vueltas % 2 === 1;
+  return impar ? inicial : (inicial === 1 ? 2 : 1);
+}
+
+function nombreDeNumero(team, num) {
+  const c = state.config;
+  if (team === "A") return nombreJugador(num === 1 ? c.a1 : c.a2, `Jugador A${num}`);
+  return nombreJugador(num === 1 ? c.b1 : c.b2, `Jugador B${num}`);
+}
+
+// Convención: el servicio empieza del lado derecho del propio campo (0-0) y
+// alterna cada punto — igual que en tenis/pádel real.
+function ladoSaque() {
+  const total = state.match.currentGame.a + state.match.currentGame.b;
+  return total % 2 === 0 ? "Derecha" : "Izquierda";
+}
 
 function bumpBallChange() {
   const m = state.match;
@@ -460,6 +498,7 @@ function iniciarInterrupcion(tipo, ref) {
   const nota = (prompt(mensaje) || "").trim();
   pushHistory();
   state.match.interrupcionActiva = { tipo, nota, inicio: Date.now() };
+  state.match.usosInterrupcion[tipo] = (state.match.usosInterrupcion[tipo] || 0) + 1;
   addLog("interrupcion", `Interrupción iniciada: ${tipo}${nota ? ` — ${nota}` : ""}`);
   save();
   syncLive();
@@ -490,22 +529,25 @@ function reanudarPartido() {
 }
 
 // ---------------- Timers ----------------
-function beep() {
+function tono(frecuencia, cantidad, duracionMs) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [0, 250].forEach((delay) => {
+    for (let i = 0; i < cantidad; i++) {
+      const delay = i * (duracionMs + 80);
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.frequency.value = 880;
+      osc.frequency.value = frecuencia;
       osc.connect(gain);
       gain.connect(ctx.destination);
       gain.gain.setValueAtTime(0.25, ctx.currentTime + delay / 1000);
       osc.start(ctx.currentTime + delay / 1000);
-      osc.stop(ctx.currentTime + delay / 1000 + 0.18);
-    });
+      osc.stop(ctx.currentTime + delay / 1000 + duracionMs / 1000);
+    }
   } catch (e) { /* audio no disponible */ }
-  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 }
+
+function beep() { tono(880, 2, 180); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }
+function beepInicio() { tono(560, 1, 220); if (navigator.vibrate) navigator.vibrate(120); }
 
 function stopTimer() {
   if (timer && timer.intervalRef) clearInterval(timer.intervalRef);
@@ -515,6 +557,7 @@ function stopTimer() {
 
 function startTimer(def) {
   stopTimer();
+  beepInicio();
   const seconds = typeof def.seconds === "function" ? def.seconds() : def.seconds;
   const label = typeof def.label === "function" ? def.label() : def.label;
   timer = { id: def.id, label, secondsLeft: seconds, total: seconds, paused: false };
@@ -555,6 +598,10 @@ function renderSetup() {
   document.getElementById("s-pista").value = c.pista;
   document.getElementById("s-entrenadorA").value = c.entrenadorA;
   document.getElementById("s-entrenadorB").value = c.entrenadorB;
+  document.getElementById("s-arbitro").value = c.arbitroNombre;
+  document.getElementById("s-juezArbitro").value = c.juezArbitroNombre;
+  document.getElementById("s-colorA").value = c.colorA;
+  document.getElementById("s-colorB").value = c.colorB;
   document.getElementById("s-bolas-marca").value = c.bolasMarca;
   document.getElementById("s-bolas-cantidad").value = c.bolasCantidad;
   renderChecklist();
@@ -606,17 +653,31 @@ function renderPartido() {
 
   document.getElementById("rowA").classList.toggle("sirve", m.servidor === "A" && !m.matchWinner);
   document.getElementById("rowB").classList.toggle("sirve", m.servidor === "B" && !m.matchWinner);
+  document.getElementById("nombreEquipoA").style.borderLeft = `5px solid ${c.colorA}`;
+  document.getElementById("nombreEquipoB").style.borderLeft = `5px solid ${c.colorB}`;
+
+  // Marcador simplificado de modo pantalla grande (ver renderPartido abajo).
+  const setsTxtA = m.sets.map((s) => s.a).join("-") || "0";
+  const setsTxtB = m.sets.map((s) => s.b).join("-") || "0";
+  document.getElementById("tvNombreA").textContent = nomEq("A");
+  document.getElementById("tvNombreB").textContent = nomEq("B");
+  document.getElementById("tvSetsA").textContent = `Sets: ${setsTxtA} · Juego: ${m.currentSet.a}`;
+  document.getElementById("tvSetsB").textContent = `Sets: ${setsTxtB} · Juego: ${m.currentSet.b}`;
+  document.getElementById("tvPtsA").textContent = la;
+  document.getElementById("tvPtsB").textContent = lb;
+  document.getElementById("tvFilaA").classList.toggle("sirve", m.servidor === "A" && !m.matchWinner);
+  document.getElementById("tvFilaB").classList.toggle("sirve", m.servidor === "B" && !m.matchWinner);
 
   const estado = document.getElementById("estadoJuego");
   if (m.matchWinner) estado.textContent = `🏆 Gana el partido: ${nomEq(m.matchWinner)}`;
-  else if (m.isSuperTiebreakSet) estado.textContent = `Super tie-break a 10 (gana por 2) · Saca ${nomEq(m.servidor)}`;
-  else if (m.inTiebreak) estado.textContent = `Tie-break a 7 (gana por 2) · Saca ${nomEq(m.servidor)}`;
+  else if (m.isSuperTiebreakSet) estado.textContent = `Super tie-break a 10 (gana por 2) · Saca Pareja ${m.servidor}`;
+  else if (m.inTiebreak) estado.textContent = `Tie-break a 7 (gana por 2) · Saca Pareja ${m.servidor}`;
   else if (m.currentGame.a >= 3 && m.currentGame.b >= 3 && m.currentGame.a === m.currentGame.b) {
     if (c.modalidad === "oro") estado.textContent = "40-40 · ¡Punto de oro! Define el próximo punto — la pareja que resta elige el lado";
     else if (c.modalidad === "star" && m.currentGame.a >= 5) estado.textContent = "¡Star Point! Define el próximo punto — la pareja que resta elige el lado";
     else estado.textContent = "40-40 · Iguales";
   }
-  else estado.textContent = `Saca ${nomEq(m.servidor)}`;
+  else estado.textContent = `Saca ${nombreDeNumero(m.servidor, jugadorQueSirve(m.servidor))} (Pareja ${m.servidor})`;
 
   document.getElementById("btnPuntoA").disabled = !!m.matchWinner || !!m.interrupcionActiva;
   document.getElementById("btnPuntoB").disabled = !!m.matchWinner || !!m.interrupcionActiva;
@@ -626,11 +687,101 @@ function renderPartido() {
     document.getElementById("interrupcionTipo").textContent = m.interrupcionActiva.tipo;
   }
 
+  renderCancha();
   renderIncidencias();
   renderDemoras();
   renderInterrupciones();
+  actualizarBotonesInterrupcion();
   renderHistorial();
   renderShareBox();
+}
+
+function renderCancha() {
+  const c = state.config;
+  const m = state.match;
+  const enTiebreak = m.inTiebreak || m.isSuperTiebreakSet;
+  const servidorTeam = m.servidor;
+  const servidorNum = jugadorQueSirve(servidorTeam);
+
+  [["canchaA1", "A", 1], ["canchaA2", "A", 2], ["canchaB1", "B", 1], ["canchaB2", "B", 2]].forEach(([id, team, num]) => {
+    const el = document.getElementById(id);
+    el.querySelector(".arbitro-cancha-nombre").textContent = nombreDeNumero(team, num);
+    el.style.borderLeft = `4px solid ${team === "A" ? c.colorA : c.colorB}`;
+    const esServidor = !m.matchWinner && !enTiebreak && team === servidorTeam && num === servidorNum;
+    el.classList.toggle("sirve", esServidor);
+  });
+  document.getElementById("canchaMitadA").classList.toggle("sirve-equipo", !m.matchWinner && enTiebreak && servidorTeam === "A");
+  document.getElementById("canchaMitadB").classList.toggle("sirve-equipo", !m.matchWinner && enTiebreak && servidorTeam === "B");
+
+  const info = document.getElementById("canchaSaqueInfo");
+  if (m.matchWinner) { info.textContent = ""; }
+  else if (enTiebreak) { info.textContent = `Saca: Pareja ${servidorTeam} (orden individual del tie-break a cargo del árbitro)`; }
+  else { info.textContent = `Saca: ${nombreDeNumero(servidorTeam, servidorNum)} (Pareja ${servidorTeam}) · Lado: ${ladoSaque()}`; }
+}
+
+function actualizarBotonesInterrupcion() {
+  interrupcionBotonesRefs.forEach(({ def, btn }) => {
+    if (!def.maxUsos) return;
+    const usados = state.match.usosInterrupcion[def.tipo] || 0;
+    btn.disabled = usados >= def.maxUsos;
+    btn.textContent = `${def.tipo} (usado ${usados}/${def.maxUsos})`;
+  });
+}
+
+// ---------------- Editor de marcador manual ----------------
+function activarToggleLocal(groupId) {
+  document.querySelectorAll(`#${groupId} .arbitro-toggle`).forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(`#${groupId} .arbitro-toggle`).forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+}
+
+function valorToggleLocal(groupId) {
+  return document.querySelector(`#${groupId} .arbitro-toggle.active`).dataset.value;
+}
+
+function fijarToggleLocal(groupId, valor) {
+  document.querySelectorAll(`#${groupId} .arbitro-toggle`).forEach((b) => {
+    b.classList.toggle("active", b.dataset.value === valor);
+  });
+}
+
+function abrirEditorMarcador() {
+  const m = state.match;
+  document.getElementById("ed-setA1").value = m.sets[0] ? m.sets[0].a : "";
+  document.getElementById("ed-setB1").value = m.sets[0] ? m.sets[0].b : "";
+  document.getElementById("ed-setA2").value = m.sets[1] ? m.sets[1].a : "";
+  document.getElementById("ed-setB2").value = m.sets[1] ? m.sets[1].b : "";
+  document.getElementById("ed-juegosA").value = m.currentSet.a;
+  document.getElementById("ed-juegosB").value = m.currentSet.b;
+  document.getElementById("ed-puntosA").value = m.currentGame.a;
+  document.getElementById("ed-puntosB").value = m.currentGame.b;
+  fijarToggleLocal("ed-g-tiebreak", (m.inTiebreak || m.isSuperTiebreakSet) ? "si" : "no");
+  fijarToggleLocal("ed-g-servidor", m.servidor);
+  document.getElementById("editorMarcador").hidden = false;
+}
+
+function guardarEdicionMarcador() {
+  const leer = (id) => { const v = document.getElementById(id).value; return v === "" ? 0 : Math.max(0, parseInt(v, 10) || 0); };
+  pushHistory();
+  const m = state.match;
+  const sets = [];
+  const a1 = document.getElementById("ed-setA1").value, b1 = document.getElementById("ed-setB1").value;
+  const a2 = document.getElementById("ed-setA2").value, b2 = document.getElementById("ed-setB2").value;
+  if (a1 !== "" || b1 !== "") sets.push({ a: leer("ed-setA1"), b: leer("ed-setB1"), winner: leer("ed-setA1") > leer("ed-setB1") ? "A" : "B", tiebreak: null, super: false });
+  if (a2 !== "" || b2 !== "") sets.push({ a: leer("ed-setA2"), b: leer("ed-setB2"), winner: leer("ed-setA2") > leer("ed-setB2") ? "A" : "B", tiebreak: null, super: false });
+  m.sets = sets;
+  m.currentSet = { a: leer("ed-juegosA"), b: leer("ed-juegosB") };
+  m.currentGame = { a: leer("ed-puntosA"), b: leer("ed-puntosB") };
+  m.inTiebreak = valorToggleLocal("ed-g-tiebreak") === "si" && !m.isSuperTiebreakSet;
+  m.servidor = valorToggleLocal("ed-g-servidor");
+  addLog("edicion", `Marcador editado manualmente por el árbitro → ${marcadorActual()}`);
+  document.getElementById("editorMarcador").hidden = true;
+  save();
+  syncLive();
+  render();
 }
 
 function renderIncidencias() {
@@ -754,7 +905,8 @@ function renderActa() {
     <h2>Acta de partido</h2>
     <p class="acta-meta">
       ${c.club ? c.club + " · " : ""}${c.pista ? "Pista " + c.pista + " · " : ""}${c.pais}<br>
-      ${m.horaInicio ? new Date(m.horaInicio).toLocaleString("es-PE") : ""}
+      ${m.horaInicio ? new Date(m.horaInicio).toLocaleString("es-PE") : ""}<br>
+      ${c.arbitroNombre ? `Árbitro: ${c.arbitroNombre}` : ""}${c.juezArbitroNombre ? ` · Juez árbitro principal: ${c.juezArbitroNombre}` : ""}
     </p>
     <table>
       <thead><tr><th>Pareja</th><th>Set 1</th><th>Set 2</th><th>Set 3</th></tr></thead>
@@ -786,6 +938,8 @@ function actaTexto() {
   txt += `${nomEq("A")} vs ${nomEq("B")}\n`;
   if (c.club) txt += `Club: ${c.club}\n`;
   if (c.pista) txt += `Pista: ${c.pista}\n`;
+  if (c.arbitroNombre) txt += `Árbitro: ${c.arbitroNombre}\n`;
+  if (c.juezArbitroNombre) txt += `Juez árbitro principal: ${c.juezArbitroNombre}\n`;
   txt += `Sets: ${setsTxt}\n`;
   txt += `Resultado: ${ganador}\n`;
   if (state.incidents.length) {
@@ -891,6 +1045,10 @@ function leerFormularioSetup() {
   c.pista = document.getElementById("s-pista").value.trim();
   c.entrenadorA = document.getElementById("s-entrenadorA").value.trim();
   c.entrenadorB = document.getElementById("s-entrenadorB").value.trim();
+  c.arbitroNombre = document.getElementById("s-arbitro").value.trim();
+  c.juezArbitroNombre = document.getElementById("s-juezArbitro").value.trim();
+  c.colorA = document.getElementById("s-colorA").value;
+  c.colorB = document.getElementById("s-colorB").value;
   c.bolasMarca = document.getElementById("s-bolas-marca").value.trim();
   c.bolasCantidad = document.getElementById("s-bolas-cantidad").value;
 }
@@ -912,7 +1070,10 @@ function iniciarPartido() {
   }
   msg.textContent = "";
   state.match.horaInicio = Date.now();
-  addLog("inicio", `Partido iniciado: ${nomEq("A")} vs ${nomEq("B")}`);
+  state.match.servidor = c.equipoSacaPrimero;
+  state.match.vecesSirvioEquipo = { A: 0, B: 0 };
+  state.match.vecesSirvioEquipo[c.equipoSacaPrimero] = 1;
+  addLog("inicio", `Partido iniciado: ${nomEq("A")} vs ${nomEq("B")} · Saca primero: ${nombreDeNumero(c.equipoSacaPrimero, jugadorQueSirve(c.equipoSacaPrimero))} (Pareja ${c.equipoSacaPrimero})`);
   state.screen = "partido";
   save();
   render();
@@ -940,7 +1101,7 @@ function wireToggleGroup(id, configKey) {
       group.querySelectorAll(".arbitro-toggle").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       const value = btn.dataset.value;
-      if (configKey === "peloteoMin") state.config.peloteoMin = Number(value);
+      if (configKey === "peloteoMin" || configKey === "servidorInicialA" || configKey === "servidorInicialB") state.config[configKey] = Number(value);
       else state.config[configKey] = value;
       save();
     });
@@ -954,6 +1115,9 @@ function init() {
   wireToggleGroup("g-modalidad", "modalidad");
   wireToggleGroup("g-tercerset", "tercerSet");
   wireToggleGroup("g-peloteo", "peloteoMin");
+  wireToggleGroup("g-equipo-saca", "equipoSacaPrimero");
+  wireToggleGroup("g-servidor-a", "servidorInicialA");
+  wireToggleGroup("g-servidor-b", "servidorInicialB");
 
   document.getElementById("btnIniciarPartido").addEventListener("click", iniciarPartido);
   document.getElementById("btnPuntoA").addEventListener("click", () => addPoint("A"));
@@ -970,6 +1134,12 @@ function init() {
   });
   document.getElementById("btnPantallaGrande").addEventListener("click", toggleModoTv);
   document.getElementById("btnSalirTv").addEventListener("click", toggleModoTv);
+
+  activarToggleLocal("ed-g-tiebreak");
+  activarToggleLocal("ed-g-servidor");
+  document.getElementById("btnEditarMarcador").addEventListener("click", abrirEditorMarcador);
+  document.getElementById("btnCancelarEdicion").addEventListener("click", () => { document.getElementById("editorMarcador").hidden = true; });
+  document.getElementById("btnGuardarEdicion").addEventListener("click", guardarEdicionMarcador);
 
   const timersGrid = document.getElementById("timersGrid");
   TIMER_DEFS.forEach((def) => {
@@ -1013,6 +1183,7 @@ function init() {
   });
 
   const interrupcionBotones = document.getElementById("interrupcionBotones");
+  interrupcionBotonesRefs = [];
   INTERRUPTION_TYPES.forEach((def) => {
     const btn = document.createElement("button");
     btn.className = "btn btn-outline btn-small";
@@ -1020,9 +1191,14 @@ function init() {
     btn.title = def.ref || "";
     btn.addEventListener("click", () => {
       if (state.match.interrupcionActiva) { alert("Ya hay una interrupción activa. Reanuda el partido antes de registrar otra."); return; }
+      if (def.maxUsos && (state.match.usosInterrupcion[def.tipo] || 0) >= def.maxUsos) {
+        alert(`Ya se usó "${def.tipo}" el máximo de veces permitido en este partido (${def.maxUsos}) según la FIP.`);
+        return;
+      }
       iniciarInterrupcion(def.tipo, def.ref);
     });
     interrupcionBotones.appendChild(btn);
+    interrupcionBotonesRefs.push({ def, btn });
   });
   document.getElementById("btnReanudar").addEventListener("click", reanudarPartido);
 
@@ -1061,6 +1237,7 @@ function init() {
     document.body.classList.remove("modo-tv");
     document.getElementById("alertaBolas").hidden = true;
     document.getElementById("alertaLado").hidden = true;
+    document.getElementById("editorMarcador").hidden = true;
     render();
   });
 

@@ -1,7 +1,7 @@
 // Historial de partidos arbitrados: local (siempre, este dispositivo) y en
 // la nube (si el partido se compartió en vivo, recuperable desde cualquier
 // dispositivo con la misma cuenta).
-import { tiempoRelativo } from "./arbitro-common.js?v=2";
+import { tiempoRelativo } from "./arbitro-common.js?v=3";
 
 const HISTORIAL_KEY = "arbitro_historial_v1";
 

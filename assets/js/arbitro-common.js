@@ -19,9 +19,12 @@ export const CHECKLIST_ITEMS = [
 // Tipos de interrupción, con la referencia de tiempo de la Regla 2 FIP para
 // que el árbitro no tenga que buscarla — son solo una guía, la decisión final
 // siempre es suya.
+// maxUsos: tope de veces que se puede marcar en el mismo partido según la
+// FIP (se bloquea el botón al llegar al tope). Sin maxUsos = sin tope fijo,
+// queda a criterio del árbitro.
 export const INTERRUPTION_TYPES = [
-  { tipo: "Lesión / condición médica tratable", ref: "Hasta 3 min de atención; puede repetirse en los próximos 2 cambios de lado, dentro del tiempo reglamentario. Una vez por jugador y por cada condición distinta (Regla 2.14)." },
-  { tipo: "Calambres musculares", ref: "Solo se tratan durante el cambio de lado (no genera tiempo médico aparte). Hasta 2 tratamientos en 2 cambios de lado, no necesariamente consecutivos." },
+  { tipo: "Lesión / condición médica tratable", ref: "Hasta 3 min de atención; puede repetirse en los próximos 2 cambios de lado, dentro del tiempo reglamentario. Una vez por jugador y por cada condición distinta (Regla 2.14).", maxUsos: 3 },
+  { tipo: "Calambres musculares", ref: "Solo se tratan durante el cambio de lado (no genera tiempo médico aparte). Hasta 2 tratamientos en 2 cambios de lado, no necesariamente consecutivos.", maxUsos: 2 },
   { tipo: "Sangrado", ref: "Detener de inmediato; no se reanuda hasta limpiar la pista. Hasta 15 min (Regla 2.14)." },
   { tipo: "Urgencia médica ajena al juego (desmayo, alergia, mareo, crisis respiratoria)", ref: "A criterio del árbitro, hasta 15 min (Regla 2.16)." },
   { tipo: "Incidente súbito en el punto (caída, pelotazo)", ref: "Hasta 5 min para recuperarse y continuar (Regla 2.17)." },

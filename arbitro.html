@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=12">
-<link rel="stylesheet" href="assets/css/arbitro.css?v=3">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=4">
 </head>
 <body class="arbitro-body">
 
@@ -96,6 +96,45 @@
             <label for="s-entrenadorB">Entrenador acreditado — Pareja B (opcional)</label>
             <input type="text" id="s-entrenadorB" placeholder="Nombre">
           </div>
+          <div class="field">
+            <label for="s-arbitro">Árbitro (tu nombre)</label>
+            <input type="text" id="s-arbitro" placeholder="Nombre y apellido">
+          </div>
+          <div class="field">
+            <label for="s-juezArbitro">Juez árbitro principal / supervisor (opcional)</label>
+            <input type="text" id="s-juezArbitro" placeholder="Nombre">
+          </div>
+
+          <div class="field">
+            <label for="s-colorA">Color de camiseta — Pareja A</label>
+            <input type="color" id="s-colorA" value="#c0392b">
+          </div>
+          <div class="field">
+            <label for="s-colorB">Color de camiseta — Pareja B</label>
+            <input type="color" id="s-colorB" value="#2563eb">
+          </div>
+
+          <div class="field field-full">
+            <label>¿Quién empieza sacando?</label>
+            <div class="arbitro-toggle-group" id="g-equipo-saca">
+              <button type="button" class="arbitro-toggle active" data-value="A">Pareja A</button>
+              <button type="button" class="arbitro-toggle" data-value="B">Pareja B</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>¿Quién de la Pareja A saca primero?</label>
+            <div class="arbitro-toggle-group" id="g-servidor-a">
+              <button type="button" class="arbitro-toggle active" data-value="1">Jugador 1</button>
+              <button type="button" class="arbitro-toggle" data-value="2">Jugador 2</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>¿Quién de la Pareja B saca primero?</label>
+            <div class="arbitro-toggle-group" id="g-servidor-b">
+              <button type="button" class="arbitro-toggle active" data-value="1">Jugador 1</button>
+              <button type="button" class="arbitro-toggle" data-value="2">Jugador 2</button>
+            </div>
+          </div>
 
           <div class="field field-full">
             <label>Modalidad de puntuación</label>
@@ -173,7 +212,8 @@
           <div class="arbitro-meta-actions">
             <button class="btn btn-outline btn-small" id="btnVoz">🔊 Narración: OFF</button>
             <button class="btn btn-outline btn-small" id="btnPantallaGrande">⛶ Pantalla grande</button>
-            <button class="btn btn-outline btn-small" id="btnDeshacer">↺ Deshacer último punto</button>
+            <button class="btn btn-outline btn-small" id="btnEditarMarcador">✏️ Editar marcador</button>
+            <button class="btn btn-outline btn-small" id="btnDeshacer">↺ Deshacer última acción</button>
           </div>
         </div>
 
@@ -201,7 +241,68 @@
           </tbody>
         </table>
 
+        <!-- Marcador simplificado, solo visible en modo pantalla grande: evita
+             que la tabla de 5 columnas se rompa en celulares angostos. -->
+        <div class="arbitro-tv-scoreboard" id="tvScoreboard">
+          <div class="arbitro-tv-fila" id="tvFilaA">
+            <span class="arbitro-tv-nombre" id="tvNombreA"></span>
+            <span class="arbitro-tv-sets" id="tvSetsA"></span>
+            <span class="arbitro-tv-puntos" id="tvPtsA">0</span>
+          </div>
+          <div class="arbitro-tv-fila" id="tvFilaB">
+            <span class="arbitro-tv-nombre" id="tvNombreB"></span>
+            <span class="arbitro-tv-sets" id="tvSetsB"></span>
+            <span class="arbitro-tv-puntos" id="tvPtsB">0</span>
+          </div>
+        </div>
+
         <p class="arbitro-estado-juego" id="estadoJuego"></p>
+
+        <div class="arbitro-cancha" id="canchaDiagrama">
+          <div class="arbitro-cancha-mitad" id="canchaMitadA">
+            <div class="arbitro-cancha-jugador" id="canchaA1"><span class="arbitro-cancha-punto"></span><span class="arbitro-cancha-nombre"></span></div>
+            <div class="arbitro-cancha-jugador" id="canchaA2"><span class="arbitro-cancha-punto"></span><span class="arbitro-cancha-nombre"></span></div>
+          </div>
+          <div class="arbitro-cancha-red">RED</div>
+          <div class="arbitro-cancha-mitad" id="canchaMitadB">
+            <div class="arbitro-cancha-jugador" id="canchaB1"><span class="arbitro-cancha-punto"></span><span class="arbitro-cancha-nombre"></span></div>
+            <div class="arbitro-cancha-jugador" id="canchaB2"><span class="arbitro-cancha-punto"></span><span class="arbitro-cancha-nombre"></span></div>
+          </div>
+        </div>
+        <p class="field-hint" id="canchaSaqueInfo" style="text-align:center"></p>
+
+        <div class="portal-card arbitro-editor-marcador arbitro-no-print" id="editorMarcador" hidden>
+          <h3>Editar marcador manualmente</h3>
+          <p class="field-hint">Para reconstruir el tanteo tras una disputa (Regla: se conservan los puntos/juegos en que hay coincidencia entre las parejas).</p>
+          <div class="form-grid">
+            <div class="field"><label>Set 1 — A</label><input type="number" min="0" id="ed-setA1"></div>
+            <div class="field"><label>Set 1 — B</label><input type="number" min="0" id="ed-setB1"></div>
+            <div class="field"><label>Set 2 — A</label><input type="number" min="0" id="ed-setA2"></div>
+            <div class="field"><label>Set 2 — B</label><input type="number" min="0" id="ed-setB2"></div>
+            <div class="field"><label>Juegos del set actual — A</label><input type="number" min="0" id="ed-juegosA"></div>
+            <div class="field"><label>Juegos del set actual — B</label><input type="number" min="0" id="ed-juegosB"></div>
+            <div class="field"><label>Puntos del juego actual — A</label><input type="number" min="0" id="ed-puntosA"></div>
+            <div class="field"><label>Puntos del juego actual — B</label><input type="number" min="0" id="ed-puntosB"></div>
+            <div class="field">
+              <label>¿Tie-break activo?</label>
+              <div class="arbitro-toggle-group" id="ed-g-tiebreak">
+                <button type="button" class="arbitro-toggle active" data-value="no">No</button>
+                <button type="button" class="arbitro-toggle" data-value="si">Sí</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>¿Quién saca ahora?</label>
+              <div class="arbitro-toggle-group" id="ed-g-servidor">
+                <button type="button" class="arbitro-toggle active" data-value="A">Pareja A</button>
+                <button type="button" class="arbitro-toggle" data-value="B">Pareja B</button>
+              </div>
+            </div>
+          </div>
+          <div class="arbitro-end-bar">
+            <button class="btn btn-primary btn-small" id="btnGuardarEdicion">Guardar marcador</button>
+            <button class="btn btn-outline btn-small" id="btnCancelarEdicion">Cancelar</button>
+          </div>
+        </div>
 
         <div class="arbitro-point-buttons">
           <button class="btn btn-primary btn-large arbitro-btn-punto" id="btnPuntoA">+ Punto Pareja A</button>
@@ -224,7 +325,7 @@
         🔁 <strong>Cambio de lado</strong> — recuerda a los jugadores cambiar de campo.
       </div>
 
-      <div class="portal-card">
+      <div class="portal-card" id="cardTimers">
         <h3>Tiempos reglamentarios</h3>
         <div class="arbitro-timers-grid" id="timersGrid"></div>
         <div class="arbitro-timer-display" id="timerDisplay" hidden>
@@ -288,6 +389,6 @@
 </section>
 </main>
 
-<script type="module" src="assets/js/arbitro.js?v=3"></script>
+<script type="module" src="assets/js/arbitro.js?v=4"></script>
 </body>
 </html>
