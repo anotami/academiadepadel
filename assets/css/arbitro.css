@@ -216,6 +216,7 @@
 }
 .arbitro-share-row .btn { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.4); }
 .arbitro-share-row .btn-whatsapp { background: var(--whatsapp); border-color: transparent; }
+.arbitro-coach-links-label { margin: 14px 0 0; font-size: 0.85rem; opacity: 0.9; }
 
 .arbitro-meta-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -257,7 +258,7 @@ body.modo-tv .portal-topbar,
 body.modo-tv .arbitro-auth-bar,
 body.modo-tv .arbitro-share-box,
 body.modo-tv .arbitro-end-bar,
-body.modo-tv .portal-card:not(.arbitro-scoreboard-card):not(#cardTimers) {
+body.modo-tv .portal-card:not(.arbitro-scoreboard-card):not(.arbitro-tools-card):not(#editorMarcador) {
   display: none !important;
 }
 body.modo-tv .arbitro-tv-exit { display: block; }
@@ -270,7 +271,14 @@ body.modo-tv .arbitro-scoreboard-card {
 }
 body.modo-tv .arbitro-scoreboard { display: none; }
 body.modo-tv .arbitro-estado-juego { color: var(--accent); font-size: 1.4rem; }
-body.modo-tv .arbitro-meta-actions .btn:not(#btnPantallaGrande) { display: none; }
+/* Las "opciones de afuera" (narración, mostrar/ocultar cancha, editar
+   marcador, deshacer) se mantienen disponibles en pantalla completa, solo
+   restyleadas para verse bien sobre el fondo oscuro de modo TV. */
+body.modo-tv .arbitro-meta-actions .btn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
 body.modo-tv .arbitro-point-buttons .btn { padding: 28px; font-size: 1.3rem; }
 
 /* Marcador simplificado de modo TV: siempre 2 filas apiladas, nunca una
@@ -293,15 +301,24 @@ body.modo-tv .arbitro-tv-scoreboard { display: flex; flex-direction: column; gap
 .arbitro-tv-sets { color: #cfe3ea; font-weight: 700; font-size: clamp(0.9rem, 3.5vw, 1.3rem); white-space: nowrap; }
 .arbitro-tv-puntos { color: var(--accent); font-weight: 800; font-size: clamp(2rem, 11vw, 3.6rem); font-family: "Sora", sans-serif; min-width: 1.4em; text-align: right; }
 
-/* En pantalla grande, el bloque de tiempos se mantiene visible y agrandado. */
-body.modo-tv #cardTimers {
+/* En pantalla grande, el bloque de tiempos se mantiene visible y agrandado;
+   el resto de pestañas de la tarjeta de herramientas (conducta, demora,
+   interrupciones, historial) y la barra de pestañas se ocultan. */
+body.modo-tv .arbitro-tools-card {
+  display: block !important;
   background: rgba(255,255,255,0.06);
   border: none;
   box-shadow: none;
   color: #fff;
   margin-top: 16px;
 }
-body.modo-tv #cardTimers h3 { color: #fff; }
+body.modo-tv .arbitro-tool-tabs { display: none !important; }
+body.modo-tv .arbitro-tool-panel { display: none !important; }
+body.modo-tv #panel-tiempos {
+  display: block !important;
+  max-height: none;
+}
+body.modo-tv #panel-tiempos h3 { color: #fff; }
 body.modo-tv .arbitro-timer-btn {
   background: rgba(255,255,255,0.08);
   border-color: rgba(255,255,255,0.25);
@@ -335,10 +352,11 @@ body.modo-tv #timerCountdown { font-size: 3.4rem; }
   .arbitro-share-row input { min-width: 100%; }
 }
 
-/* Diagrama de cancha: SVG con proporción real (10 x 20 m), vista aérea
-   desde la posición del árbitro (en la línea de red, fuera y por encima). */
+/* Diagrama de cancha: SVG con proporción real (20 x 10 m) en horizontal,
+   vista aérea desde la posición del árbitro (en la línea de red, fuera y
+   por encima de la pista). */
 .arbitro-cancha-wrap {
-  max-width: 300px;
+  max-width: 460px;
   margin: 18px auto 4px;
   filter: drop-shadow(0 6px 16px rgba(13, 49, 64, 0.25));
 }
@@ -354,16 +372,157 @@ body.modo-tv #timerCountdown { font-size: 3.4rem; }
 }
 .arbitro-cancha-saque-txt { font-family: "Manrope", sans-serif; }
 
-body.modo-tv .arbitro-cancha-wrap { max-width: 260px; }
+body.modo-tv .arbitro-cancha-wrap { max-width: 560px; }
 
 /* Editor de marcador manual */
 .arbitro-editor-marcador { border: 2px dashed var(--court); margin-top: 14px; }
 
 /* Fuentes más grandes, pensadas para leerse de pie, con sol o desde lejos */
 .arbitro-section { font-size: 1.04rem; }
-.arbitro-estado-juego { font-size: 1.12rem; }
+.arbitro-estado-juego { font-size: 1.12rem; margin: 2px 0 8px; }
 .arbitro-team-name { font-size: 1.05rem !important; }
 .arbitro-points-col { font-size: 1.8rem !important; }
 .arbitro-btn-punto { font-size: 1.1rem; }
 .arbitro-incident-item { font-size: 0.92rem; }
 .arbitro-timer-btn { font-size: 0.88rem; }
+
+/* Cancha colapsable: se puede ocultar para ganar espacio en pantalla. */
+#canchaBloque.oculto { display: none; }
+
+/* Panel de herramientas con pestañas: agrupa Tiempos/Conducta/Demora/
+   Interrupciones/Historial en una sola tarjeta en vez de cinco apiladas,
+   para que el árbitro llegue a cualquiera sin scrollear de más. */
+.arbitro-tools-card { padding-bottom: 14px; }
+.arbitro-tool-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+  scrollbar-width: thin;
+}
+.arbitro-tool-tab {
+  flex: 0 0 auto;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--ink-soft);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 9px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.arbitro-tool-tab.active { border-color: var(--court); background: var(--court); color: #fff; }
+.arbitro-tool-panel { display: none; max-height: 48vh; overflow-y: auto; padding-right: 2px; }
+.arbitro-tool-panel.active { display: block; }
+.arbitro-tool-panel h3 { margin-top: 0; }
+
+@media (min-width: 720px) {
+  /* En pantallas más grandes sí entra todo sin pestañas: se muestran los
+     5 paneles a la vez, en dos columnas, cada uno con su propio scroll
+     interno si hiciera falta. */
+  .arbitro-tool-tabs { display: none; }
+  .arbitro-tools-card { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 28px; }
+  .arbitro-tool-panel { display: block !important; max-height: 340px; }
+}
+
+body.modo-tv .arbitro-end-bar { display: none !important; }
+/* El editor de marcador manual sigue abriéndose en modo-tv (ver excepción
+   más arriba): sus propios botones Guardar/Cancelar no deben quedar
+   atrapados por la regla general que oculta .arbitro-end-bar en modo-tv. */
+body.modo-tv #editorMarcador .arbitro-end-bar { display: flex !important; }
+
+/* ===================== Vista de entrenadores ===================== */
+.entrenador-alert {
+  background: #fff4e5;
+  border: 1.5px solid #f0b429;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  font-size: 0.88rem;
+}
+.entrenador-last-point {
+  background: var(--court-dark);
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.entrenador-chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+.entrenador-chip {
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--ink-soft);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.entrenador-chip.active { border-color: var(--court); background: var(--court); color: #fff; }
+.entrenador-chip.tipo-positivo.active { border-color: #1a7f4e; background: #1a7f4e; }
+.entrenador-chip.tipo-negativo.active { border-color: #c0392b; background: #c0392b; }
+.entrenador-chip.tipo-neutro.active { border-color: #d9822b; background: #d9822b; }
+
+.entrenador-zonas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  max-width: 340px;
+  margin: 10px 0;
+  background: linear-gradient(180deg, #1a5a70, #0d3140);
+  padding: 10px;
+  border-radius: 12px;
+}
+.entrenador-zona-btn {
+  aspect-ratio: 3 / 2;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px;
+  font-family: inherit;
+}
+.entrenador-zona-btn.active { background: var(--accent); color: #0d3140; font-weight: 800; border-color: var(--accent); }
+.entrenador-zona-btn .ez-conteo { display: block; font-weight: 800; font-size: 1rem; }
+.entrenador-zona-btn.readonly { cursor: default; }
+
+.entrenador-set-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.entrenador-stats-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 720px) { .entrenador-stats-grid { grid-template-columns: 1fr 1fr; } }
+.entrenador-player-card { border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; }
+.entrenador-player-card h4 { margin: 0 0 8px; }
+.entrenador-stat-row { display: flex; justify-content: space-between; gap: 10px; font-size: 0.88rem; padding: 3px 0; border-bottom: 1px dashed var(--border); }
+.entrenador-stat-row:last-child { border-bottom: none; }
+.entrenador-shot-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.82rem; }
+.entrenador-shot-table th, .entrenador-shot-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); text-align: center; }
+.entrenador-shot-table td:first-child, .entrenador-shot-table th:first-child { text-align: left; }
+
+.entrenador-feedback-item {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+.entrenador-feedback-item button { flex-shrink: 0; }
+.entrenador-informe { white-space: pre-wrap; background: #f5f7f8; border-radius: 10px; padding: 14px; font-size: 0.85rem; margin-top: 12px; }
+
+body.imprimiendo-informe .portal-card:not(#entInformeCard),
+body.imprimiendo-informe .portal-topbar,
+body.imprimiendo-informe #entAlertas { display: none !important; }

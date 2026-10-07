@@ -6,7 +6,7 @@ import {
   LABELS, CHECKLIST_ITEMS, INTERRUPTION_TYPES, CONDUCT_CATEGORIES,
   nombreEquipo, nombreJugador, otro, labelsDePuntos, formatMMSS,
   consecuenciaConducta, consecuenciaDemora, peloteoSugeridoSeg
-} from "./arbitro-common.js?v=3";
+} from "./arbitro-common.js?v=4";
 
 // Firebase se carga de forma diferida (import dinámico) y nunca de forma
 // estática: si no hay internet o falla la red, el resto del árbitro (marcador,
@@ -70,7 +70,8 @@ function estadoInicial() {
       usosInterrupcion: {},
       vecesSirvioEquipo: { A: 0, B: 0 },
       guardadoEnHistorial: false,
-      log: []
+      log: [],
+      puntos: []
     },
     incidents: [],
     history: []
@@ -189,6 +190,35 @@ async function cargarAlumnosParaAutocompletar() {
       const opt = document.createElement("option");
       opt.value = nombre;
       datalist.appendChild(opt);
+    });
+  } catch (e) { /* sin autocompletar si falla */ }
+}
+
+// Usa las pistas ya cargadas en el panel del profesor (colección "pistas")
+// para sugerir club/sede y cancha al elegir dónde se juega, en vez de que
+// el árbitro tenga que volver a tipearlas de cero cada vez.
+async function cargarPistasParaAutocompletar() {
+  if (!authUser || !firebaseListo()) return;
+  try {
+    const snap = await fb.getDocs(fb.collection(fb.db, "pistas"));
+    const listaClubes = document.getElementById("listaClubes");
+    const listaPistas = document.getElementById("listaPistas");
+    listaClubes.innerHTML = "";
+    listaPistas.innerHTML = "";
+    const canchasVistas = new Set();
+    snap.forEach((d) => {
+      const p = d.data();
+      if (p.nombre) {
+        const opt = document.createElement("option");
+        opt.value = p.nombre;
+        listaClubes.appendChild(opt);
+      }
+      if (p.cancha && !canchasVistas.has(p.cancha)) {
+        canchasVistas.add(p.cancha);
+        const opt = document.createElement("option");
+        opt.value = p.cancha;
+        listaPistas.appendChild(opt);
+      }
     });
   } catch (e) { /* sin autocompletar si falla */ }
 }
@@ -385,14 +415,34 @@ function addPoint(team) {
   const m = state.match;
   if (m.matchWinner || m.interrupcionActiva) return;
   pushHistory();
+  const servidorAntes = m.servidor;
+  const setIdx = m.sets.length;
   if (m.isSuperTiebreakSet) addSuperTiebreakPoint(team);
   else if (m.inTiebreak) addTiebreakPoint(team);
   else addGamePoint(team);
   addLog("punto", `Punto ${nomEq(team)} → ${marcadorActual()}`, { equipo: team });
+  registrarPuntoParaEntrenadores(team, servidorAntes, setIdx);
   save();
   syncLive();
   render();
   hablar(m.ultimoEvento);
+}
+
+// Registro punto a punto pensado para la vista de entrenadores: cada punto
+// queda con un índice estable (puntoIdx) al que luego se puede "colgar" el
+// feedback táctico (golpe, resultado, zona, nota) desde arbitro-entrenador.html,
+// sin tener que tocar el motor de puntuación.
+function registrarPuntoParaEntrenadores(equipoGana, servidor, setIdx) {
+  const m = state.match;
+  if (!m.puntos) m.puntos = [];
+  m.puntos.push({
+    idx: m.puntos.length,
+    ts: Date.now(),
+    equipoGana,
+    servidor,
+    setIdx,
+    marcador: marcadorActual()
+  });
 }
 
 // ---------------- Incidencias (código de conducta) ----------------
@@ -696,12 +746,13 @@ function renderPartido() {
   renderShareBox();
 }
 
-// Dibuja la cancha en SVG con proporción real (10 x 20 m) y la vista
-// aérea con la que trabaja el árbitro: parado en la línea de red, afuera
-// de la pista. El jugador que saca se ubica en su cuadro de saque real
-// (detrás de la línea de servicio, lado derecho o izquierdo); el resto de
-// jugadores no tiene posición fija por reglamento, así que se muestran en
-// una posición de referencia dentro de su mitad.
+// Dibuja la cancha en SVG con proporción real (20 x 10 m) en horizontal —
+// la vista con la que trabaja el árbitro: sentado en la silla, junto a la
+// red, afuera de la pista y por encima de la línea de banda. El jugador que
+// saca se ubica en su cuadro de saque real (detrás de la línea de servicio,
+// lado derecho o izquierdo); el resto de jugadores no tiene posición fija
+// por reglamento, así que se muestran en una posición de referencia dentro
+// de su mitad.
 function construirSvgCancha() {
   const c = state.config;
   const m = state.match;
@@ -710,28 +761,31 @@ function construirSvgCancha() {
   const servidorNum = jugadorQueSirve(servidorTeam);
   const terminado = !!m.matchWinner;
 
-  const W = 260, H = 420, GLASS = 10;
-  const cx0 = GLASS, cy0 = GLASS, cw = 200, ch = 400;
-  const netY = cy0 + ch / 2;
-  const halfH = ch / 2;
-  const svcOffset = (6.95 / 10) * halfH;
-  const svcLineA = netY - svcOffset;
-  const svcLineB = netY + svcOffset;
-  const centerX = cx0 + cw / 2;
-  const leftX = cx0 + cw * 0.26;
-  const rightX = cx0 + cw * 0.74;
-  const backMidA = (cy0 + svcLineA) / 2;
-  const backMidB = (svcLineB + (cy0 + ch)) / 2;
-  const midHalfA = (svcLineA + netY) / 2;
-  const midHalfB = (netY + svcLineB) / 2;
+  const GLASS = 10, SILLA = 44;
+  const cx0 = GLASS, cw = 400;
+  const cy0 = GLASS + SILLA, ch = 200;
+  const W = cx0 + cw + GLASS;
+  const H = cy0 + ch + GLASS;
+  const netX = cx0 + cw / 2;
+  const halfW = cw / 2;
+  const svcOffset = (6.95 / 10) * halfW;
+  const svcLineA = netX - svcOffset;
+  const svcLineB = netX + svcOffset;
+  const centerY = cy0 + ch / 2;
+  const topY = cy0 + ch * 0.26;
+  const bottomY = cy0 + ch * 0.74;
+  const backMidA = (cx0 + svcLineA) / 2;
+  const backMidB = (svcLineB + (cx0 + cw)) / 2;
+  const midHalfA = (svcLineA + netX) / 2;
+  const midHalfB = (netX + svcLineB) / 2;
 
   const lado = ladoSaque();
-  const servirX = lado === "Derecha" ? rightX : leftX;
+  const servirY = lado === "Derecha" ? topY : bottomY;
 
   function posicionesEquipo(team) {
     const esServidorEquipo = !terminado && !enTiebreak && team === servidorTeam;
-    const midY = team === "A" ? midHalfA : midHalfB;
-    const backY = team === "A" ? backMidA : backMidB;
+    const midX = team === "A" ? midHalfA : midHalfB;
+    const backX = team === "A" ? backMidA : backMidB;
     const color = team === "A" ? c.colorA : c.colorB;
     return [1, 2].map((num) => {
       const sirve = esServidorEquipo && num === servidorNum;
@@ -739,8 +793,8 @@ function construirSvgCancha() {
         nombre: nombreDeNumero(team, num),
         color,
         sirve,
-        x: sirve ? servirX : (num === 1 ? leftX : rightX),
-        y: sirve ? backY : midY
+        x: sirve ? backX : midX,
+        y: sirve ? servirY : (num === 1 ? topY : bottomY)
       };
     });
   }
@@ -761,45 +815,45 @@ function construirSvgCancha() {
       </g>`;
   }
 
-  const ticksNet = Array.from({ length: Math.floor(cw / 9) }, (_, i) => {
-    const x = cx0 + 4 + i * 9;
-    return `<line x1="${x}" y1="${netY - 4}" x2="${x}" y2="${netY + 4}" stroke="#0d3140" stroke-width="1" opacity="0.5"/>`;
+  const ticksNet = Array.from({ length: Math.floor(ch / 9) }, (_, i) => {
+    const y = cy0 + 4 + i * 9;
+    return `<line x1="${netX - 4}" y1="${y}" x2="${netX + 4}" y2="${y}" stroke="#0d3140" stroke-width="1" opacity="0.5"/>`;
   }).join("");
 
   return `
   <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">
     <defs>
-      <linearGradient id="turf" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="turf" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0%" stop-color="#1a5a70"/>
         <stop offset="100%" stop-color="#0d3140"/>
       </linearGradient>
     </defs>
 
     <!-- Paredes de vidrio (marco) -->
-    <rect x="0" y="0" width="${cx0 + cw + GLASS}" height="${H}" rx="10" fill="#bfe3f0" opacity="0.35"/>
-    ${Array.from({ length: Math.floor(H / 16) }, (_, i) => `<line x1="2" y1="${i * 16}" x2="${cx0 + cw + GLASS - 2}" y2="${i * 16}" stroke="#ffffff" stroke-width="1" opacity="0.25"/>`).join("")}
+    <rect x="0" y="${SILLA}" width="${W}" height="${H - SILLA}" rx="10" fill="#bfe3f0" opacity="0.35"/>
+    ${Array.from({ length: Math.floor(W / 16) }, (_, i) => `<line x1="${i * 16}" y1="${SILLA + 2}" x2="${i * 16}" y2="${H - 2}" stroke="#ffffff" stroke-width="1" opacity="0.25"/>`).join("")}
 
     <!-- Superficie de juego -->
     <rect x="${cx0}" y="${cy0}" width="${cw}" height="${ch}" rx="4" fill="url(#turf)" stroke="#ffffff" stroke-width="2.5"/>
 
     <!-- Líneas de servicio -->
-    <line x1="${cx0}" y1="${svcLineA}" x2="${cx0 + cw}" y2="${svcLineA}" stroke="#ffffff" stroke-width="1.75"/>
-    <line x1="${cx0}" y1="${svcLineB}" x2="${cx0 + cw}" y2="${svcLineB}" stroke="#ffffff" stroke-width="1.75"/>
+    <line x1="${svcLineA}" y1="${cy0}" x2="${svcLineA}" y2="${cy0 + ch}" stroke="#ffffff" stroke-width="1.75"/>
+    <line x1="${svcLineB}" y1="${cy0}" x2="${svcLineB}" y2="${cy0 + ch}" stroke="#ffffff" stroke-width="1.75"/>
     <!-- Línea central de saque (solo dentro del área de servicio, como en la regla) -->
-    <line x1="${centerX}" y1="${svcLineA}" x2="${centerX}" y2="${netY}" stroke="#ffffff" stroke-width="1.75"/>
-    <line x1="${centerX}" y1="${netY}" x2="${centerX}" y2="${svcLineB}" stroke="#ffffff" stroke-width="1.75"/>
+    <line x1="${svcLineA}" y1="${centerY}" x2="${netX}" y2="${centerY}" stroke="#ffffff" stroke-width="1.75"/>
+    <line x1="${netX}" y1="${centerY}" x2="${svcLineB}" y2="${centerY}" stroke="#ffffff" stroke-width="1.75"/>
 
     <!-- Red -->
-    <rect x="${cx0 - 3}" y="${netY - 5}" width="${cw + 6}" height="10" fill="#0d3140"/>
+    <rect x="${netX - 5}" y="${cy0 - 3}" width="10" height="${ch + 6}" fill="#0d3140"/>
     ${ticksNet}
-    <rect x="${cx0 - 4}" y="${netY - 9}" width="4" height="18" fill="#0d3140"/>
-    <rect x="${cx0 + cw}" y="${netY - 9}" width="4" height="18" fill="#0d3140"/>
+    <rect x="${netX - 9}" y="${cy0 - 4}" width="18" height="4" fill="#0d3140"/>
+    <rect x="${netX - 9}" y="${cy0 + ch}" width="18" height="4" fill="#0d3140"/>
 
     ${jugadores.map(marcador).join("")}
 
-    <!-- Posición del árbitro: en la línea de red, fuera de la pista -->
-    <text x="${cx0 + cw + GLASS + 14}" y="${netY - 10}" text-anchor="middle" font-size="20">🧑‍⚖️</text>
-    <text x="${cx0 + cw + GLASS + 14}" y="${netY + 14}" text-anchor="middle" font-size="9" fill="var(--ink-soft,#47586b)" class="arbitro-cancha-saque-txt">Árbitro</text>
+    <!-- Posición del árbitro: en la silla, junto a la red, afuera y arriba de la pista -->
+    <text x="${netX}" y="${SILLA - 24}" text-anchor="middle" font-size="20">🧑‍⚖️</text>
+    <text x="${netX}" y="${SILLA - 6}" text-anchor="middle" font-size="9" fill="var(--ink-soft,#47586b)" class="arbitro-cancha-saque-txt">Árbitro</text>
   </svg>`;
 }
 
@@ -943,8 +997,10 @@ function renderShareBox() {
   const box = document.getElementById("shareBox");
   if (!state.match.liveId) { box.hidden = true; return; }
   box.hidden = false;
-  const url = `${location.origin}${location.pathname.replace(/arbitro\.html$/, "")}arbitro-vivo.html?id=${state.match.liveId}`;
-  document.getElementById("shareLink").value = url;
+  const base = `${location.origin}${location.pathname.replace(/arbitro\.html$/, "")}`;
+  document.getElementById("shareLink").value = `${base}arbitro-vivo.html?id=${state.match.liveId}`;
+  document.getElementById("coachLinkA").value = `${base}arbitro-entrenador.html?id=${state.match.liveId}&equipo=A`;
+  document.getElementById("coachLinkB").value = `${base}arbitro-entrenador.html?id=${state.match.liveId}&equipo=B`;
 }
 
 function renderActa() {
@@ -1233,6 +1289,19 @@ function init() {
   document.getElementById("btnPantallaGrande").addEventListener("click", toggleModoTv);
   document.getElementById("btnSalirTv").addEventListener("click", toggleModoTv);
 
+  document.getElementById("btnCancha").addEventListener("click", (e) => {
+    const oculta = document.getElementById("canchaBloque").classList.toggle("oculto");
+    e.currentTarget.textContent = oculta ? "🗺️ Mostrar cancha" : "🗺️ Ocultar cancha";
+  });
+  document.querySelectorAll(".arbitro-tool-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".arbitro-tool-tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".arbitro-tool-panel").forEach((p) => p.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(`panel-${tab.dataset.tool}`).classList.add("active");
+    });
+  });
+
   activarToggleLocal("ed-g-tiebreak");
   activarToggleLocal("ed-g-servidor");
   document.getElementById("btnEditarMarcador").addEventListener("click", abrirEditorMarcador);
@@ -1309,6 +1378,19 @@ function init() {
     const url = document.getElementById("shareLink").value;
     window.open(`https://wa.me/?text=${encodeURIComponent(`🎾 Sigue el partido en vivo: ${url}`)}`, "_blank");
   });
+  function wireCoachLink(copyBtnId, waBtnId, inputId, equipo) {
+    document.getElementById(copyBtnId).addEventListener("click", async () => {
+      const input = document.getElementById(inputId);
+      input.select();
+      try { await navigator.clipboard.writeText(input.value); } catch (e) { document.execCommand("copy"); }
+    });
+    document.getElementById(waBtnId).addEventListener("click", () => {
+      const url = document.getElementById(inputId).value;
+      window.open(`https://wa.me/?text=${encodeURIComponent(`🧑‍🏫 Link para anotar tu devolución táctica de la Pareja ${equipo}: ${url}`)}`, "_blank");
+    });
+  }
+  wireCoachLink("btnCopiarCoachA", "btnWhatsappCoachA", "coachLinkA", "A");
+  wireCoachLink("btnCopiarCoachB", "btnWhatsappCoachB", "coachLinkB", "B");
 
   document.getElementById("btnTerminarPartido").addEventListener("click", () => {
     if (!state.match.matchWinner && !confirm("El marcador no muestra un partido terminado. ¿Finalizar igual (retiro / w.o. / suspendido)?")) return;
@@ -1358,6 +1440,7 @@ async function setupAuth() {
       bar.textContent = `Conectado como ${user.email} — el marcador en vivo y la multipista están disponibles.`;
       document.getElementById("cardCompartir").hidden = false;
       cargarAlumnosParaAutocompletar();
+      cargarPistasParaAutocompletar();
     } else {
       bar.innerHTML = `No has iniciado sesión — el árbitro funciona igual, 100% local. Para marcador en vivo y multipista, <a href="arbitro-login.html">inicia sesión como árbitro</a>.`;
       document.getElementById("cardCompartir").hidden = true;

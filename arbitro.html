@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=12">
-<link rel="stylesheet" href="assets/css/arbitro.css?v=5">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=6">
 </head>
 <body class="arbitro-body">
 
@@ -78,15 +78,17 @@
           <datalist id="listaAlumnos"></datalist>
           <div class="field">
             <label for="s-club">Club / sede</label>
-            <input type="text" id="s-club" placeholder="Ej. Academia de Pádel Lima">
+            <input type="text" id="s-club" placeholder="Ej. Academia de Pádel Lima" list="listaClubes">
           </div>
+          <datalist id="listaClubes"></datalist>
           <div class="field">
             <label for="s-pais">País</label>
             <input type="text" id="s-pais" placeholder="Perú" value="Perú">
           </div>
           <div class="field">
             <label for="s-pista">Pista</label>
-            <input type="text" id="s-pista" placeholder="Ej. Pista 2">
+            <input type="text" id="s-pista" placeholder="Ej. Pista 2" list="listaPistas">
+            <datalist id="listaPistas"></datalist>
           </div>
           <div class="field">
             <label for="s-entrenadorA">Entrenador acreditado — Pareja A (opcional)</label>
@@ -204,6 +206,17 @@
           <button class="btn btn-whatsapp btn-small" id="btnCompartirLinkWhatsapp">WhatsApp</button>
           <a class="btn btn-outline btn-small" href="arbitro-pistas.html" target="_blank" rel="noopener">Ver en Multipista</a>
         </div>
+        <p class="arbitro-coach-links-label">🧑‍🏫 Link para que cada entrenador anote su devolución táctica (golpes, errores, feedback):</p>
+        <div class="arbitro-share-row">
+          <input type="text" id="coachLinkA" readonly>
+          <button class="btn btn-outline btn-small" id="btnCopiarCoachA">Copiar A</button>
+          <button class="btn btn-whatsapp btn-small" id="btnWhatsappCoachA">WhatsApp A</button>
+        </div>
+        <div class="arbitro-share-row">
+          <input type="text" id="coachLinkB" readonly>
+          <button class="btn btn-outline btn-small" id="btnCopiarCoachB">Copiar B</button>
+          <button class="btn btn-whatsapp btn-small" id="btnWhatsappCoachB">WhatsApp B</button>
+        </div>
       </div>
 
       <div class="portal-card arbitro-scoreboard-card">
@@ -211,6 +224,7 @@
           <span id="metaInfo"></span>
           <div class="arbitro-meta-actions">
             <button class="btn btn-outline btn-small" id="btnVoz">🔊 Narración: OFF</button>
+            <button class="btn btn-outline btn-small" id="btnCancha">🗺️ Ocultar cancha</button>
             <button class="btn btn-outline btn-small" id="btnPantallaGrande">⛶ Pantalla grande</button>
             <button class="btn btn-outline btn-small" id="btnEditarMarcador">✏️ Editar marcador</button>
             <button class="btn btn-outline btn-small" id="btnDeshacer">↺ Deshacer última acción</button>
@@ -258,8 +272,10 @@
 
         <p class="arbitro-estado-juego" id="estadoJuego"></p>
 
-        <div class="arbitro-cancha-wrap" id="canchaDiagrama" aria-label="Diagrama de la cancha con la posición de saque"></div>
-        <p class="field-hint" id="canchaSaqueInfo" style="text-align:center"></p>
+        <div id="canchaBloque">
+          <div class="arbitro-cancha-wrap" id="canchaDiagrama" aria-label="Diagrama de la cancha con la posición de saque"></div>
+          <p class="field-hint" id="canchaSaqueInfo" style="text-align:center"></p>
+        </div>
 
         <div class="portal-card arbitro-editor-marcador arbitro-no-print" id="editorMarcador" hidden>
           <h3>Editar marcador manualmente</h3>
@@ -315,47 +331,55 @@
         🔁 <strong>Cambio de lado</strong> — recuerda a los jugadores cambiar de campo.
       </div>
 
-      <div class="portal-card" id="cardTimers">
-        <h3>Tiempos reglamentarios</h3>
-        <div class="arbitro-timers-grid" id="timersGrid"></div>
-        <div class="arbitro-timer-display" id="timerDisplay" hidden>
-          <span id="timerLabel"></span>
-          <span id="timerCountdown">00:00</span>
-          <button class="btn btn-outline btn-small" id="btnTimerPausa">Pausar</button>
-          <button class="btn btn-outline btn-small" id="btnTimerCancelar">Cancelar</button>
+      <div class="portal-card arbitro-tools-card arbitro-no-print">
+        <div class="arbitro-tool-tabs" id="toolTabs" role="tablist">
+          <button class="arbitro-tool-tab active" data-tool="tiempos" type="button">⏱️ Tiempos</button>
+          <button class="arbitro-tool-tab" data-tool="conducta" type="button">⚠️ Conducta</button>
+          <button class="arbitro-tool-tab" data-tool="demora" type="button">⏳ Demora</button>
+          <button class="arbitro-tool-tab" data-tool="interrupciones" type="button">⏸️ Interrup.</button>
+          <button class="arbitro-tool-tab" data-tool="historial" type="button">📜 Historial</button>
         </div>
-      </div>
 
-      <div class="portal-card">
-        <h3>Código de conducta</h3>
-        <p class="field-hint">Escalera real FIP por pareja: 1ra infracción = advertencia · 2da = advertencia + pérdida de punto · 3ra = advertencia + descalificación. Elige la categoría; el sistema calcula sola qué infracción es.</p>
-        <div class="arbitro-incident-buttons" id="conductaBotones"></div>
-        <button class="btn btn-outline btn-small arbitro-inc-desc" id="btnDescalificacionDirecta">⛔ Descalificación directa (falta muy grave)</button>
-        <ul class="arbitro-incident-log" id="incidentLog"></ul>
-        <p class="empty-state" id="incidentEmpty">Sin incidencias de conducta registradas.</p>
-      </div>
+        <div class="arbitro-tool-panel active" id="panel-tiempos">
+          <h3>Tiempos reglamentarios</h3>
+          <div class="arbitro-timers-grid" id="timersGrid"></div>
+          <div class="arbitro-timer-display" id="timerDisplay" hidden>
+            <span id="timerLabel"></span>
+            <span id="timerCountdown">00:00</span>
+            <button class="btn btn-outline btn-small" id="btnTimerPausa">Pausar</button>
+            <button class="btn btn-outline btn-small" id="btnTimerCancelar">Cancelar</button>
+          </div>
+        </div>
 
-      <div class="portal-card">
-        <h3>Infracciones de tiempo (demora)</h3>
-        <p class="field-hint">Tabla aparte de la de conducta: 1ra infracción = advertencia · 2da en adelante = pérdida de punto.</p>
-        <div class="arbitro-incident-buttons" id="demoraBotones"></div>
-        <ul class="arbitro-incident-log" id="demoraLog"></ul>
-        <p class="empty-state" id="demoraEmpty">Sin infracciones de tiempo registradas.</p>
-      </div>
+        <div class="arbitro-tool-panel" id="panel-conducta">
+          <h3>Código de conducta</h3>
+          <p class="field-hint">Escalera real FIP por pareja: 1ra infracción = advertencia · 2da = advertencia + pérdida de punto · 3ra = advertencia + descalificación. Elige la categoría; el sistema calcula sola qué infracción es.</p>
+          <div class="arbitro-incident-buttons" id="conductaBotones"></div>
+          <button class="btn btn-outline btn-small arbitro-inc-desc" id="btnDescalificacionDirecta">⛔ Descalificación directa (falta muy grave)</button>
+          <ul class="arbitro-incident-log" id="incidentLog"></ul>
+          <p class="empty-state" id="incidentEmpty">Sin incidencias de conducta registradas.</p>
+        </div>
 
-      <div class="portal-card">
-        <h3>Interrupciones del partido</h3>
-        <p class="field-hint">Lesiones, clima, fallas de instalaciones, disputas de tanteo, etc. Quedan en el acta con hora y duración.</p>
-        <div class="arbitro-incident-buttons" id="interrupcionBotones"></div>
-        <ul class="arbitro-incident-log" id="interrupcionLog"></ul>
-        <p class="empty-state" id="interrupcionEmpty">Sin interrupciones registradas.</p>
-      </div>
+        <div class="arbitro-tool-panel" id="panel-demora">
+          <h3>Infracciones de tiempo (demora)</h3>
+          <p class="field-hint">Tabla aparte de la de conducta: 1ra infracción = advertencia · 2da en adelante = pérdida de punto.</p>
+          <div class="arbitro-incident-buttons" id="demoraBotones"></div>
+          <ul class="arbitro-incident-log" id="demoraLog"></ul>
+          <p class="empty-state" id="demoraEmpty">Sin infracciones de tiempo registradas.</p>
+        </div>
 
-      <div class="portal-card">
-        <details>
-          <summary><h3 class="arbitro-inline-h3">Historial del partido (punto a punto)</h3></summary>
+        <div class="arbitro-tool-panel" id="panel-interrupciones">
+          <h3>Interrupciones del partido</h3>
+          <p class="field-hint">Lesiones, clima, fallas de instalaciones, disputas de tanteo, etc. Quedan en el acta con hora y duración.</p>
+          <div class="arbitro-incident-buttons" id="interrupcionBotones"></div>
+          <ul class="arbitro-incident-log" id="interrupcionLog"></ul>
+          <p class="empty-state" id="interrupcionEmpty">Sin interrupciones registradas.</p>
+        </div>
+
+        <div class="arbitro-tool-panel" id="panel-historial">
+          <h3>Historial del partido (punto a punto)</h3>
           <ul class="arbitro-incident-log" id="historialLog"></ul>
-        </details>
+        </div>
       </div>
 
       <div class="arbitro-end-bar">
@@ -379,6 +403,6 @@
 </section>
 </main>
 
-<script type="module" src="assets/js/arbitro.js?v=5"></script>
+<script type="module" src="assets/js/arbitro.js?v=6"></script>
 </body>
 </html>

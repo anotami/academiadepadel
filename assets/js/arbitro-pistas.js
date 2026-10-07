@@ -1,7 +1,7 @@
 // Multipista (arbitraje pasivo): ve en vivo todas las pistas que se están
 // arbitrando ahora mismo, y un ranking interno acumulado de partidos
 // finalizados que se jugaron con marcador en vivo activado.
-import { nombreEquipo, labelsDePuntos, tiempoRelativo } from "./arbitro-common.js?v=3";
+import { nombreEquipo, labelsDePuntos, tiempoRelativo } from "./arbitro-common.js?v=4";
 
 // El cambio de pestañas es pura UI local: se conecta primero y sin depender
 // de que Firebase cargue bien, para que nunca quede "colgado".

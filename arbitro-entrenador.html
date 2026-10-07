@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vista Entrenador | academiadepadel.pe</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14495a">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=12">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=6">
+</head>
+<body class="arbitro-body">
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>academiadepadel.pe</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+<section class="section portal-section arbitro-section">
+  <div class="container portal-shell">
+
+    <div id="entCodigo" class="portal-card">
+      <h2>🧑‍🏫 Vista de entrenador</h2>
+      <p class="field-hint">Pega el link que te compartió el árbitro desde el marcador en vivo, o completa el código del partido y la pareja que entrenas.</p>
+      <form id="formCodigo" class="form-grid">
+        <label class="field-full">Código del partido
+          <input type="text" id="in-id" placeholder="Ej: aBcD123xyz..." required>
+        </label>
+        <label>Pareja que entrenas
+          <select id="in-equipo">
+            <option value="A">Pareja A</option>
+            <option value="B">Pareja B</option>
+          </select>
+        </label>
+        <div></div>
+        <button class="btn btn-primary field-full" type="submit">Entrar</button>
+      </form>
+      <p class="form-msg error" id="entCodigoMsg"></p>
+    </div>
+
+    <div id="entCargando" class="empty-state" hidden>Cargando partido…</div>
+    <div id="entError" class="empty-state" hidden>No encontramos este partido (puede haber terminado hace mucho o el código está mal escrito).</div>
+
+    <div id="entContenido" hidden>
+      <div class="portal-topbar">
+        <div>
+          <h1 id="entTitulo">🧑‍🏫 Vista Entrenador</h1>
+          <p class="portal-whoami" id="entMeta"></p>
+        </div>
+        <span class="badge badge-confirmada" id="entEstadoBadge"></span>
+      </div>
+
+      <div id="entAlertas"></div>
+
+      <div class="portal-card arbitro-scoreboard-card">
+        <table class="arbitro-scoreboard">
+          <thead><tr><th></th><th>Set 1</th><th>Set 2</th><th>Set 3</th><th class="arbitro-points-col">Puntos</th></tr></thead>
+          <tbody>
+            <tr id="rowPropio"><td class="arbitro-team-name" id="nombrePropio"></td><td id="setP1">–</td><td id="setP2">–</td><td id="setP3">–</td><td class="arbitro-points-col"><span id="ptsP">0</span></td></tr>
+            <tr id="rowRival"><td class="arbitro-team-name" id="nombreRival"></td><td id="setR1">–</td><td id="setR2">–</td><td id="setR3">–</td><td class="arbitro-points-col"><span id="ptsR">0</span></td></tr>
+          </tbody>
+        </table>
+        <p class="arbitro-estado-juego" id="entEstadoJuego"></p>
+      </div>
+
+      <div class="portal-card">
+        <h3>📝 Registrar punto</h3>
+        <div class="entrenador-last-point" id="entUltimoPunto"></div>
+
+        <p class="field-hint">Jugador</p>
+        <div class="entrenador-chip-row" id="entJugadores"></div>
+
+        <p class="field-hint">Tipo de golpe</p>
+        <div class="entrenador-chip-row" id="entGolpes"></div>
+
+        <p class="field-hint">Resultado del punto</p>
+        <div class="entrenador-chip-row" id="entResultados"></div>
+
+        <p class="field-hint">Zona de la cancha</p>
+        <div class="entrenador-zonas" id="entZonas"></div>
+
+        <label class="field-hint" for="entNota">Nota / feedback para el jugador</label>
+        <textarea id="entNota" rows="2" placeholder="Ej: se abre mucho al pegar de revés, pierde profundidad…"></textarea>
+
+        <div class="arbitro-end-bar" style="margin-top:14px">
+          <button class="btn btn-primary" id="btnGuardarTag">💾 Guardar</button>
+          <button class="btn btn-outline" id="btnLimpiarTag">Limpiar selección</button>
+        </div>
+        <p class="form-msg" id="entTagMsg"></p>
+      </div>
+
+      <div class="portal-card">
+        <h3>📊 Estadísticas de la pareja</h3>
+        <div class="entrenador-set-tabs" id="entSetTabs"></div>
+        <div class="entrenador-stats-grid" id="entStatsGrid"></div>
+        <p class="field-hint" style="margin-top:10px">Zonas donde más puntos se definen:</p>
+        <div class="entrenador-zonas" id="entZonasStats"></div>
+      </div>
+
+      <div class="portal-card">
+        <h3>📜 Puntos registrados</h3>
+        <div id="entHistorial"></div>
+        <p class="empty-state" id="entHistorialEmpty" hidden>Todavía no registraste ningún punto.</p>
+      </div>
+
+      <div class="portal-card" id="entInformeCard">
+        <h3>📤 Informe de devolución</h3>
+        <p class="field-hint">Genera un resumen con fortalezas, puntos a mejorar y tus notas, listo para compartir con el jugador.</p>
+        <div class="arbitro-end-bar">
+          <button class="btn btn-whatsapp" id="btnInformeWhatsapp">WhatsApp</button>
+          <button class="btn btn-outline" id="btnInformeCsv">Exportar CSV</button>
+          <button class="btn btn-outline" id="btnInformeImprimir">Imprimir</button>
+        </div>
+        <pre id="entInforme" class="entrenador-informe" hidden></pre>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script type="module" src="assets/js/arbitro-entrenador.js?v=1"></script>
+</body>
+</html>

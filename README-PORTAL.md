@@ -36,6 +36,7 @@ solo como capa opcional cuando el árbitro está logueado y hay conexión.
 | `arbitro-historial.html` | El árbitro | Historial de partidos: local en este dispositivo (siempre) y en la nube (si se compartieron en vivo, con acta completa recuperable desde cualquier dispositivo). |
 | `arbitro-torneo.html` | El organizador | Torneo Americano/Mexicano: genera rondas con parejas rotativas (o por nivel), registra resultados por pista y arma la tabla de posiciones. 100% local, no usa Firebase. |
 | `arbitro-login.html` | El árbitro | Login/registro propio de árbitros (rol `arbitro`), separado del de alumnos — sin edad, apoderado ni disponibilidad; solo nombre, teléfono y club opcional. |
+| `arbitro-entrenador.html?id=...&equipo=A/B` | El entrenador de cada pareja (sin login) | Ventana aparte por pareja: marcador en vivo + alertas de conducta/demora de sus jugadores, y registro de feedback táctico punto a punto (golpe, resultado, zona, nota) con estadísticas e informe de devolución exportable. |
 
 Funciones del marcador (`arbitro.html`):
 
@@ -96,6 +97,42 @@ compartido entre pistas que pueda chocar. En la práctica: cada árbitro abre
 "Compartir en vivo" y arbitra su pista con total independencia de las demás.
 Quien esté coordinando el torneo abre `arbitro-pistas.html` y ve todas las
 pistas activas en una sola pantalla, en tiempo real.
+
+### Vista de entrenadores: feedback táctico por pareja
+
+Pensada para que cada entrenador tenga su propia ventana, separada de la del
+árbitro y de la del otro entrenador. Desde el marcador en vivo (`arbitro.html`,
+cuando el partido se comparte en vivo) aparecen dos links listos para copiar
+o mandar por WhatsApp: uno para el entrenador de la Pareja A y otro para el de
+la Pareja B (`arbitro-entrenador.html?id=...&equipo=A` / `...&equipo=B`). No
+requiere cuenta — con el link entra directo.
+
+Qué usa del árbitro: el marcador en vivo completo (sets, juego, quién saca,
+estado del partido) y las advertencias de código de conducta/demora que ya
+tenga registradas su pareja, para que el entrenador sepa si sus jugadores
+están a una infracción de perder un punto o quedar descalificados.
+
+Qué registra el entrenador, punto a punto:
+- **Jugador** (de su propia pareja — no puede taggear a la pareja rival).
+- **Tipo de golpe**: derecha, revés, bandeja, víbora, remate/smash, globo,
+  bajada de pared, saque, resto, volea, contrapared, gancho, otro.
+- **Resultado**: punto ganador, ace, punto por error del rival, error forzado
+  (por presión del rival) o error no forzado, doble falta.
+- **Zona de la cancha** donde terminó el punto (red/fondo × izquierda/
+  centro/derecha), en una mini-cancha clickeable.
+- **Nota libre** con el feedback para el jugador.
+
+Con eso arma solo: estadísticas por jugador (ganadores, errores forzados/no
+forzados, aces, % de efectividad, desglose por tipo de golpe), un mapa simple
+de cuántos puntos se definen en cada zona de la cancha, filtro por set, un
+historial editable de cada punto registrado (se puede borrar), y un "informe
+de devolución" con fortalezas/a mejorar por jugador + las notas, exportable
+por WhatsApp, como CSV o para imprimir.
+
+Los datos quedan en Firestore, en `arbitrajes/{id}/feedback` — una
+subcolección aparte del documento del partido, así el entrenador puede
+guardar sin pisarle la escritura al árbitro (que reescribe todo el documento
+del partido en cada punto).
 
 ### Login de árbitros, separado del de alumnos
 
@@ -163,6 +200,12 @@ sistema lo redirige igual a `arbitro.html`.
        match /arbitrajes/{id} {
          allow read: if true;
          allow write: if request.auth != null;
+
+         match /feedback/{feedbackId} {
+           allow read: if true;
+           allow create: if true;
+           allow delete: if true;
+         }
        }
      }
    }
@@ -171,6 +214,8 @@ sistema lo redirige igual a `arbitro.html`.
    Reglas intencionalmente simples: cualquier usuario logueado puede leer todo y escribir en la mayoría de colecciones (lo necesita el profesor para confirmar, activar paquetes, administrar pistas, etc.). Razonable para una academia chica sin datos de pago en el sistema; no lo uses así si algún día guardas tarjetas o datos sensibles.
 
    `arbitrajes` es la única colección de lectura pública (`allow read: if true`), a propósito: son partidos de pádel (nombres y marcador, nada sensible) pensados para que cualquiera con el link los vea sin crear cuenta — eso es lo que hace posible el marcador en vivo y la multipista.
+
+   `arbitrajes/{id}/feedback` (la devolución táctica de la vista de entrenadores) es abierta a propósito, igual que `arbitrajes`: los entrenadores entran solo con el link del partido, sin cuenta, así que no hay `request.auth` que exigir. Es la misma decisión de "nada sensible, abierto por simplicidad" que ya se tomó para `arbitrajes`.
 
 5. **Registra la app web:** *Configuración del proyecto* → *Tus apps* → ícono `</>` → copia el `firebaseConfig`.
 6. **Pégalo en** `assets/js/firebase-config.js`.

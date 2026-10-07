@@ -110,6 +110,35 @@ export function peloteoSugeridoSeg(duracionSuspensionSeg) {
   return 180;
 }
 
+// ---------------- Vista de entrenadores: golpes, resultados y zonas ----------------
+export const SHOT_TYPES = [
+  "Derecha", "Revés", "Bandeja", "Víbora", "Remate/Smash", "Globo",
+  "Bajada de pared", "Saque", "Resto", "Volea", "Contrapared", "Gancho", "Otro"
+];
+
+// tipo: "positivo" suma a favor del jugador (gana el punto), "negativo" es un
+// error propio que regala el punto, "neutro" es un error forzado por el rival
+// (cuenta como mérito del rival, no como fallo técnico del jugador).
+export const POINT_OUTCOMES = [
+  { id: "winner", label: "Punto ganador", tipo: "positivo" },
+  { id: "ace", label: "Ace / saque directo", tipo: "positivo" },
+  { id: "rival_error", label: "Punto por error del rival", tipo: "positivo" },
+  { id: "fe", label: "Error forzado (por presión del rival)", tipo: "neutro" },
+  { id: "ue", label: "Error no forzado", tipo: "negativo" },
+  { id: "doble_falta", label: "Doble falta", tipo: "negativo" }
+];
+
+export const COURT_ZONES = [
+  { id: "red-izq", label: "Red · izquierda" },
+  { id: "red-centro", label: "Red · centro" },
+  { id: "red-der", label: "Red · derecha" },
+  { id: "fondo-izq", label: "Fondo · izquierda" },
+  { id: "fondo-centro", label: "Fondo · centro" },
+  { id: "fondo-der", label: "Fondo · derecha" }
+];
+
+export function outcomeInfo(id) { return POINT_OUTCOMES.find((o) => o.id === id) || null; }
+
 export function marcadorCortoDesdeDoc(m) {
   const sets = (m.sets || []).map((s) => `${s.a}-${s.b}`).join(", ");
   const vivo = m.isSuperTiebreakSet || m.inTiebreak
