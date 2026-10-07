@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=12">
-<link rel="stylesheet" href="assets/css/arbitro.css?v=4">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=5">
 </head>
 <body class="arbitro-body">
 
@@ -258,17 +258,7 @@
 
         <p class="arbitro-estado-juego" id="estadoJuego"></p>
 
-        <div class="arbitro-cancha" id="canchaDiagrama">
-          <div class="arbitro-cancha-mitad" id="canchaMitadA">
-            <div class="arbitro-cancha-jugador" id="canchaA1"><span class="arbitro-cancha-punto"></span><span class="arbitro-cancha-nombre"></span></div>
-            <div class="arbitro-cancha-jugador" id="canchaA2"><span class="arbitro-cancha-punto"></span><span class="arbitro-cancha-nombre"></span></div>
-          </div>
-          <div class="arbitro-cancha-red">RED</div>
-          <div class="arbitro-cancha-mitad" id="canchaMitadB">
-            <div class="arbitro-cancha-jugador" id="canchaB1"><span class="arbitro-cancha-punto"></span><span class="arbitro-cancha-nombre"></span></div>
-            <div class="arbitro-cancha-jugador" id="canchaB2"><span class="arbitro-cancha-punto"></span><span class="arbitro-cancha-nombre"></span></div>
-          </div>
-        </div>
+        <div class="arbitro-cancha-wrap" id="canchaDiagrama" aria-label="Diagrama de la cancha con la posición de saque"></div>
         <p class="field-hint" id="canchaSaqueInfo" style="text-align:center"></p>
 
         <div class="portal-card arbitro-editor-marcador arbitro-no-print" id="editorMarcador" hidden>
@@ -389,6 +379,6 @@
 </section>
 </main>
 
-<script type="module" src="assets/js/arbitro.js?v=4"></script>
+<script type="module" src="assets/js/arbitro.js?v=5"></script>
 </body>
 </html>

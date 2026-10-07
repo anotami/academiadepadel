@@ -696,22 +696,120 @@ function renderPartido() {
   renderShareBox();
 }
 
-function renderCancha() {
+// Dibuja la cancha en SVG con proporción real (10 x 20 m) y la vista
+// aérea con la que trabaja el árbitro: parado en la línea de red, afuera
+// de la pista. El jugador que saca se ubica en su cuadro de saque real
+// (detrás de la línea de servicio, lado derecho o izquierdo); el resto de
+// jugadores no tiene posición fija por reglamento, así que se muestran en
+// una posición de referencia dentro de su mitad.
+function construirSvgCancha() {
   const c = state.config;
   const m = state.match;
   const enTiebreak = m.inTiebreak || m.isSuperTiebreakSet;
   const servidorTeam = m.servidor;
   const servidorNum = jugadorQueSirve(servidorTeam);
+  const terminado = !!m.matchWinner;
 
-  [["canchaA1", "A", 1], ["canchaA2", "A", 2], ["canchaB1", "B", 1], ["canchaB2", "B", 2]].forEach(([id, team, num]) => {
-    const el = document.getElementById(id);
-    el.querySelector(".arbitro-cancha-nombre").textContent = nombreDeNumero(team, num);
-    el.style.borderLeft = `4px solid ${team === "A" ? c.colorA : c.colorB}`;
-    const esServidor = !m.matchWinner && !enTiebreak && team === servidorTeam && num === servidorNum;
-    el.classList.toggle("sirve", esServidor);
-  });
-  document.getElementById("canchaMitadA").classList.toggle("sirve-equipo", !m.matchWinner && enTiebreak && servidorTeam === "A");
-  document.getElementById("canchaMitadB").classList.toggle("sirve-equipo", !m.matchWinner && enTiebreak && servidorTeam === "B");
+  const W = 260, H = 420, GLASS = 10;
+  const cx0 = GLASS, cy0 = GLASS, cw = 200, ch = 400;
+  const netY = cy0 + ch / 2;
+  const halfH = ch / 2;
+  const svcOffset = (6.95 / 10) * halfH;
+  const svcLineA = netY - svcOffset;
+  const svcLineB = netY + svcOffset;
+  const centerX = cx0 + cw / 2;
+  const leftX = cx0 + cw * 0.26;
+  const rightX = cx0 + cw * 0.74;
+  const backMidA = (cy0 + svcLineA) / 2;
+  const backMidB = (svcLineB + (cy0 + ch)) / 2;
+  const midHalfA = (svcLineA + netY) / 2;
+  const midHalfB = (netY + svcLineB) / 2;
+
+  const lado = ladoSaque();
+  const servirX = lado === "Derecha" ? rightX : leftX;
+
+  function posicionesEquipo(team) {
+    const esServidorEquipo = !terminado && !enTiebreak && team === servidorTeam;
+    const midY = team === "A" ? midHalfA : midHalfB;
+    const backY = team === "A" ? backMidA : backMidB;
+    const color = team === "A" ? c.colorA : c.colorB;
+    return [1, 2].map((num) => {
+      const sirve = esServidorEquipo && num === servidorNum;
+      return {
+        nombre: nombreDeNumero(team, num),
+        color,
+        sirve,
+        x: sirve ? servirX : (num === 1 ? leftX : rightX),
+        y: sirve ? backY : midY
+      };
+    });
+  }
+
+  const jugadores = [...posicionesEquipo("A"), ...posicionesEquipo("B")];
+
+  function marcador({ nombre, color, sirve, x, y }) {
+    const r = sirve ? 19 : 15;
+    const anillo = sirve ? `<circle cx="${x}" cy="${y}" r="${r + 4}" fill="none" stroke="var(--accent,#c8e94c)" stroke-width="3"/>` : "";
+    const bola = sirve ? `<text x="${x}" y="${y - r - 7}" text-anchor="middle" font-size="15">🎾</text>` : "";
+    const nombreCorto = nombre.length > 13 ? nombre.slice(0, 12) + "…" : nombre;
+    return `
+      <g>
+        ${anillo}
+        <circle cx="${x}" cy="${y}" r="${r}" fill="${color}" stroke="#fff" stroke-width="2.5"/>
+        ${bola}
+        <text x="${x}" y="${y + r + 15}" text-anchor="middle" font-size="12" class="arbitro-cancha-jugador-nombre">${nombreCorto}</text>
+      </g>`;
+  }
+
+  const ticksNet = Array.from({ length: Math.floor(cw / 9) }, (_, i) => {
+    const x = cx0 + 4 + i * 9;
+    return `<line x1="${x}" y1="${netY - 4}" x2="${x}" y2="${netY + 4}" stroke="#0d3140" stroke-width="1" opacity="0.5"/>`;
+  }).join("");
+
+  return `
+  <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">
+    <defs>
+      <linearGradient id="turf" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1a5a70"/>
+        <stop offset="100%" stop-color="#0d3140"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Paredes de vidrio (marco) -->
+    <rect x="0" y="0" width="${cx0 + cw + GLASS}" height="${H}" rx="10" fill="#bfe3f0" opacity="0.35"/>
+    ${Array.from({ length: Math.floor(H / 16) }, (_, i) => `<line x1="2" y1="${i * 16}" x2="${cx0 + cw + GLASS - 2}" y2="${i * 16}" stroke="#ffffff" stroke-width="1" opacity="0.25"/>`).join("")}
+
+    <!-- Superficie de juego -->
+    <rect x="${cx0}" y="${cy0}" width="${cw}" height="${ch}" rx="4" fill="url(#turf)" stroke="#ffffff" stroke-width="2.5"/>
+
+    <!-- Líneas de servicio -->
+    <line x1="${cx0}" y1="${svcLineA}" x2="${cx0 + cw}" y2="${svcLineA}" stroke="#ffffff" stroke-width="1.75"/>
+    <line x1="${cx0}" y1="${svcLineB}" x2="${cx0 + cw}" y2="${svcLineB}" stroke="#ffffff" stroke-width="1.75"/>
+    <!-- Línea central de saque (solo dentro del área de servicio, como en la regla) -->
+    <line x1="${centerX}" y1="${svcLineA}" x2="${centerX}" y2="${netY}" stroke="#ffffff" stroke-width="1.75"/>
+    <line x1="${centerX}" y1="${netY}" x2="${centerX}" y2="${svcLineB}" stroke="#ffffff" stroke-width="1.75"/>
+
+    <!-- Red -->
+    <rect x="${cx0 - 3}" y="${netY - 5}" width="${cw + 6}" height="10" fill="#0d3140"/>
+    ${ticksNet}
+    <rect x="${cx0 - 4}" y="${netY - 9}" width="4" height="18" fill="#0d3140"/>
+    <rect x="${cx0 + cw}" y="${netY - 9}" width="4" height="18" fill="#0d3140"/>
+
+    ${jugadores.map(marcador).join("")}
+
+    <!-- Posición del árbitro: en la línea de red, fuera de la pista -->
+    <text x="${cx0 + cw + GLASS + 14}" y="${netY - 10}" text-anchor="middle" font-size="20">🧑‍⚖️</text>
+    <text x="${cx0 + cw + GLASS + 14}" y="${netY + 14}" text-anchor="middle" font-size="9" fill="var(--ink-soft,#47586b)" class="arbitro-cancha-saque-txt">Árbitro</text>
+  </svg>`;
+}
+
+function renderCancha() {
+  const m = state.match;
+  const enTiebreak = m.inTiebreak || m.isSuperTiebreakSet;
+  const servidorTeam = m.servidor;
+  const servidorNum = jugadorQueSirve(servidorTeam);
+
+  document.getElementById("canchaDiagrama").innerHTML = construirSvgCancha();
 
   const info = document.getElementById("canchaSaqueInfo");
   if (m.matchWinner) { info.textContent = ""; }
