@@ -1,16 +1,14 @@
-import {
-  auth, db, CONFIG_IS_PLACEHOLDER,
-  signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  doc, setDoc, getDoc, serverTimestamp
-} from "./firebase-app.js?v=12";
 import { DIAS, FRANJAS } from "./portal-common.js?v=12";
 
+// El cambio de pestañas, la grilla de disponibilidad y el campo de
+// apoderado son pura UI local: se conectan primero y sin depender de que
+// Firebase cargue bien, para que la página nunca quede "muerta" si falla
+// la red (el login en sí sí necesita Firebase, pero el resto no debería).
 const tabs = document.querySelectorAll(".auth-tab");
 const panels = {
   login: document.getElementById("panel-login"),
   signup: document.getElementById("panel-signup")
 };
-
 tabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     tabs.forEach((t) => t.classList.remove("active"));
@@ -42,39 +40,50 @@ edadInput.addEventListener("input", () => {
   apoderadoWrap.hidden = !esMenor;
 });
 
-function configWarning(el) {
-  if (CONFIG_IS_PLACEHOLDER) {
-    el.textContent = "El portal todavía no está conectado a una base de datos (falta configurar assets/js/firebase-config.js). Revisa README-PORTAL.md.";
-    el.className = "form-msg error";
-    return true;
-  }
-  return false;
+const formLogin = document.getElementById("form-login");
+const loginMsg = document.getElementById("login-msg");
+const formSignup = document.getElementById("form-signup");
+const signupMsg = document.getElementById("signup-msg");
+
+function mostrarSinConexion(el) {
+  el.textContent = "No se pudo conectar (revisa tu internet) — inténtalo de nuevo en un momento.";
+  el.className = "form-msg error";
 }
 
+let fb = null;
+import("./firebase-app.js?v=12")
+  .then((mod) => { fb = mod; })
+  .catch(() => { fb = null; });
+
 async function redirigirSegunRol(uid) {
-  const snap = await getDoc(doc(db, "usuarios", uid));
+  const snap = await fb.getDoc(fb.doc(fb.db, "usuarios", uid));
   if (!snap.exists()) {
     window.location.href = "login.html";
     return;
   }
   const rol = snap.data().rol;
-  window.location.href = rol === "profesor" ? "profesor.html" : "alumno.html";
+  if (rol === "profesor") window.location.href = "profesor.html";
+  else if (rol === "arbitro") window.location.href = "arbitro.html";
+  else window.location.href = "alumno.html";
 }
 
 // --- Login ---
-const formLogin = document.getElementById("form-login");
-const loginMsg = document.getElementById("login-msg");
 formLogin.addEventListener("submit", async (e) => {
   e.preventDefault();
   loginMsg.textContent = "";
   loginMsg.className = "form-msg";
-  if (configWarning(loginMsg)) return;
+  if (!fb) { mostrarSinConexion(loginMsg); return; }
+  if (fb.CONFIG_IS_PLACEHOLDER) {
+    loginMsg.textContent = "El portal todavía no está conectado a una base de datos (falta configurar assets/js/firebase-config.js). Revisa README-PORTAL.md.";
+    loginMsg.className = "form-msg error";
+    return;
+  }
 
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
 
   try {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const cred = await fb.signInWithEmailAndPassword(fb.auth, email, password);
     loginMsg.textContent = "¡Bienvenido! Entrando...";
     loginMsg.className = "form-msg ok";
     await redirigirSegunRol(cred.user.uid);
@@ -85,13 +94,16 @@ formLogin.addEventListener("submit", async (e) => {
 });
 
 // --- Signup (alumno) ---
-const formSignup = document.getElementById("form-signup");
-const signupMsg = document.getElementById("signup-msg");
 formSignup.addEventListener("submit", async (e) => {
   e.preventDefault();
   signupMsg.textContent = "";
   signupMsg.className = "form-msg";
-  if (configWarning(signupMsg)) return;
+  if (!fb) { mostrarSinConexion(signupMsg); return; }
+  if (fb.CONFIG_IS_PLACEHOLDER) {
+    signupMsg.textContent = "El portal todavía no está conectado a una base de datos (falta configurar assets/js/firebase-config.js). Revisa README-PORTAL.md.";
+    signupMsg.className = "form-msg error";
+    return;
+  }
 
   const nombre = document.getElementById("su-nombre").value.trim();
   const email = document.getElementById("su-email").value.trim();
@@ -120,8 +132,8 @@ formSignup.addEventListener("submit", async (e) => {
   });
 
   try {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, "usuarios", cred.user.uid), {
+    const cred = await fb.createUserWithEmailAndPassword(fb.auth, email, password);
+    await fb.setDoc(fb.doc(fb.db, "usuarios", cred.user.uid), {
       rol: "alumno",
       nombre,
       email,
@@ -139,7 +151,7 @@ formSignup.addEventListener("submit", async (e) => {
           }
         : {}),
       disponibilidad,
-      creadoEn: serverTimestamp()
+      creadoEn: fb.serverTimestamp()
     });
     signupMsg.textContent = "¡Cuenta creada! Entrando...";
     signupMsg.className = "form-msg ok";

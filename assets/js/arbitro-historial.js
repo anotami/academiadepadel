@@ -45,7 +45,7 @@ import("./firebase-app.js?v=12")
       if (!user) {
         ul.innerHTML = "";
         vacio.hidden = false;
-        vacio.textContent = "Inicia sesión para ver tu historial en la nube.";
+        vacio.innerHTML = 'Inicia sesión para ver tu historial en la nube — <a href="arbitro-login.html">entra aquí</a>.';
         hint.textContent = 'Partidos que arbitraste con "Compartir en vivo" activado — con acta completa, recuperable desde cualquier dispositivo. Necesitas haber iniciado sesión al arbitrarlos.';
         return;
       }

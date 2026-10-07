@@ -1261,7 +1261,7 @@ async function setupAuth() {
       document.getElementById("cardCompartir").hidden = false;
       cargarAlumnosParaAutocompletar();
     } else {
-      bar.innerHTML = `No has iniciado sesión — el árbitro funciona igual, 100% local. Para marcador en vivo y multipista, <a href="login.html">inicia sesión</a>.`;
+      bar.innerHTML = `No has iniciado sesión — el árbitro funciona igual, 100% local. Para marcador en vivo y multipista, <a href="arbitro-login.html">inicia sesión como árbitro</a>.`;
       document.getElementById("cardCompartir").hidden = true;
     }
   });

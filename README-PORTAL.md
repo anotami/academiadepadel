@@ -35,6 +35,7 @@ solo como capa opcional cuando el árbitro está logueado y hay conexión.
 | `arbitro-pistas.html` | Cualquiera (sin login) | "Multipista": arbitraje pasivo — ve en vivo todas las pistas que se están arbitrando ahora, y el ranking interno acumulado. |
 | `arbitro-historial.html` | El árbitro | Historial de partidos: local en este dispositivo (siempre) y en la nube (si se compartieron en vivo, con acta completa recuperable desde cualquier dispositivo). |
 | `arbitro-torneo.html` | El organizador | Torneo Americano/Mexicano: genera rondas con parejas rotativas (o por nivel), registra resultados por pista y arma la tabla de posiciones. 100% local, no usa Firebase. |
+| `arbitro-login.html` | El árbitro | Login/registro propio de árbitros (rol `arbitro`), separado del de alumnos — sin edad, apoderado ni disponibilidad; solo nombre, teléfono y club opcional. |
 
 Funciones del marcador (`arbitro.html`):
 
@@ -90,11 +91,21 @@ inicias sesión, todo funciona igual salvo el marcador en vivo y la multipista.
 Cada dispositivo guarda su propio partido en memoria local, y cada partido
 compartido en vivo crea su propio documento en Firestore — no hay nada
 compartido entre pistas que pueda chocar. En la práctica: cada árbitro abre
-`arbitro.html` en su propio celular, inicia sesión con su propia cuenta
-(créala en `login.html`, no hace falta que sea cuenta de profesor), activa
+`arbitro.html` en su propio celular, inicia sesión con su propia cuenta de
+árbitro (se crea en `arbitro-login.html`, separada de la de alumnos), activa
 "Compartir en vivo" y arbitra su pista con total independencia de las demás.
 Quien esté coordinando el torneo abre `arbitro-pistas.html` y ve todas las
 pistas activas en una sola pantalla, en tiempo real.
+
+### Login de árbitros, separado del de alumnos
+
+`arbitro-login.html` es una cuenta independiente de `login.html`: mismo
+Firebase Auth por debajo, pero guarda `usuarios/{uid}.rol = "arbitro"` y
+el formulario de registro solo pide nombre, correo, teléfono y club
+(nada de edad, apoderado, nivel o disponibilidad — eso es de alumnos).
+Un árbitro nunca necesita pasar por el registro de alumnos. Si alguien
+inicia sesión con una cuenta de árbitro desde `login.html` por error, el
+sistema lo redirige igual a `arbitro.html`.
 
 ## Cómo funciona, de punta a punta
 

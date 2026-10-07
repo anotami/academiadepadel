@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal de reservas | academiadepadel.pe</title>
-<meta name="description" content="Ingresa o crea tu cuenta de alumno para reservar clases de pádel en academiadepadel.pe.">
+<title>Acceso árbitros | academiadepadel.pe</title>
+<meta name="description" content="Ingresa o crea tu cuenta de árbitro para arbitrar partidos de pádel en academiadepadel.pe.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,20 +22,20 @@
       <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
       <span>academiadepadel.pe</span>
     </a>
-    <a href="index.html" class="test-back-link">← Volver al sitio</a>
+    <a href="arbitro.html" class="test-back-link">← Volver al árbitro</a>
   </div>
 </header>
 
 <main id="main">
   <section class="section portal-section">
     <div class="container portal-narrow">
-      <p class="eyebrow eyebrow-center">Portal de reservas</p>
-      <h1 class="test-title">Alumnos y profesores</h1>
-      <p class="section-sub">Ingresa a tu cuenta o crea una como alumno para reservar tus clases.</p>
+      <p class="eyebrow eyebrow-center">Acceso de árbitros</p>
+      <h1 class="test-title">Árbitros</h1>
+      <p class="section-sub">Esta cuenta es independiente de la de alumnos — sirve para compartir tus partidos en vivo, ver la multipista y guardar tu historial en la nube.</p>
 
       <div class="auth-tabs" role="tablist">
         <button class="auth-tab active" data-tab="login" type="button">Iniciar sesión</button>
-        <button class="auth-tab" data-tab="signup" type="button">Crear cuenta de alumno</button>
+        <button class="auth-tab" data-tab="signup" type="button">Crear cuenta de árbitro</button>
       </div>
 
       <!-- Login -->
@@ -54,7 +54,7 @@
         </form>
       </div>
 
-      <!-- Signup (solo alumnos) -->
+      <!-- Signup (solo árbitros) -->
       <div class="auth-panel" id="panel-signup">
         <form class="portal-card" id="form-signup">
           <div class="form-grid">
@@ -70,56 +70,21 @@
               <label for="su-telefono">Teléfono / WhatsApp</label>
               <input type="tel" id="su-telefono" required>
             </div>
-            <div class="field">
-              <label for="su-edad">Edad</label>
-              <input type="number" id="su-edad" min="5" max="99" required>
-            </div>
-            <div class="field">
-              <label for="su-nivel">Nivel</label>
-              <select id="su-nivel">
-                <option>Inicial</option>
-                <option>Inicial-Intermedio</option>
-                <option>Intermedio</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="su-referido">¿Alguien te invitó? (opcional)</label>
-              <input type="text" id="su-referido" placeholder="Nombre de quien te recomendó la academia">
+            <div class="field field-full">
+              <label for="su-club">Club o academia a la que perteneces (opcional)</label>
+              <input type="text" id="su-club" placeholder="Ej. Academia de Pádel Lima">
             </div>
             <div class="field field-full">
               <label for="su-password">Contraseña (mínimo 6 caracteres)</label>
               <input type="password" id="su-password" minlength="6" required autocomplete="new-password">
             </div>
           </div>
-
-          <div class="field-full" id="su-apoderado-wrap" hidden style="margin-top:14px;">
-            <div class="callout">
-              <span class="callout-icon">👪</span>
-              <p>Como eres menor de edad, necesitamos los datos de tu apoderado.</p>
-            </div>
-            <div class="form-grid" style="margin-top:10px;">
-              <div class="field">
-                <label for="su-apoderado-nombre">Nombre del apoderado</label>
-                <input type="text" id="su-apoderado-nombre">
-              </div>
-              <div class="field">
-                <label for="su-apoderado-telefono">Teléfono del apoderado</label>
-                <input type="tel" id="su-apoderado-telefono">
-              </div>
-            </div>
-            <label class="avail-slot" style="display:inline-flex; margin-top:10px;">
-              <input type="checkbox" id="su-apoderado-autoriza"> El apoderado autoriza la inscripción a la academia
-            </label>
-          </div>
-
-          <h3 style="margin-top:22px;">Tu disponibilidad habitual</h3>
-          <p class="field-hint">Marca los bloques en los que normalmente podrías tomar clase (puedes ajustarlo luego).</p>
-          <div class="availability-grid" id="su-disponibilidad"></div>
-
-          <button class="btn btn-primary" type="submit" style="margin-top:20px; width:100%; justify-content:center;">Crear mi cuenta</button>
+          <button class="btn btn-primary" type="submit" style="margin-top:20px; width:100%; justify-content:center;">Crear mi cuenta de árbitro</button>
           <p class="form-msg" id="signup-msg"></p>
         </form>
       </div>
+
+      <p class="field-hint" style="text-align:center; margin-top:18px;">¿Eres alumno? <a href="login.html">Entra por aquí</a>.</p>
     </div>
   </section>
 </main>
@@ -136,6 +101,6 @@
 </footer>
 
 <script src="assets/js/main.js?v=12"></script>
-<script type="module" src="assets/js/login-page.js?v=13"></script>
+<script type="module" src="assets/js/arbitro-login.js?v=1"></script>
 </body>
 </html>
