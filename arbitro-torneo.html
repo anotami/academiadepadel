@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torneo Americano/Mexicano | academiadepadel.pe</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14495a">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=12">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=2">
+</head>
+<body class="arbitro-body">
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>academiadepadel.pe</span>
+    </a>
+    <a href="arbitro.html" class="test-back-link">Arbitrar un partido</a>
+  </div>
+</header>
+
+<main id="main">
+<section class="section portal-section arbitro-section">
+  <div class="container portal-shell">
+
+    <div class="portal-topbar">
+      <div>
+        <h1>🔄 Torneo Americano / Mexicano</h1>
+        <p class="portal-whoami">Para jornadas sociales: rota parejas cada ronda, acumula puntos individuales y arma la tabla de posiciones. Todo queda guardado en este dispositivo.</p>
+      </div>
+    </div>
+
+    <div id="pantallaSetupTorneo">
+      <div class="portal-card">
+        <h2>Jugadores y formato</h2>
+        <div class="field field-full">
+          <label for="t-jugadores">Jugadores (uno por línea)</label>
+          <textarea id="t-jugadores" rows="8" placeholder="Juan Pérez
+Luis Gómez
+Carlos Ruiz
+Pedro Díaz"></textarea>
+          <p class="field-hint">Deben ser múltiplo de 4. Si sobran jugadores, descansan por turnos.</p>
+        </div>
+        <div class="field field-full">
+          <label>Formato</label>
+          <div class="arbitro-toggle-group" id="g-formato">
+            <button type="button" class="arbitro-toggle active" data-value="americano">Americano (parejas rotativas)</button>
+            <button type="button" class="arbitro-toggle" data-value="mexicano">Mexicano (parejas por nivel)</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="t-pistas">Pistas disponibles</label>
+          <input type="number" id="t-pistas" min="1" value="2">
+        </div>
+        <p class="form-msg" id="torneoMsg"></p>
+        <button class="btn btn-primary btn-large" id="btnGenerarTorneo">Generar ronda 1 ▶</button>
+      </div>
+    </div>
+
+    <div id="pantallaTorneo" hidden>
+      <div class="portal-card">
+        <div class="arbitro-meta-row">
+          <span id="torneoInfo"></span>
+          <button class="btn btn-outline btn-small" id="btnReiniciarTorneo">Nuevo torneo</button>
+        </div>
+      </div>
+
+      <div id="rondasContenedor"></div>
+
+      <div class="portal-card">
+        <h2>Tabla de posiciones</h2>
+        <table class="arbitro-ranking-table" id="tablaPosiciones">
+          <thead><tr><th>#</th><th>Jugador</th><th>Puntos</th><th>Rondas jugadas</th></tr></thead>
+          <tbody id="posicionesBody"></tbody>
+        </table>
+      </div>
+
+      <div class="arbitro-end-bar">
+        <button class="btn btn-whatsapp" id="btnCompartirTorneo">Compartir tabla por WhatsApp</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+</main>
+
+<script type="module" src="assets/js/arbitro-torneo.js?v=1"></script>
+</body>
+</html>

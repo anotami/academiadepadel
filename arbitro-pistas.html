@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multipista — Árbitro | academiadepadel.pe</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14495a">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=12">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=2">
+</head>
+<body class="arbitro-body">
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>academiadepadel.pe</span>
+    </a>
+    <a href="arbitro.html" class="test-back-link">Arbitrar un partido</a>
+  </div>
+</header>
+
+<main id="main">
+<section class="section portal-section arbitro-section">
+  <div class="container portal-shell">
+
+    <div class="portal-topbar">
+      <div>
+        <h1>🏟 Multipista</h1>
+        <p class="portal-whoami">Arbitraje pasivo: sigue en vivo todas las pistas que se están arbitrando en este momento, sin anotar tú mismo.</p>
+      </div>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="enVivo">En vivo</button>
+      <button class="auth-tab" data-tab="ranking">Ranking interno</button>
+    </div>
+
+    <div id="panelEnVivo" class="auth-panel active">
+      <p class="empty-state" id="sinPartidos">No hay ningún partido en curso en este momento.</p>
+      <div class="arbitro-multipista-grid" id="gridPistas"></div>
+    </div>
+
+    <div id="panelRanking" class="auth-panel">
+      <div class="portal-card">
+        <h2>Ranking por jugador (partidos arbitrados y sincronizados)</h2>
+        <p class="field-hint">Se arma solo con los partidos que se jugaron compartiendo el marcador en vivo (requiere haber iniciado sesión al arbitrar).</p>
+        <table class="arbitro-ranking-table" id="tablaRanking">
+          <thead><tr><th>#</th><th>Jugador</th><th>Jugados</th><th>Ganados</th><th>% victorias</th></tr></thead>
+          <tbody id="rankingBody"></tbody>
+        </table>
+        <p class="empty-state" id="sinRanking" hidden>Todavía no hay partidos finalizados con marcador en vivo.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+</main>
+
+<script type="module" src="assets/js/arbitro-pistas.js?v=1"></script>
+</body>
+</html>

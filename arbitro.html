@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=12">
-<link rel="stylesheet" href="assets/css/arbitro.css?v=1">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=2">
 </head>
 <body class="arbitro-body">
 
@@ -27,6 +27,8 @@
       <span>academiadepadel.pe</span>
     </a>
     <div class="arbitro-header-actions">
+      <a href="arbitro-pistas.html" class="test-back-link">Multipista</a>
+      <a href="arbitro-torneo.html" class="test-back-link">Torneo</a>
       <span class="arbitro-install-hint" id="installHint" hidden>Instálala: menú del navegador → "Añadir a pantalla de inicio"</span>
       <button class="btn btn-outline btn-small" id="btnInstall" hidden>Instalar app</button>
       <a href="index.html" class="test-back-link">Volver al sitio</a>
@@ -46,6 +48,10 @@
       <span class="badge" id="modoOfflineBadge" hidden>Sin conexión — modo offline ✓</span>
     </div>
 
+    <div class="arbitro-auth-bar" id="authBar">
+      <span id="authStatus">Verificando sesión…</span>
+    </div>
+
     <!-- ===================== PANTALLA 1: CONFIGURACIÓN ===================== -->
     <div id="pantallaSetup">
 
@@ -53,21 +59,22 @@
         <h2>Datos del partido</h2>
         <form id="formSetup" class="form-grid">
           <div class="field">
-            <label for="s-clubA">Pareja A — Jugador 1</label>
-            <input type="text" id="s-a1" required placeholder="Nombre y apellido">
+            <label for="s-a1">Pareja A — Jugador 1</label>
+            <input type="text" id="s-a1" required placeholder="Nombre y apellido" list="listaAlumnos">
           </div>
           <div class="field">
             <label for="s-a2">Pareja A — Jugador 2</label>
-            <input type="text" id="s-a2" required placeholder="Nombre y apellido">
+            <input type="text" id="s-a2" required placeholder="Nombre y apellido" list="listaAlumnos">
           </div>
           <div class="field">
             <label for="s-b1">Pareja B — Jugador 1</label>
-            <input type="text" id="s-b1" required placeholder="Nombre y apellido">
+            <input type="text" id="s-b1" required placeholder="Nombre y apellido" list="listaAlumnos">
           </div>
           <div class="field">
             <label for="s-b2">Pareja B — Jugador 2</label>
-            <input type="text" id="s-b2" required placeholder="Nombre y apellido">
+            <input type="text" id="s-b2" required placeholder="Nombre y apellido" list="listaAlumnos">
           </div>
+          <datalist id="listaAlumnos"></datalist>
           <div class="field">
             <label for="s-club">Club / sede</label>
             <input type="text" id="s-club" placeholder="Ej. Academia de Pádel Lima">
@@ -124,6 +131,14 @@
         </form>
       </div>
 
+      <div class="portal-card" id="cardCompartir" hidden>
+        <h2>Marcador en vivo</h2>
+        <label class="arbitro-check-item" id="labelCompartir">
+          <input type="checkbox" id="chkCompartir" checked>
+          <span>Compartir este partido en vivo (genera un link público de solo lectura y aparece en "Multipista")</span>
+        </label>
+      </div>
+
       <div class="portal-card">
         <h2>Checklist pre-partido</h2>
         <p class="field-hint">Estándar FIP — llega con 20 minutos de anticipación. Marca cada punto antes de iniciar.</p>
@@ -139,10 +154,24 @@
     <!-- ===================== PANTALLA 2: PARTIDO EN CURSO ===================== -->
     <div id="pantallaPartido" hidden>
 
+      <div class="arbitro-share-box arbitro-no-print" id="shareBox" hidden>
+        🔴 <strong>En vivo</strong> — comparte este link para que lo sigan sin instalar nada:
+        <div class="arbitro-share-row">
+          <input type="text" id="shareLink" readonly>
+          <button class="btn btn-outline btn-small" id="btnCopiarLink">Copiar</button>
+          <button class="btn btn-whatsapp btn-small" id="btnCompartirLinkWhatsapp">WhatsApp</button>
+          <a class="btn btn-outline btn-small" href="arbitro-pistas.html" target="_blank" rel="noopener">Ver en Multipista</a>
+        </div>
+      </div>
+
       <div class="portal-card arbitro-scoreboard-card">
         <div class="arbitro-meta-row">
           <span id="metaInfo"></span>
-          <button class="btn btn-outline btn-small" id="btnDeshacer">↺ Deshacer último punto</button>
+          <div class="arbitro-meta-actions">
+            <button class="btn btn-outline btn-small" id="btnVoz">🔊 Narración: OFF</button>
+            <button class="btn btn-outline btn-small" id="btnPantallaGrande">⛶ Pantalla grande</button>
+            <button class="btn btn-outline btn-small" id="btnDeshacer">↺ Deshacer último punto</button>
+          </div>
         </div>
 
         <table class="arbitro-scoreboard" id="scoreboard">
@@ -175,6 +204,14 @@
           <button class="btn btn-primary btn-large arbitro-btn-punto" id="btnPuntoA">+ Punto Pareja A</button>
           <button class="btn btn-primary btn-large arbitro-btn-punto" id="btnPuntoB">+ Punto Pareja B</button>
         </div>
+
+        <div class="arbitro-interrupcion-banner" id="interrupcionBanner" hidden>
+          ⏸ <strong>Partido interrumpido</strong> — <span id="interrupcionTipo"></span>
+          (<span id="interrupcionCronometro">00:00</span>)
+          <button class="btn btn-primary btn-small" id="btnReanudar">Reanudar partido</button>
+        </div>
+
+        <button class="arbitro-tv-exit arbitro-no-print" id="btnSalirTv" hidden>✕ Salir de pantalla grande</button>
       </div>
 
       <div class="arbitro-alert" id="alertaBolas" hidden>
@@ -207,6 +244,21 @@
         <p class="empty-state" id="incidentEmpty">Sin incidencias registradas.</p>
       </div>
 
+      <div class="portal-card">
+        <h3>Interrupciones del partido</h3>
+        <p class="field-hint">Lesiones, clima, fallas de instalaciones, disputas de tanteo, etc. Quedan en el acta con hora y duración.</p>
+        <div class="arbitro-incident-buttons" id="interrupcionBotones"></div>
+        <ul class="arbitro-incident-log" id="interrupcionLog"></ul>
+        <p class="empty-state" id="interrupcionEmpty">Sin interrupciones registradas.</p>
+      </div>
+
+      <div class="portal-card">
+        <details>
+          <summary><h3 class="arbitro-inline-h3">Historial del partido (punto a punto)</h3></summary>
+          <ul class="arbitro-incident-log" id="historialLog"></ul>
+        </details>
+      </div>
+
       <div class="arbitro-end-bar">
         <button class="btn btn-outline" id="btnTerminarPartido">Finalizar y ver acta →</button>
       </div>
@@ -219,6 +271,7 @@
         <button class="btn btn-outline" id="btnVolverPartido">← Volver al marcador</button>
         <button class="btn btn-primary" id="btnExportarPdf">Exportar acta (PDF)</button>
         <button class="btn btn-whatsapp" id="btnExportarWhatsapp">Compartir por WhatsApp</button>
+        <button class="btn btn-outline" id="btnTarjeta">Descargar tarjeta de resultado</button>
         <button class="btn btn-outline" id="btnNuevoPartido">Nuevo partido</button>
       </div>
     </div>
@@ -227,6 +280,6 @@
 </section>
 </main>
 
-<script src="assets/js/arbitro.js?v=1"></script>
+<script type="module" src="assets/js/arbitro.js?v=2"></script>
 </body>
 </html>

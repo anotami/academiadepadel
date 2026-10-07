@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marcador en vivo | academiadepadel.pe</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14495a">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=12">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=2">
+</head>
+<body class="arbitro-body">
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>academiadepadel.pe</span>
+    </a>
+    <a href="arbitro-pistas.html" class="test-back-link">Ver todas las pistas</a>
+  </div>
+</header>
+
+<main id="main">
+<section class="section portal-section arbitro-section">
+  <div class="container portal-shell">
+
+    <div id="vivoCargando" class="empty-state">Cargando marcador en vivo…</div>
+
+    <div id="vivoContenido" hidden>
+      <div class="portal-topbar">
+        <div>
+          <h1>🔴 En vivo</h1>
+          <p class="portal-whoami" id="vivoMeta"></p>
+        </div>
+        <span class="badge badge-confirmada" id="vivoEstadoBadge"></span>
+      </div>
+
+      <div class="portal-card arbitro-scoreboard-card">
+        <table class="arbitro-scoreboard">
+          <thead>
+            <tr><th></th><th>Set 1</th><th>Set 2</th><th>Set 3</th><th class="arbitro-points-col">Puntos</th></tr>
+          </thead>
+          <tbody>
+            <tr id="rowA">
+              <td class="arbitro-team-name" id="nombreEquipoA"></td>
+              <td id="setA1">–</td><td id="setA2">–</td><td id="setA3">–</td>
+              <td class="arbitro-points-col"><span id="ptsA">0</span></td>
+            </tr>
+            <tr id="rowB">
+              <td class="arbitro-team-name" id="nombreEquipoB"></td>
+              <td id="setB1">–</td><td id="setB2">–</td><td id="setB3">–</td>
+              <td class="arbitro-points-col"><span id="ptsB">0</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="arbitro-estado-juego" id="estadoJuego"></p>
+        <p class="field-hint" id="ultimaActualizacion" style="text-align:center"></p>
+      </div>
+    </div>
+
+    <div id="vivoError" class="empty-state" hidden>
+      No encontramos este partido (puede haber terminado hace mucho o el link está mal escrito).
+    </div>
+  </div>
+</section>
+</main>
+
+<script type="module" src="assets/js/arbitro-vivo.js?v=1"></script>
+</body>
+</html>

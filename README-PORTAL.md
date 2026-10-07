@@ -19,17 +19,27 @@ Datos ya precargados en `assets/js/seed-data.js`: tu perfil de profesor, 2 alumn
 genéricos (Valeria Ramos y Diego Fernández — reemplázalos cuando tengas alumnos
 reales) y 34 pistas reales de Lima.
 
-## Árbitro de pádel (`arbitro.html`)
+## Árbitro de pádel (`arbitro.html` + 3 páginas más)
 
-Herramienta aparte, sin relación con el portal ni con Firebase: una PWA instalable
-(enlazada como "🎾 Árbitro" en el menú principal) para arbitrar un partido completo.
-Todo el estado vive en `localStorage` del dispositivo, así que funciona sin internet
-en pista una vez que la cargaste una vez. Incluye:
+Suite aparte del portal de reservas: una PWA instalable (enlazada como "🎾 Árbitro"
+en el menú principal) para arbitrar un partido completo. El marcador en sí es
+**100% local/offline por diseño** — funciona sin internet en pista aunque Firebase
+no esté configurado o se corte la señal — y usa Firebase solo como capa opcional
+quever cuando el profesor está logueado y hay conexión.
+
+| Página | Para quién | Qué hace |
+|---|---|---|
+| `arbitro.html` | El árbitro | Checklist pre-partido, marcador con reglas FIP, timers, interrupciones, incidencias, historial punto a punto, acta final. |
+| `arbitro-vivo.html?id=...` | Público (sin login) | Visor de solo lectura del marcador en vivo de un partido, por link. |
+| `arbitro-pistas.html` | Cualquiera (sin login) | "Multipista": arbitraje pasivo — ve en vivo todas las pistas que se están arbitrando ahora, y el ranking interno acumulado. |
+| `arbitro-torneo.html` | El organizador | Torneo Americano/Mexicano: genera rondas con parejas rotativas (o por nivel), registra resultados por pista y arma la tabla de posiciones. 100% local, no usa Firebase. |
+
+Funciones del marcador (`arbitro.html`):
 
 - Checklist pre-partido (pista, pelotas, equipamiento, entrenadores acreditados).
 - Marcador con reglas FIP: modalidad tradicional (ventajas) o punto de oro, sets a
   mejor de 3, tie-break a 7 y tercer set configurable (set completo o super
-  tie-break a 10), con botón de deshacer último punto.
+  tie-break a 10), con botón de deshacer último punto e historial punto a punto.
 - Temporizadores reglamentarios con un toque (peloteo, entre puntos, cambio de
   lado, descanso entre sets, cambio de lado en tie-break, atención médica), con
   sonido y vibración al terminar.
@@ -37,12 +47,26 @@ en pista una vez que la cargaste una vez. Incluye:
   y de cambio de lado.
 - Botones de sanciones (Warning, Point Penalty, Game Penalty, Descalificación) que
   aplican el efecto en el marcador y quedan en el registro de incidencias.
-- Acta final exportable a PDF (imprimir desde el navegador) o compartible por
-  WhatsApp.
+- **Interrupciones** (lesión, clima, falla de instalaciones, disputa de tanteo,
+  revisión de equipamiento, hidratación/baño, interferencia externa, otro): se
+  marcan con un toque, pausan el marcador (no se puede sumar puntos mientras hay
+  una activa) y quedan en el acta con hora, duración y nota.
+- Narración por voz del puntaje (Web Speech API, se activa/desactiva con un botón)
+  y modo pantalla grande para dejar el celular/tablet junto a la pista o conectado
+  a un TV.
+- Acta final con estadísticas básicas (puntos y juegos por pareja, duración,
+  interrupciones), exportable a PDF (imprimir desde el navegador), a WhatsApp, o
+  como tarjeta de resultado en imagen (botón "Descargar tarjeta de resultado").
+- **Marcador en vivo** (opcional): si el profesor inicia sesión antes de empezar,
+  puede activar "Compartir este partido en vivo" — genera un link público
+  (`arbitro-vivo.html?id=...`) para que cualquiera siga el partido sin instalar
+  nada, y el partido aparece automáticamente en `arbitro-pistas.html`.
+- Autocompletar los 4 nombres de jugadores con los alumnos ya registrados
+  (requiere sesión iniciada).
 
-No necesita Firebase ni cuenta — es independiente del resto del sitio. Para
-instalarla en el celular: abre `arbitro.html`, usa el botón "Instalar app" (Android/
-desktop) o "Compartir → Añadir a pantalla de inicio" (iPhone).
+Para instalarla en el celular: abre `arbitro.html`, usa el botón "Instalar app"
+(Android/desktop) o "Compartir → Añadir a pantalla de inicio" (iPhone). Si no
+inicias sesión, todo funciona igual salvo el marcador en vivo y la multipista.
 
 ## Cómo funciona, de punta a punta
 
@@ -97,11 +121,17 @@ desktop) o "Compartir → Añadir a pantalla de inicio" (iPhone).
          allow read: if request.auth != null;
          allow write: if request.auth != null;
        }
+       match /arbitrajes/{id} {
+         allow read: if true;
+         allow write: if request.auth != null;
+       }
      }
    }
    ```
 
    Reglas intencionalmente simples: cualquier usuario logueado puede leer todo y escribir en la mayoría de colecciones (lo necesita el profesor para confirmar, activar paquetes, administrar pistas, etc.). Razonable para una academia chica sin datos de pago en el sistema; no lo uses así si algún día guardas tarjetas o datos sensibles.
+
+   `arbitrajes` es la única colección de lectura pública (`allow read: if true`), a propósito: son partidos de pádel (nombres y marcador, nada sensible) pensados para que cualquiera con el link los vea sin crear cuenta — eso es lo que hace posible el marcador en vivo y la multipista.
 
 5. **Registra la app web:** *Configuración del proyecto* → *Tus apps* → ícono `</>` → copia el `firebaseConfig`.
 6. **Pégalo en** `assets/js/firebase-config.js`.
