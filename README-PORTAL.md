@@ -37,8 +37,9 @@ solo como capa opcional cuando el árbitro está logueado y hay conexión.
 | `arbitro-torneo.html` | El organizador | Torneo Americano/Mexicano: genera rondas con parejas rotativas (o por nivel), registra resultados por pista y arma la tabla de posiciones. 100% local, no usa Firebase. |
 | `arbitro-login.html` | El árbitro | Login/registro propio de árbitros (rol `arbitro`), separado del de alumnos — sin edad, apoderado ni disponibilidad; solo nombre, teléfono y club opcional. |
 | `arbitro-entrenador.html?id=...&equipo=A/B` | El entrenador de cada pareja (sin login) | Ventana aparte por pareja: marcador en vivo + alertas de conducta/demora de sus jugadores, y registro de feedback táctico punto a punto (golpe, resultado, zona, nota) con estadísticas e informe de devolución exportable. |
-| `arbitro-faq.html` | Cualquiera (sin login) | Preguntas frecuentes de arbitraje (112, por categoría, con buscador) + evaluación de 10 preguntas al azar con corrección automática. 100% local, no usa Firebase. |
 | `arbitro-ayuda.html` | Cualquiera (sin login) | Guía de uso para quien nunca usó la app: setup, marcador, pestañas de herramientas, acta, las demás páginas del sistema, cuenta de árbitro y modo offline/instalación. Puramente estática, sin JS propio. |
+
+`faq-padel.html` (112 preguntas sobre reglas de pádel y arbitraje, con evaluación de 10 al azar) vive fuera de la sección del árbitro — es una página general del sitio, enlazada desde el menú principal, igual que `categorias-padel.html` o `test.html`. `arbitro-ayuda.html` solo le apunta como referencia cruzada.
 
 Funciones del marcador (`arbitro.html`):
 
@@ -136,10 +137,16 @@ subcolección aparte del documento del partido, así el entrenador puede
 guardar sin pisarle la escritura al árbitro (que reescribe todo el documento
 del partido en cada punto).
 
-### Preguntas frecuentes de arbitraje + evaluación
+### Preguntas frecuentes de pádel y arbitraje + evaluación (fuera de la sección del árbitro)
 
-`arbitro-faq.html` es un banco de 112 preguntas (`assets/js/arbitro-faq-data.js`),
-armado a partir de las Reglas del Pádel FIP y el Manual del Alumno de la
+`faq-padel.html` es, a propósito, una página general del sitio — no vive bajo
+el prefijo `arbitro-` ni usa `arbitro.css`, aunque su contenido sea sobre
+reglas de arbitraje; se llega a ella desde el menú principal, igual que
+`categorias-padel.html`. `arbitro-ayuda.html` solo le apunta como referencia
+cruzada para quien tiene una duda de reglamento, no de cómo usar la app.
+
+Es un banco de 112 preguntas (`assets/js/faq-padel-data.js`), armado a partir
+de las Reglas del Pádel FIP y el Manual del Alumno de la
 Clínica de Arbitraje Perú 2026 que compartiste (incluye sus ~35 casos reales,
 más casos propios elaborados en el mismo formato). Cada pregunta sigue la
 misma estructura que usa el manual para sus casos:

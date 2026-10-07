@@ -8,30 +8,31 @@
 // index.html, style.css, main.js, etc., sirviendo versiones viejas de todo
 // el sitio a cualquiera que haya visitado alguna vez una página del árbitro.
 // Por eso cada fetch se filtra contra ARBITRO_PATHS antes de tocarlo.
-const CACHE = "arbitro-v10";
+const CACHE = "arbitro-v11";
 
 // Páginas y archivos EXCLUSIVOS del árbitro: nunca los pide el sitio
 // principal, así que siempre es seguro cachearlos.
 const ARBITRO_PAGES = [
   "/arbitro.html", "/arbitro-vivo.html", "/arbitro-pistas.html",
   "/arbitro-historial.html", "/arbitro-torneo.html", "/arbitro-login.html",
-  "/arbitro-entrenador.html", "/arbitro-faq.html", "/arbitro-ayuda.html"
+  "/arbitro-entrenador.html", "/arbitro-ayuda.html"
 ];
 const ARBITRO_ONLY_ASSETS = [
   "/manifest.json",
-  "/assets/css/arbitro.css", "/assets/css/arbitro-faq.css",
+  "/assets/css/arbitro.css",
   "/assets/js/arbitro.js", "/assets/js/arbitro-common.js",
   "/assets/js/arbitro-vivo.js", "/assets/js/arbitro-pistas.js",
   "/assets/js/arbitro-historial.js", "/assets/js/arbitro-torneo.js",
   "/assets/js/arbitro-login.js", "/assets/js/arbitro-entrenador.js",
-  "/assets/js/arbitro-faq.js", "/assets/js/arbitro-faq-data.js",
   "/assets/img/arbitro-icon-192.png", "/assets/img/arbitro-icon-512.png"
 ];
-// Archivos COMPARTIDOS con el sitio principal (style.css, logo, favicon):
-// solo se cachean/sirven desde este SW cuando el pedido vino de una página
-// del árbitro (se mira el "referrer" del fetch) — si lo pide index.html u
-// otra página del sitio, se deja pasar siempre a la red, sin tocar.
-const SHARED_ASSETS = ["/assets/css/style.css", "/assets/img/logo.svg", "/assets/img/favicon.svg"];
+// Archivos COMPARTIDOS con el sitio principal (style.css, logo, favicon) o
+// con otras páginas generales del sitio (faq-padel.css, usado también por
+// faq-padel.html, que está fuera de la sección del árbitro): solo se
+// cachean/sirven desde este SW cuando el pedido vino de una página del
+// árbitro (se mira el "referrer" del fetch) — si lo pide index.html, faq-padel.html
+// u otra página del sitio, se deja pasar siempre a la red, sin tocar.
+const SHARED_ASSETS = ["/assets/css/style.css", "/assets/css/faq-padel.css", "/assets/img/logo.svg", "/assets/img/favicon.svg"];
 
 const ASSETS = [
   "arbitro.html",

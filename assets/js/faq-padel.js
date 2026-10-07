@@ -1,7 +1,7 @@
-// Preguntas frecuentes de arbitraje + evaluación de 10 preguntas al azar.
-// 100% local: no depende de Firebase, solo del banco de datos estático
-// (arbitro-faq-data.js).
-import { FAQ_CATEGORIAS, FAQ_ITEMS } from "./arbitro-faq-data.js?v=1";
+// Preguntas frecuentes de pádel y arbitraje + evaluación de 10 preguntas al
+// azar. 100% local: no depende de Firebase, solo del banco de datos estático
+// (faq-padel-data.js). Página general del sitio, independiente del árbitro.
+import { FAQ_CATEGORIAS, FAQ_ITEMS } from "./faq-padel-data.js?v=1";
 
 function $(id) { return document.getElementById(id); }
 
@@ -24,7 +24,7 @@ function construirChipsCategoria() {
   cont.innerHTML = "";
   const todas = document.createElement("button");
   todas.type = "button";
-  todas.className = "entrenador-chip active";
+  todas.className = "faq-chip active";
   todas.textContent = `Todas (${FAQ_ITEMS.length})`;
   todas.addEventListener("click", () => { filtroCategoria = "todas"; marcarChipActivo(todas); renderFaqLista(); });
   cont.appendChild(todas);
@@ -33,7 +33,7 @@ function construirChipsCategoria() {
     const n = FAQ_ITEMS.filter((i) => i.categoria === cat.id).length;
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "entrenador-chip";
+    btn.className = "faq-chip";
     btn.textContent = `${cat.nombre} (${n})`;
     btn.addEventListener("click", () => { filtroCategoria = cat.id; marcarChipActivo(btn); renderFaqLista(); });
     cont.appendChild(btn);
@@ -41,7 +41,7 @@ function construirChipsCategoria() {
 }
 
 function marcarChipActivo(btn) {
-  document.querySelectorAll("#faqCategoriaChips .entrenador-chip").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll("#faqCategoriaChips .faq-chip").forEach((b) => b.classList.remove("active"));
   btn.classList.add("active");
 }
 
