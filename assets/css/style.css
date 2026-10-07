@@ -130,7 +130,7 @@ ul { padding: 0; margin: 0; list-style: none; }
   color: var(--ink);
   margin-right: auto;
 }
-.brand-logo { border-radius: 8px; }
+.brand-logo { border-radius: 8px; flex-shrink: 0; }
 
 .main-nav {
   display: flex;
@@ -148,7 +148,7 @@ ul { padding: 0; margin: 0; list-style: none; }
 .main-nav a:hover { color: var(--court); }
 
 .header-cta { margin-left: 4px; }
-.header-ctas { display: flex; align-items: center; gap: 10px; }
+.header-ctas { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
 .nav-toggle {
   display: none;
@@ -157,6 +157,8 @@ ul { padding: 0; margin: 0; list-style: none; }
   gap: 5px;
   width: 40px;
   height: 40px;
+  min-width: 40px;
+  flex-shrink: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
