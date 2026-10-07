@@ -1,4 +1,6 @@
-/* Página de preguntas frecuentes y evaluación de arbitraje. */
+/* Compartido por la página de preguntas frecuentes/evaluación (arbitro-faq.html)
+   y la página de ayuda (arbitro-ayuda.html): el estilo de acordeón por
+   categoría (.faq-categoria / .faq-item) se reutiliza en ambas. */
 
 .faq-tabs {
   display: flex;
@@ -100,4 +102,36 @@
 
 @media (max-width: 640px) {
   .faq-tab { flex: 1 1 auto; text-align: center; }
+}
+
+/* Guía rápida en pasos (arbitro-ayuda.html) */
+.arbitro-ayuda-pasos {
+  margin: 0 0 16px;
+  padding-left: 0;
+  list-style: none;
+  counter-reset: paso;
+}
+.arbitro-ayuda-pasos li {
+  counter-increment: paso;
+  position: relative;
+  padding: 10px 0 10px 42px;
+  border-bottom: 1px dashed var(--border);
+  font-size: 0.92rem;
+}
+.arbitro-ayuda-pasos li:last-child { border-bottom: none; }
+.arbitro-ayuda-pasos li::before {
+  content: counter(paso);
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--court);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

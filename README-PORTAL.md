@@ -38,6 +38,7 @@ solo como capa opcional cuando el árbitro está logueado y hay conexión.
 | `arbitro-login.html` | El árbitro | Login/registro propio de árbitros (rol `arbitro`), separado del de alumnos — sin edad, apoderado ni disponibilidad; solo nombre, teléfono y club opcional. |
 | `arbitro-entrenador.html?id=...&equipo=A/B` | El entrenador de cada pareja (sin login) | Ventana aparte por pareja: marcador en vivo + alertas de conducta/demora de sus jugadores, y registro de feedback táctico punto a punto (golpe, resultado, zona, nota) con estadísticas e informe de devolución exportable. |
 | `arbitro-faq.html` | Cualquiera (sin login) | Preguntas frecuentes de arbitraje (112, por categoría, con buscador) + evaluación de 10 preguntas al azar con corrección automática. 100% local, no usa Firebase. |
+| `arbitro-ayuda.html` | Cualquiera (sin login) | Guía de uso para quien nunca usó la app: setup, marcador, pestañas de herramientas, acta, las demás páginas del sistema, cuenta de árbitro y modo offline/instalación. Puramente estática, sin JS propio. |
 
 Funciones del marcador (`arbitro.html`):
 

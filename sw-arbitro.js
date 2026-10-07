@@ -8,14 +8,14 @@
 // index.html, style.css, main.js, etc., sirviendo versiones viejas de todo
 // el sitio a cualquiera que haya visitado alguna vez una página del árbitro.
 // Por eso cada fetch se filtra contra ARBITRO_PATHS antes de tocarlo.
-const CACHE = "arbitro-v9";
+const CACHE = "arbitro-v10";
 
 // Páginas y archivos EXCLUSIVOS del árbitro: nunca los pide el sitio
 // principal, así que siempre es seguro cachearlos.
 const ARBITRO_PAGES = [
   "/arbitro.html", "/arbitro-vivo.html", "/arbitro-pistas.html",
   "/arbitro-historial.html", "/arbitro-torneo.html", "/arbitro-login.html",
-  "/arbitro-entrenador.html", "/arbitro-faq.html"
+  "/arbitro-entrenador.html", "/arbitro-faq.html", "/arbitro-ayuda.html"
 ];
 const ARBITRO_ONLY_ASSETS = [
   "/manifest.json",
