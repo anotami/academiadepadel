@@ -51,13 +51,15 @@
       badge: "🌱",
       image: "assets/img/court/grip-detail.jpg",
       alt: "Jugador ajustando el agarre de la pala",
-      level: "Nivel Inicial",
+      level: "Iniciación",
       desc: "Recién vas a empezar, o casi no tienes experiencia en cancha — es el punto de partida perfecto para aprender bien desde el primer golpe.",
+      argRange: "8ª–7ª",
+      argNames: "Iniciación · Principiante",
       plans: [
         { tag: "Recomendado", title: "¡Conociendo el Pádel!", text: "Jornada grupal gratuita para probar el pádel desde cero, sin compromiso.", link: "index.html#ofertas" },
         { tag: "Siguiente paso", title: "Clínicas · Nivel inicial", text: "Sesiones temáticas de S/70 para afirmar tus primeros golpes.", link: "index.html#clinicas" }
       ],
-      waText: "Hola, hice el test de nivel en la web y me salió Nivel Inicial ({score}/8). Quiero información sobre la jornada gratuita ¡Conociendo el Pádel!"
+      waText: "Hola, hice el test de nivel en la web y me salió nivel Iniciación ({score}/8), equivalente a 8ª–7ª en el sistema argentino. Quiero información sobre la jornada gratuita ¡Conociendo el Pádel!"
     },
     {
       min: 3,
@@ -65,13 +67,15 @@
       badge: "📈",
       image: "assets/img/court/paddle-bouquet.jpg",
       alt: "Varias palas de pádel de distintos modelos",
-      level: "Nivel Inicial-Intermedio",
+      level: "Intermedio",
       desc: "Ya tienes algo de cancha, pero te conviene afirmar fundamentos antes de jugar con más soltura y consistencia.",
+      argRange: "6ª–5ª",
+      argNames: "Principiante avanzado · Intermedio",
       plans: [
         { tag: "Recomendado", title: "Clínicas · Nivel inicial", text: "Sesiones temáticas puntuales (derecha, saque, volea, revés) para cerrar tus vacíos técnicos.", link: "index.html#clinicas" },
         { tag: "Para progresar", title: "Programa regular", text: "Junior o Adultos — clases por nivel con metodología progresiva.", link: "index.html#programas" }
       ],
-      waText: "Hola, hice el test de nivel en la web y me salió Nivel Inicial-Intermedio ({score}/8). Quiero información sobre las clínicas de nivel inicial."
+      waText: "Hola, hice el test de nivel en la web y me salió nivel Intermedio ({score}/8), equivalente a 6ª–5ª en el sistema argentino. Quiero información sobre las clínicas de nivel inicial."
     },
     {
       min: 6,
@@ -79,13 +83,15 @@
       badge: "🏆",
       image: "assets/img/court/net-ball.jpg",
       alt: "Pelota de pádel golpeando la red en plena jugada",
-      level: "Nivel Intermedio",
+      level: "Consolidación",
       desc: "Ya sostienes peloteos y piensas la táctica del punto. Te conviene pulir golpes específicos y consolidar con clases regulares.",
+      argRange: "4ª",
+      argNames: "Intermedio alto",
       plans: [
         { tag: "Recomendado", title: "Clínicas · Nivel intermedio", text: "Salida de pared, posicionamiento en pareja y bandeja, S/70 por sesión.", link: "index.html#clinicas" },
         { tag: "Para consolidar", title: "Paquete 8 clases", text: "El mejor precio por clase para seguir subiendo de nivel.", link: "index.html#precios" }
       ],
-      waText: "Hola, hice el test de nivel en la web y me salió Nivel Intermedio ({score}/8). Quiero información sobre las clínicas de nivel intermedio y el paquete de 8 clases."
+      waText: "Hola, hice el test de nivel en la web y me salió nivel Consolidación ({score}/8), equivalente a 4ª en el sistema argentino. Quiero información sobre las clínicas de nivel intermedio y el paquete de 8 clases."
     }
   ];
 
@@ -147,6 +153,9 @@
     document.getElementById("quizResultBadge").textContent = result.badge;
     document.getElementById("quizResultTitle").textContent = result.level;
     document.getElementById("quizResultDesc").textContent = result.desc;
+
+    document.getElementById("quizResultArgBadge").textContent = result.argRange;
+    document.getElementById("quizResultArgNames").textContent = result.argNames;
 
     var plansWrap = document.getElementById("quizResultPlans");
     plansWrap.innerHTML = "";

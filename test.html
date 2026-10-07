@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=14">
+<link rel="stylesheet" href="assets/css/style.css?v=15">
 
 <!-- Open Graph -->
 <meta property="og:title" content="¿Qué nivel de pádel tienes?">
@@ -47,7 +47,7 @@
     <div class="container test-container">
       <p class="eyebrow eyebrow-center">Test rápido · 4 preguntas</p>
       <h1 class="test-title">¿Qué nivel de pádel tienes?</h1>
-      <p class="section-sub">Responde y te decimos qué plan te conviene empezar.</p>
+      <p class="section-sub">Responde y te decimos qué plan te conviene empezar, con su equivalencia en el sistema de categorías argentino (8ª a 1ª).</p>
       <div class="test-timer-badge">⏱️ Dura menos de 30 segundos</div>
 
       <div class="quiz" id="quiz">
@@ -73,6 +73,14 @@
           <div class="quiz-result-badge" id="quizResultBadge"></div>
           <h2 class="quiz-result-title" id="quizResultTitle"></h2>
           <p class="quiz-result-desc" id="quizResultDesc"></p>
+
+          <a class="quiz-result-equivalence" id="quizResultEquivalence" href="categorias-padel.html">
+            <span class="level-num level-num-wide" id="quizResultArgBadge"></span>
+            <span>
+              <strong id="quizResultArgNames"></strong>
+              <small>según las categorías de pádel argentinas · ver tabla completa →</small>
+            </span>
+          </a>
 
           <div class="quiz-result-plans" id="quizResultPlans"></div>
 
