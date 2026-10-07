@@ -1,13 +1,13 @@
 // Service worker de la app de arbitraje. Cachea solo lo necesario para que
 // funcione offline en pista; no toca el resto del sitio.
-const CACHE = "arbitro-v2";
+const CACHE = "arbitro-v3";
 const ASSETS = [
   "arbitro.html",
   "manifest.json",
   "assets/css/style.css?v=12",
-  "assets/css/arbitro.css?v=2",
-  "assets/js/arbitro.js?v=2",
-  "assets/js/arbitro-common.js?v=1",
+  "assets/css/arbitro.css?v=3",
+  "assets/js/arbitro.js?v=3",
+  "assets/js/arbitro-common.js?v=2",
   "assets/img/arbitro-icon-192.png",
   "assets/img/arbitro-icon-512.png",
   "assets/img/logo.svg",

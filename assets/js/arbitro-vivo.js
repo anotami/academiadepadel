@@ -1,6 +1,6 @@
 // Visor público de solo lectura del marcador en vivo. Sin login: cualquiera
 // con el link puede ver el partido mientras el árbitro lo tiene compartido.
-import { nombreEquipo, labelsDePuntos, tiempoRelativo } from "./arbitro-common.js?v=1";
+import { nombreEquipo, labelsDePuntos, tiempoRelativo } from "./arbitro-common.js?v=2";
 
 const id = new URLSearchParams(location.search).get("id");
 

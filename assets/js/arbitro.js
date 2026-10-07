@@ -3,9 +3,10 @@
 // partido a Firestore (colección "arbitrajes") para marcador en vivo y multipista.
 
 import {
-  LABELS, CHECKLIST_ITEMS, INTERRUPTION_TYPES,
-  nombreEquipo, otro, labelsDePuntos, formatMMSS
-} from "./arbitro-common.js?v=1";
+  LABELS, CHECKLIST_ITEMS, INTERRUPTION_TYPES, CONDUCT_CATEGORIES,
+  nombreEquipo, otro, labelsDePuntos, formatMMSS,
+  consecuenciaConducta, consecuenciaDemora, peloteoSugeridoSeg
+} from "./arbitro-common.js?v=2";
 
 // Firebase se carga de forma diferida (import dinámico) y nunca de forma
 // estática: si no hay internet o falla la red, el resto del árbitro (marcador,
@@ -21,6 +22,7 @@ async function cargarFirebase() {
 }
 
 const STORAGE_KEY = "arbitro_partido_v1";
+const HISTORIAL_KEY = "arbitro_historial_v1";
 const BALL_CHANGE_FIRST = 9;
 const BALL_CHANGE_EVERY = 9;
 
@@ -62,6 +64,8 @@ function estadoInicial() {
       liveId: null,
       interrupcionActiva: null,
       interrupciones: [],
+      demoras: [],
+      guardadoEnHistorial: false,
       log: []
     },
     incidents: [],
@@ -88,6 +92,29 @@ function load() {
     const datos = JSON.parse(raw);
     state = { ...estadoInicial(), ...datos, history: [] };
   } catch (e) { /* ignorar datos corruptos */ }
+}
+
+// Historial local de partidos arbitrados en este dispositivo: sobrevive a
+// "Nuevo partido" (a diferencia de STORAGE_KEY, que solo guarda el actual).
+// Si el partido se compartió en vivo, además queda guardado en la nube
+// (Firestore) y aparece en el historial de la nube en cualquier dispositivo.
+function guardarEnHistorialLocal() {
+  if (state.match.guardadoEnHistorial) return;
+  try {
+    const lista = JSON.parse(localStorage.getItem(HISTORIAL_KEY) || "[]");
+    lista.unshift({
+      ts: Date.now(),
+      equipoA: nomEq("A"),
+      equipoB: nomEq("B"),
+      club: state.config.club,
+      pista: state.config.pista,
+      sets: state.match.sets.map((s) => ({ a: s.a, b: s.b, tiebreak: s.tiebreak })),
+      ganador: state.match.matchWinner,
+      liveId: state.match.liveId || null
+    });
+    localStorage.setItem(HISTORIAL_KEY, JSON.stringify(lista.slice(0, 300)));
+    state.match.guardadoEnHistorial = true;
+  } catch (e) { /* si falla, el partido sigue disponible en pantalla/export */ }
 }
 
 function pushHistory() {
@@ -250,7 +277,16 @@ function finishSet(winner, tiebreakScore) {
 function addGamePoint(team) {
   const m = state.match;
   const g = m.currentGame;
-  if (state.config.modalidad === "oro" && g.a >= 3 && g.b >= 3) {
+  const modalidad = state.config.modalidad;
+  // Método 3 FIP (punto de oro): en 40-40 decide el siguiente punto, siempre.
+  if (modalidad === "oro" && g.a >= 3 && g.b >= 3) {
+    winGame(team);
+    return;
+  }
+  // Método 2 FIP (Star Point): se juegan dos rondas de ventaja normales
+  // (iguales 1 e iguales 2); si se vuelve a empatar una tercera vez
+  // (iguales 3, es decir 5-5), el siguiente punto decide sin ventaja.
+  if (modalidad === "star" && g.a === g.b && g.a >= 5) {
     winGame(team);
     return;
   }
@@ -258,8 +294,11 @@ function addGamePoint(team) {
   if (g.a >= 4 && g.a - g.b >= 2) { winGame("A"); return; }
   if (g.b >= 4 && g.b - g.a >= 2) { winGame("B"); return; }
   const [la, lb] = labelsDePuntos(g.a, g.b);
-  if (la === "40" && lb === "40") m.ultimoEvento = state.config.modalidad === "oro" ? "Punto de oro" : "Iguales";
-  else if (la === "VENT.") m.ultimoEvento = "Ventaja, pareja A";
+  if (la === "40" && lb === "40") {
+    if (modalidad === "oro") m.ultimoEvento = "Punto de oro";
+    else if (modalidad === "star" && g.a >= 5) m.ultimoEvento = "Star Point";
+    else m.ultimoEvento = "Iguales";
+  } else if (la === "VENT.") m.ultimoEvento = "Ventaja, pareja A";
   else if (lb === "VENT.") m.ultimoEvento = "Ventaja, pareja B";
   else m.ultimoEvento = `${PALABRAS_PUNTO[la]} - ${PALABRAS_PUNTO[lb]}`;
 }
@@ -328,7 +367,7 @@ function marcadorActual() {
   return [sets, vivo].filter(Boolean).join(" | ");
 }
 
-function pedirEquipo(callback) {
+function pedirEquipo(anchorEl, callback) {
   document.querySelectorAll(".arbitro-equipo-chooser").forEach((el) => el.remove());
   const row = document.createElement("div");
   row.className = "arbitro-incident-buttons arbitro-equipo-chooser";
@@ -346,34 +385,79 @@ function pedirEquipo(callback) {
   bB.onclick = () => { row.remove(); callback("B"); };
   bC.onclick = () => row.remove();
   row.append(bA, bB, bC);
-  document.querySelector(".arbitro-incident-buttons").after(row);
+  anchorEl.after(row);
 }
 
-function addIncident(tipo, equipoSancionado) {
-  pushHistory();
-  state.incidents.push({ ts: Date.now(), tipo, equipo: equipoSancionado, marcador: marcadorActual() });
-  addLog("incidencia", `${tipo} — ${nomEq(equipoSancionado)}`, { equipo: equipoSancionado });
-  const beneficiado = otro(equipoSancionado);
+// Otorga un punto al equipo indicado según la fase del partido (usado tanto
+// por sanciones de conducta como por infracciones de tiempo).
+function otorgarPunto(team) {
   const m = state.match;
-  if (tipo === "Point Penalty") {
-    if (m.isSuperTiebreakSet) addSuperTiebreakPoint(beneficiado);
-    else if (m.inTiebreak) addTiebreakPoint(beneficiado);
-    else addGamePoint(beneficiado);
-  } else if (tipo === "Game Penalty") {
-    if (!m.isSuperTiebreakSet && !m.inTiebreak) winGame(beneficiado);
-  } else if (tipo === "Descalificación") {
-    m.matchWinner = beneficiado;
-    m.horaFin = Date.now();
-    addLog("partido", `Partido terminado por descalificación: gana ${nomEq(beneficiado)}`, { equipo: beneficiado });
+  if (m.isSuperTiebreakSet) addSuperTiebreakPoint(team);
+  else if (m.inTiebreak) addTiebreakPoint(team);
+  else addGamePoint(team);
+}
+
+// ---------------- Código de Conducta (Tabla de Penalizaciones FIP) ----------------
+// Escalera real por pareja: 1ra infracción = advertencia; 2da = advertencia +
+// pérdida de punto; 3ra = advertencia + descalificación. Independiente de la
+// escalera de demora y de la descalificación directa por falta muy grave.
+function contarInfraccionesConducta(equipo) {
+  return state.incidents.filter((i) => i.equipo === equipo && i.tipo === "conducta").length;
+}
+
+function registrarInfraccionConducta(categoria, equipo) {
+  const numero = contarInfraccionesConducta(equipo) + 1;
+  const consecuencia = consecuenciaConducta(numero);
+  pushHistory();
+  state.incidents.push({ ts: Date.now(), tipo: "conducta", categoria, equipo, numero, consecuencia, marcador: marcadorActual() });
+  addLog("incidencia", `${consecuencia} — ${categoria} — ${nomEq(equipo)} (infracción de conducta #${numero})`, { equipo });
+  const beneficiado = otro(equipo);
+  if (numero === 2) {
+    otorgarPunto(beneficiado);
+  } else if (numero >= 3) {
+    state.match.matchWinner = beneficiado;
+    state.match.horaFin = Date.now();
+    addLog("partido", `Partido terminado por descalificación (3ra infracción de conducta): gana ${nomEq(beneficiado)}`, { equipo: beneficiado });
   }
   save();
   syncLive();
   render();
 }
 
+function registrarDescalificacionDirecta(equipo) {
+  const beneficiado = otro(equipo);
+  pushHistory();
+  state.incidents.push({ ts: Date.now(), tipo: "descalificacion_directa", categoria: "Agresión física o verbal muy grave", equipo, numero: null, consecuencia: "Descalificación directa", marcador: marcadorActual() });
+  addLog("incidencia", `Descalificación directa — ${nomEq(equipo)}`, { equipo });
+  state.match.matchWinner = beneficiado;
+  state.match.horaFin = Date.now();
+  addLog("partido", `Partido terminado por descalificación directa: gana ${nomEq(beneficiado)}`, { equipo: beneficiado });
+  save();
+  syncLive();
+  render();
+}
+
+// ---------------- Infracciones de tiempo / demora (tabla aparte) ----------------
+function contarDemoras(equipo) {
+  return state.match.demoras.filter((d) => d.equipo === equipo).length;
+}
+
+function registrarDemora(equipo) {
+  const numero = contarDemoras(equipo) + 1;
+  const consecuencia = consecuenciaDemora(numero);
+  pushHistory();
+  state.match.demoras.push({ ts: Date.now(), equipo, numero, consecuencia, marcador: marcadorActual() });
+  addLog("demora", `${consecuencia} — ${nomEq(equipo)} (demora #${numero})`, { equipo });
+  if (numero >= 2) otorgarPunto(otro(equipo));
+  save();
+  syncLive();
+  render();
+}
+
 // ---------------- Interrupciones ----------------
-function iniciarInterrupcion(tipo) {
-  const nota = (prompt(`Detalle de la interrupción (opcional) — ${tipo}`) || "").trim();
+function iniciarInterrupcion(tipo, ref) {
+  const mensaje = `Detalle de la interrupción (opcional) — ${tipo}` + (ref ? `\n\nReferencia FIP: ${ref}` : "");
+  const nota = (prompt(mensaje) || "").trim();
   pushHistory();
   state.match.interrupcionActiva = { tipo, nota, inicio: Date.now() };
   addLog("interrupcion", `Interrupción iniciada: ${tipo}${nota ? ` — ${nota}` : ""}`);
@@ -394,6 +478,15 @@ function reanudarPartido() {
   save();
   syncLive();
   render();
+
+  // Regla 2.11 FIP: peloteo de cortesía al reanudar, según cuánto duró la suspensión.
+  const peloteo = peloteoSugeridoSeg(duracionSeg);
+  if (peloteo > 0) {
+    const minutos = peloteo / 60;
+    if (confirm(`La suspensión duró ${formatMMSS(duracionSeg)}. Por Regla 2.11 FIP corresponde ${minutos} min de peloteo antes de seguir. ¿Iniciar el cronómetro de ${minutos} min ahora?`)) {
+      startTimer({ id: "peloteo-reanudacion", label: `Peloteo de reanudación (${minutos} min)`, seconds: peloteo });
+    }
+  }
 }
 
 // ---------------- Timers ----------------
@@ -492,7 +585,7 @@ function renderPartido() {
   document.getElementById("nombreEquipoB").textContent = nomEq("B");
   document.getElementById("metaInfo").textContent =
     [c.club, c.pista, c.pais].filter(Boolean).join(" · ") +
-    (c.modalidad === "oro" ? " · Punto de oro" : " · Con ventajas") +
+    (c.modalidad === "oro" ? " · Punto de oro" : c.modalidad === "star" ? " · Star Point" : " · Con ventajas") +
     (c.tercerSet === "super" ? " · 3er set: super tie-break a 10" : "");
 
   for (const team of ["A", "B"]) {
@@ -518,7 +611,11 @@ function renderPartido() {
   if (m.matchWinner) estado.textContent = `🏆 Gana el partido: ${nomEq(m.matchWinner)}`;
   else if (m.isSuperTiebreakSet) estado.textContent = `Super tie-break a 10 (gana por 2) · Saca ${nomEq(m.servidor)}`;
   else if (m.inTiebreak) estado.textContent = `Tie-break a 7 (gana por 2) · Saca ${nomEq(m.servidor)}`;
-  else if (m.currentGame.a >= 3 && m.currentGame.b >= 3 && m.currentGame.a === m.currentGame.b) estado.textContent = c.modalidad === "oro" ? "40-40 · ¡Punto de oro! Define el próximo punto" : "40-40 · Iguales";
+  else if (m.currentGame.a >= 3 && m.currentGame.b >= 3 && m.currentGame.a === m.currentGame.b) {
+    if (c.modalidad === "oro") estado.textContent = "40-40 · ¡Punto de oro! Define el próximo punto — la pareja que resta elige el lado";
+    else if (c.modalidad === "star" && m.currentGame.a >= 5) estado.textContent = "¡Star Point! Define el próximo punto — la pareja que resta elige el lado";
+    else estado.textContent = "40-40 · Iguales";
+  }
   else estado.textContent = `Saca ${nomEq(m.servidor)}`;
 
   document.getElementById("btnPuntoA").disabled = !!m.matchWinner || !!m.interrupcionActiva;
@@ -530,6 +627,7 @@ function renderPartido() {
   }
 
   renderIncidencias();
+  renderDemoras();
   renderInterrupciones();
   renderHistorial();
   renderShareBox();
@@ -544,8 +642,24 @@ function renderIncidencias() {
     const li = document.createElement("li");
     li.className = "arbitro-incident-item";
     const hora = new Date(inc.ts).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
-    li.innerHTML = `<span><span class="inc-tipo">${inc.tipo}</span> — ${nomEq(inc.equipo)}<br><small>${inc.marcador}</small></span><span>${hora}</span>`;
+    const etiqueta = inc.numero ? `${inc.consecuencia} (infracción #${inc.numero})` : inc.consecuencia;
+    li.innerHTML = `<span><span class="inc-tipo">${etiqueta}</span> — ${inc.categoria} — ${nomEq(inc.equipo)}<br><small>${inc.marcador}</small></span><span>${hora}</span>`;
     incLog.appendChild(li);
+  });
+}
+
+function renderDemoras() {
+  const log = document.getElementById("demoraLog");
+  const empty = document.getElementById("demoraEmpty");
+  const lista = state.match.demoras;
+  log.innerHTML = "";
+  empty.hidden = lista.length > 0;
+  lista.slice().reverse().forEach((d) => {
+    const li = document.createElement("li");
+    li.className = "arbitro-incident-item";
+    const hora = new Date(d.ts).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+    li.innerHTML = `<span><span class="inc-tipo">${d.consecuencia}</span> — ${nomEq(d.equipo)} (demora #${d.numero})<br><small>${d.marcador}</small></span><span>${hora}</span>`;
+    log.appendChild(li);
   });
 }
 
@@ -613,15 +727,22 @@ function renderActa() {
     </table>
     <p style="font-size:0.88rem;color:var(--ink-soft)">
       Duración del partido: ${duracionMin !== null ? duracionMin + " min" : "—"} ·
-      Incidencias registradas: ${state.incidents.length} ·
+      Infracciones de conducta: ${state.incidents.length} ·
+      Infracciones de tiempo: ${m.demoras.length} ·
       Interrupciones: ${m.interrupciones.length} (${formatMMSS(duracionInterrupciones)} en total)
     </p>`;
 
   const incidentesHtml = state.incidents.length
-    ? `<div class="arbitro-table-scroll"><table><thead><tr><th>Hora</th><th>Tipo</th><th>Pareja</th><th>Marcador</th></tr></thead><tbody>
-        ${state.incidents.map((i) => `<tr><td>${new Date(i.ts).toLocaleTimeString("es-PE")}</td><td>${i.tipo}</td><td>${nomEq(i.equipo)}</td><td>${i.marcador}</td></tr>`).join("")}
+    ? `<div class="arbitro-table-scroll"><table><thead><tr><th>Hora</th><th>Consecuencia</th><th>Categoría</th><th>Pareja</th><th>Marcador</th></tr></thead><tbody>
+        ${state.incidents.map((i) => `<tr><td>${new Date(i.ts).toLocaleTimeString("es-PE")}</td><td>${i.consecuencia}</td><td>${i.categoria}</td><td>${nomEq(i.equipo)}</td><td>${i.marcador}</td></tr>`).join("")}
        </tbody></table></div>`
-    : "<p>Sin incidencias registradas.</p>";
+    : "<p>Sin infracciones de conducta registradas.</p>";
+
+  const demorasHtml = m.demoras.length
+    ? `<div class="arbitro-table-scroll"><table><thead><tr><th>Hora</th><th>Consecuencia</th><th>Pareja</th><th>Marcador</th></tr></thead><tbody>
+        ${m.demoras.map((d) => `<tr><td>${new Date(d.ts).toLocaleTimeString("es-PE")}</td><td>${d.consecuencia}</td><td>${nomEq(d.equipo)}</td><td>${d.marcador}</td></tr>`).join("")}
+       </tbody></table></div>`
+    : "<p>Sin infracciones de tiempo registradas.</p>";
 
   const interrupcionesHtml = m.interrupciones.length
     ? `<div class="arbitro-table-scroll"><table><thead><tr><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Nota</th></tr></thead><tbody>
@@ -645,8 +766,10 @@ function renderActa() {
     <p class="acta-resultado">${ganador}</p>
     <h3>Estadísticas</h3>
     ${statsHtml}
-    <h3>Incidencias / código de conducta</h3>
+    <h3>Código de conducta</h3>
     ${incidentesHtml}
+    <h3>Infracciones de tiempo</h3>
+    ${demorasHtml}
     <h3>Interrupciones</h3>
     ${interrupcionesHtml}
     <h3>Detalle de sets</h3>
@@ -666,8 +789,12 @@ function actaTexto() {
   txt += `Sets: ${setsTxt}\n`;
   txt += `Resultado: ${ganador}\n`;
   if (state.incidents.length) {
-    txt += `\nIncidencias:\n`;
-    state.incidents.forEach((i) => { txt += `• ${i.tipo} — ${nomEq(i.equipo)} (${i.marcador})\n`; });
+    txt += `\nCódigo de conducta:\n`;
+    state.incidents.forEach((i) => { txt += `• ${i.consecuencia} — ${i.categoria} — ${nomEq(i.equipo)} (${i.marcador})\n`; });
+  }
+  if (m.demoras.length) {
+    txt += `\nInfracciones de tiempo:\n`;
+    m.demoras.forEach((d) => { txt += `• ${d.consecuencia} — ${nomEq(d.equipo)} (${d.marcador})\n`; });
   }
   if (m.interrupciones.length) {
     txt += `\nInterrupciones:\n`;
@@ -859,24 +986,41 @@ function init() {
   });
   document.getElementById("btnTimerCancelar").addEventListener("click", stopTimer);
 
-  document.querySelectorAll("#pantallaPartido [data-tipo]").forEach((btn) => {
+  const conductaBotones = document.getElementById("conductaBotones");
+  CONDUCT_CATEGORIES.forEach((categoria) => {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-outline btn-small";
+    btn.textContent = categoria;
     btn.addEventListener("click", () => {
-      const tipo = btn.dataset.tipo;
-      pedirEquipo((equipo) => {
-        if (tipo === "Descalificación" && !confirm(`¿Confirmas descalificar a ${nomEq(equipo)}? Esto termina el partido.`)) return;
-        addIncident(tipo, equipo);
-      });
+      pedirEquipo(conductaBotones, (equipo) => registrarInfraccionConducta(categoria, equipo));
+    });
+    conductaBotones.appendChild(btn);
+  });
+  document.getElementById("btnDescalificacionDirecta").addEventListener("click", () => {
+    pedirEquipo(document.getElementById("btnDescalificacionDirecta"), (equipo) => {
+      if (!confirm(`¿Confirmas la descalificación directa de ${nomEq(equipo)} por falta muy grave? Esto termina el partido de inmediato.`)) return;
+      registrarDescalificacionDirecta(equipo);
     });
   });
 
-  const interrupcionBotones = document.getElementById("interrupcionBotones");
-  INTERRUPTION_TYPES.forEach((tipo) => {
+  const demoraBotones = document.getElementById("demoraBotones");
+  ["A", "B"].forEach((equipo) => {
     const btn = document.createElement("button");
     btn.className = "btn btn-outline btn-small";
-    btn.textContent = tipo;
+    btn.textContent = `Registrar demora — Pareja ${equipo}`;
+    btn.addEventListener("click", () => registrarDemora(equipo));
+    demoraBotones.appendChild(btn);
+  });
+
+  const interrupcionBotones = document.getElementById("interrupcionBotones");
+  INTERRUPTION_TYPES.forEach((def) => {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-outline btn-small";
+    btn.textContent = def.tipo;
+    btn.title = def.ref || "";
     btn.addEventListener("click", () => {
       if (state.match.interrupcionActiva) { alert("Ya hay una interrupción activa. Reanuda el partido antes de registrar otra."); return; }
-      iniciarInterrupcion(tipo);
+      iniciarInterrupcion(def.tipo, def.ref);
     });
     interrupcionBotones.appendChild(btn);
   });
@@ -897,6 +1041,7 @@ function init() {
     if (state.match.interrupcionActiva) reanudarPartido();
     if (!state.match.horaFin) state.match.horaFin = Date.now();
     state.screen = "acta";
+    guardarEnHistorialLocal();
     save();
     syncLive();
     render();

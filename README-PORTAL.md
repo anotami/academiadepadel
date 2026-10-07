@@ -19,54 +19,82 @@ Datos ya precargados en `assets/js/seed-data.js`: tu perfil de profesor, 2 alumn
 genéricos (Valeria Ramos y Diego Fernández — reemplázalos cuando tengas alumnos
 reales) y 34 pistas reales de Lima.
 
-## Árbitro de pádel (`arbitro.html` + 3 páginas más)
+## Árbitro de pádel (`arbitro.html` + 4 páginas más)
 
 Suite aparte del portal de reservas: una PWA instalable (enlazada como "🎾 Árbitro"
-en el menú principal) para arbitrar un partido completo. El marcador en sí es
-**100% local/offline por diseño** — funciona sin internet en pista aunque Firebase
-no esté configurado o se corte la señal — y usa Firebase solo como capa opcional
-quever cuando el profesor está logueado y hay conexión.
+en el menú principal) para arbitrar un partido completo, verificada contra las
+Reglas del Pádel FIP (revisión 01.01.2026) y el manual de la clínica de arbitraje.
+El marcador en sí es **100% local/offline por diseño** — funciona sin internet en
+pista aunque Firebase no esté configurado o se corte la señal — y usa Firebase
+solo como capa opcional cuando el árbitro está logueado y hay conexión.
 
 | Página | Para quién | Qué hace |
 |---|---|---|
-| `arbitro.html` | El árbitro | Checklist pre-partido, marcador con reglas FIP, timers, interrupciones, incidencias, historial punto a punto, acta final. |
+| `arbitro.html` | El árbitro | Checklist pre-partido, marcador con reglas FIP, timers, código de conducta, infracciones de tiempo, interrupciones, historial punto a punto, acta final. |
 | `arbitro-vivo.html?id=...` | Público (sin login) | Visor de solo lectura del marcador en vivo de un partido, por link. |
 | `arbitro-pistas.html` | Cualquiera (sin login) | "Multipista": arbitraje pasivo — ve en vivo todas las pistas que se están arbitrando ahora, y el ranking interno acumulado. |
+| `arbitro-historial.html` | El árbitro | Historial de partidos: local en este dispositivo (siempre) y en la nube (si se compartieron en vivo, con acta completa recuperable desde cualquier dispositivo). |
 | `arbitro-torneo.html` | El organizador | Torneo Americano/Mexicano: genera rondas con parejas rotativas (o por nivel), registra resultados por pista y arma la tabla de posiciones. 100% local, no usa Firebase. |
 
 Funciones del marcador (`arbitro.html`):
 
 - Checklist pre-partido (pista, pelotas, equipamiento, entrenadores acreditados).
-- Marcador con reglas FIP: modalidad tradicional (ventajas) o punto de oro, sets a
-  mejor de 3, tie-break a 7 y tercer set configurable (set completo o super
-  tie-break a 10), con botón de deshacer último punto e historial punto a punto.
+- Marcador con los 3 métodos de puntuación FIP, elegibles antes de empezar:
+  **Método 1** (con ventajas, sin límite), **Método 2** (Star Point: dos rondas de
+  ventaja y a la tercera igualada el siguiente punto decide) y **Método 3** (punto
+  de oro: decide el primer 40-40). Sets a mejor de 3, tie-break a 7, tercer set
+  configurable (set completo o super tie-break a 10), deshacer último punto e
+  historial punto a punto.
 - Temporizadores reglamentarios con un toque (peloteo, entre puntos, cambio de
   lado, descanso entre sets, cambio de lado en tie-break, atención médica), con
   sonido y vibración al terminar.
 - Aviso automático de cambio de pelotas (cada 9 juegos, contando el peloteo como 2)
   y de cambio de lado.
-- Botones de sanciones (Warning, Point Penalty, Game Penalty, Descalificación) que
-  aplican el efecto en el marcador y quedan en el registro de incidencias.
-- **Interrupciones** (lesión, clima, falla de instalaciones, disputa de tanteo,
-  revisión de equipamiento, hidratación/baño, interferencia externa, otro): se
-  marcan con un toque, pausan el marcador (no se puede sumar puntos mientras hay
-  una activa) y quedan en el acta con hora, duración y nota.
+- **Código de Conducta con la escalera real de la FIP** (por pareja): 1ra
+  infracción = advertencia, 2da = advertencia + pérdida de punto, 3ra =
+  advertencia + descalificación — el sistema cuenta solo las infracciones previas
+  de cada pareja y aplica la consecuencia que corresponde. "Descalificación
+  directa" queda aparte para faltas muy graves (agresión física o verbal).
+- **Infracciones de tiempo (demora)**, tabla independiente de la de conducta: 1ra
+  = advertencia, 2da en adelante = pérdida de punto.
+- **Interrupciones** con la referencia de tiempo de la Regla 2 FIP visible al
+  elegir el tipo (condición médica tratable hasta 3 min repetible, sangrado hasta
+  15 min, calambres solo en cambio de lado, urgencia ajena al juego hasta 15 min,
+  clima, falta de luz, disputa de tanteo, equipamiento, etc.): pausan el marcador
+  (no se puede sumar puntos mientras hay una activa) y, al reanudar, el sistema
+  sugiere el peloteo de cortesía que corresponde según cuánto duró la suspensión
+  (Regla 2.11: ≤5 min nada, 5-20 min 1 min, +20 min 3 min).
 - Narración por voz del puntaje (Web Speech API, se activa/desactiva con un botón)
   y modo pantalla grande para dejar el celular/tablet junto a la pista o conectado
   a un TV.
 - Acta final con estadísticas básicas (puntos y juegos por pareja, duración,
-  interrupciones), exportable a PDF (imprimir desde el navegador), a WhatsApp, o
-  como tarjeta de resultado en imagen (botón "Descargar tarjeta de resultado").
-- **Marcador en vivo** (opcional): si el profesor inicia sesión antes de empezar,
+  infracciones de conducta, de tiempo e interrupciones), exportable a PDF
+  (imprimir desde el navegador), a WhatsApp, o como tarjeta de resultado en imagen
+  (botón "Descargar tarjeta de resultado").
+- **Marcador en vivo** (opcional): si el árbitro inicia sesión antes de empezar,
   puede activar "Compartir este partido en vivo" — genera un link público
   (`arbitro-vivo.html?id=...`) para que cualquiera siga el partido sin instalar
   nada, y el partido aparece automáticamente en `arbitro-pistas.html`.
+- **Historial de partidos**: cada partido finalizado queda guardado solo con
+  marcador y ganador en este dispositivo (`arbitro-historial.html`), y además con
+  acta completa en la nube si se compartió en vivo.
 - Autocompletar los 4 nombres de jugadores con los alumnos ya registrados
   (requiere sesión iniciada).
 
 Para instalarla en el celular: abre `arbitro.html`, usa el botón "Instalar app"
 (Android/desktop) o "Compartir → Añadir a pantalla de inicio" (iPhone). Si no
 inicias sesión, todo funciona igual salvo el marcador en vivo y la multipista.
+
+### Varios árbitros, varias pistas, al mismo tiempo
+
+Cada dispositivo guarda su propio partido en memoria local, y cada partido
+compartido en vivo crea su propio documento en Firestore — no hay nada
+compartido entre pistas que pueda chocar. En la práctica: cada árbitro abre
+`arbitro.html` en su propio celular, inicia sesión con su propia cuenta
+(créala en `login.html`, no hace falta que sea cuenta de profesor), activa
+"Compartir en vivo" y arbitra su pista con total independencia de las demás.
+Quien esté coordinando el torneo abre `arbitro-pistas.html` y ve todas las
+pistas activas en una sola pantalla, en tiempo real.
 
 ## Cómo funciona, de punta a punta
 

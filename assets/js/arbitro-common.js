@@ -16,16 +16,55 @@ export const CHECKLIST_ITEMS = [
   "Datos de jugadores, club, país y pista registrados"
 ];
 
+// Tipos de interrupción, con la referencia de tiempo de la Regla 2 FIP para
+// que el árbitro no tenga que buscarla — son solo una guía, la decisión final
+// siempre es suya.
 export const INTERRUPTION_TYPES = [
-  "Lesión / atención médica",
-  "Condiciones climáticas",
-  "Falla de instalaciones (luz, red, pista)",
-  "Disputa de tanteo",
-  "Revisión de equipamiento",
-  "Pausa de hidratación / baño",
-  "Interferencia externa (público, ruido, otra pista)",
+  { tipo: "Lesión / condición médica tratable", ref: "Hasta 3 min de atención; puede repetirse en los próximos 2 cambios de lado, dentro del tiempo reglamentario. Una vez por jugador y por cada condición distinta (Regla 2.14)." },
+  { tipo: "Calambres musculares", ref: "Solo se tratan durante el cambio de lado (no genera tiempo médico aparte). Hasta 2 tratamientos en 2 cambios de lado, no necesariamente consecutivos." },
+  { tipo: "Sangrado", ref: "Detener de inmediato; no se reanuda hasta limpiar la pista. Hasta 15 min (Regla 2.14)." },
+  { tipo: "Urgencia médica ajena al juego (desmayo, alergia, mareo, crisis respiratoria)", ref: "A criterio del árbitro, hasta 15 min (Regla 2.16)." },
+  { tipo: "Incidente súbito en el punto (caída, pelotazo)", ref: "Hasta 5 min para recuperarse y continuar (Regla 2.17)." },
+  { tipo: "Condiciones climáticas", ref: "Reanudación: ≤5 min sin peloteo; 5-20 min, 1 min; +20 min, 3 min (Regla 2.11)." },
+  { tipo: "Falta de luz natural", ref: "Si es posible, detener al final de un set o con suma par de juegos, para conservar los lados al reanudar (Regla 2.13)." },
+  { tipo: "Falla de instalaciones (red, pista)", ref: "" },
+  { tipo: "Disputa de tanteo", ref: "Reconstruir con cada pareja; se conservan los puntos/juegos en que hay coincidencia. No se sortea ni se repite el juego completo." },
+  { tipo: "Revisión de equipamiento", ref: "Ropa, calzado o equipo roto por causas ajenas al jugador: tiempo adicional razonable (Regla 2.8)." },
+  { tipo: "Pausa de hidratación / baño", ref: "" },
+  { tipo: "Interferencia externa (público, ruido, otra pista)", ref: "" },
+  { tipo: "Otro", ref: "" }
+];
+
+// Categorías del Código de Conducta (no incluye demora: tiene su propia
+// escalera independiente, ver TIME_VIOLATION más abajo).
+export const CONDUCT_CATEGORIES = [
+  "Obscenidad audible o visible",
+  "Abuso de pelota",
+  "Abuso de pala o equipo",
+  "Abuso verbal",
+  "Abuso físico / agresión",
+  "Instrucciones no autorizadas al técnico",
+  "Conducta antideportiva",
   "Otro"
 ];
+
+// Escalera real de la FIP para el Código de Conducta (por pareja): 1ra
+// infracción = advertencia; 2da = advertencia + pérdida de punto; 3ra =
+// advertencia + descalificación. "Descalificación directa" es un camino
+// aparte para faltas muy graves (agresión física o verbal muy grave).
+export function consecuenciaConducta(numero) {
+  if (numero === 1) return "Advertencia";
+  if (numero === 2) return "Advertencia + pérdida de punto";
+  return "Advertencia + descalificación";
+}
+
+// Escalera de infracciones de TIEMPO/demora (tabla aparte de la de conducta):
+// 1ra = advertencia; 2da en adelante = pérdida de punto (o del primer saque
+// si estaba al servicio); reiteración grave puede llegar a descalificación.
+export function consecuenciaDemora(numero) {
+  if (numero === 1) return "Advertencia por demora";
+  return "Pérdida de punto por demora";
+}
 
 export function nombreJugador(v, fallback) { return (v || "").trim() || fallback; }
 
@@ -59,6 +98,13 @@ export function tiempoRelativo(ms) {
   if (min < 60) return `hace ${min} min`;
   const horas = Math.round(min / 60);
   return `hace ${horas} h`;
+}
+
+// Regla 2.11 FIP: peloteo de cortesía al reanudar según cuánto duró la suspensión.
+export function peloteoSugeridoSeg(duracionSuspensionSeg) {
+  if (duracionSuspensionSeg <= 5 * 60) return 0;
+  if (duracionSuspensionSeg <= 20 * 60) return 60;
+  return 180;
 }
 
 export function marcadorCortoDesdeDoc(m) {

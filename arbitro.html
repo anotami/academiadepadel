@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=12">
-<link rel="stylesheet" href="assets/css/arbitro.css?v=2">
+<link rel="stylesheet" href="assets/css/arbitro.css?v=3">
 </head>
 <body class="arbitro-body">
 
@@ -28,6 +28,7 @@
     </a>
     <div class="arbitro-header-actions">
       <a href="arbitro-pistas.html" class="test-back-link">Multipista</a>
+      <a href="arbitro-historial.html" class="test-back-link">Historial</a>
       <a href="arbitro-torneo.html" class="test-back-link">Torneo</a>
       <span class="arbitro-install-hint" id="installHint" hidden>Instálala: menú del navegador → "Añadir a pantalla de inicio"</span>
       <button class="btn btn-outline btn-small" id="btnInstall" hidden>Instalar app</button>
@@ -99,9 +100,11 @@
           <div class="field field-full">
             <label>Modalidad de puntuación</label>
             <div class="arbitro-toggle-group" id="g-modalidad">
-              <button type="button" class="arbitro-toggle active" data-value="ventaja">Tradicional (con ventajas)</button>
-              <button type="button" class="arbitro-toggle" data-value="oro">Punto de oro</button>
+              <button type="button" class="arbitro-toggle active" data-value="ventaja">Método 1 — Con ventajas</button>
+              <button type="button" class="arbitro-toggle" data-value="star">Método 2 — Star Point</button>
+              <button type="button" class="arbitro-toggle" data-value="oro">Método 3 — Punto de oro</button>
             </div>
+            <p class="field-hint">Star Point: se juegan dos rondas de ventaja; si hay una tercera igualada (5-5), el siguiente punto decide sin ventaja.</p>
           </div>
 
           <div class="field field-full">
@@ -233,15 +236,20 @@
       </div>
 
       <div class="portal-card">
-        <h3>Código de conducta / incidencias</h3>
-        <div class="arbitro-incident-buttons">
-          <button class="btn btn-outline btn-small arbitro-inc-warning" data-tipo="Warning">⚠ Warning</button>
-          <button class="btn btn-outline btn-small arbitro-inc-point" data-tipo="Point Penalty">➖ Point Penalty</button>
-          <button class="btn btn-outline btn-small arbitro-inc-game" data-tipo="Game Penalty">➖➖ Game Penalty</button>
-          <button class="btn btn-outline btn-small arbitro-inc-desc" data-tipo="Descalificación">⛔ Descalificación</button>
-        </div>
+        <h3>Código de conducta</h3>
+        <p class="field-hint">Escalera real FIP por pareja: 1ra infracción = advertencia · 2da = advertencia + pérdida de punto · 3ra = advertencia + descalificación. Elige la categoría; el sistema calcula sola qué infracción es.</p>
+        <div class="arbitro-incident-buttons" id="conductaBotones"></div>
+        <button class="btn btn-outline btn-small arbitro-inc-desc" id="btnDescalificacionDirecta">⛔ Descalificación directa (falta muy grave)</button>
         <ul class="arbitro-incident-log" id="incidentLog"></ul>
-        <p class="empty-state" id="incidentEmpty">Sin incidencias registradas.</p>
+        <p class="empty-state" id="incidentEmpty">Sin incidencias de conducta registradas.</p>
+      </div>
+
+      <div class="portal-card">
+        <h3>Infracciones de tiempo (demora)</h3>
+        <p class="field-hint">Tabla aparte de la de conducta: 1ra infracción = advertencia · 2da en adelante = pérdida de punto.</p>
+        <div class="arbitro-incident-buttons" id="demoraBotones"></div>
+        <ul class="arbitro-incident-log" id="demoraLog"></ul>
+        <p class="empty-state" id="demoraEmpty">Sin infracciones de tiempo registradas.</p>
       </div>
 
       <div class="portal-card">
@@ -280,6 +288,6 @@
 </section>
 </main>
 
-<script type="module" src="assets/js/arbitro.js?v=2"></script>
+<script type="module" src="assets/js/arbitro.js?v=3"></script>
 </body>
 </html>
