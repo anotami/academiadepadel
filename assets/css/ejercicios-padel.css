@@ -1,0 +1,108 @@
+/* Página general del sitio: banco de ejercicios de clase (ejercicios-padel.html).
+   Reutiliza .faq-tabs/.faq-tab/.faq-view de faq-padel.css para el selector
+   Individual/Grupal (misma mecánica de pestañas, sin duplicar CSS). */
+
+.ejercicios-shell { max-width: 1120px; margin: 0 auto; }
+
+.plan-clase {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px 24px;
+  margin-bottom: 36px;
+}
+.plan-clase h3 { font-size: 1.05rem; margin-bottom: 4px; }
+.plan-clase-bloques { list-style: none; margin: 14px 0 0; padding: 0; }
+.plan-clase-bloque {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
+  font-size: 0.92rem;
+}
+.plan-clase-bloque:last-child { border-bottom: none; }
+.plan-tiempo {
+  flex: none;
+  min-width: 78px;
+  font-weight: 800;
+  font-family: "Sora", sans-serif;
+  font-size: 0.82rem;
+  color: var(--court);
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 4px 10px;
+  text-align: center;
+}
+
+.nivel-bloque { margin-bottom: 44px; }
+.nivel-bloque:last-child { margin-bottom: 0; }
+.nivel-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.nivel-titulo h3 { margin: 0; font-size: 1.3rem; }
+.nivel-sub { margin-bottom: 18px; }
+
+.ejercicios-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.ejercicio-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.ejercicio-diagram-wrap { background: var(--bg); padding: 12px 16px; }
+.ejercicio-diagram { width: 100%; height: auto; display: block; }
+.ejercicio-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
+.ejercicio-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.ejercicio-tema, .ejercicio-duracion {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.ejercicio-tema { background: var(--callout-bg, #f2f6ec); color: var(--court-dark); }
+.ejercicio-duracion { background: var(--bg); color: var(--ink-soft); border: 1px solid var(--border); }
+.ejercicio-card h4 { font-size: 1.05rem; margin-bottom: 6px; }
+.ejercicio-objetivo { font-size: 0.88rem; margin-bottom: 12px; }
+.ejercicio-pasos { list-style: none; margin: 0 0 12px; padding: 0; counter-reset: paso-ej; }
+.ejercicio-pasos li {
+  counter-increment: paso-ej;
+  position: relative;
+  padding: 0 0 8px 26px;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+}
+.ejercicio-pasos li::before {
+  content: counter(paso-ej);
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--court);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ejercicio-fuente { font-size: 0.74rem; color: var(--ink-soft); margin-top: auto; padding-top: 8px; border-top: 1px solid var(--border); }
+
+@media (max-width: 760px) {
+  .ejercicios-grid { grid-template-columns: 1fr; }
+}

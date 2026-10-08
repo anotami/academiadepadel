@@ -14,18 +14,19 @@
   gtag('config', 'G-C2DJ9V0L4Z');
 </script>
 
-<title>Preguntas frecuentes de pádel y arbitraje | academiadepadel.pe</title>
-<meta name="description" content="112 preguntas frecuentes sobre las reglas del pádel y el procedimiento de arbitraje, organizadas por tema, con buscador y una evaluación de 10 preguntas al azar.">
+<title>Ejercicios de clase de pádel: individual y grupal, por nivel | academiadepadel.pe</title>
+<meta name="description" content="Más de 30 ejercicios de pádel explicados paso a paso con diagrama de cancha, organizados por nivel (Iniciación, Intermedio, Consolidación) y por tipo de clase (individual o grupal), basados en nuestro manual de entrenador.">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=16">
 <link rel="stylesheet" href="assets/css/faq-padel.css?v=1">
+<link rel="stylesheet" href="assets/css/ejercicios-padel.css?v=1">
 
 <!-- Open Graph -->
-<meta property="og:title" content="Preguntas frecuentes de pádel y arbitraje">
-<meta property="og:description" content="112 preguntas sobre las reglas del pádel y el arbitraje, organizadas por tema, más una evaluación de 10 preguntas al azar.">
+<meta property="og:title" content="Ejercicios de clase de pádel: individual y grupal, por nivel">
+<meta property="og:description" content="Más de 30 ejercicios de pádel explicados paso a paso, organizados por nivel y por tipo de clase, basados en nuestro manual de entrenador.">
 <meta property="og:type" content="article">
 <meta property="og:locale" content="es_PE">
 </head>
@@ -75,40 +76,20 @@
 
 <main id="main">
 <section class="section portal-section">
-  <div class="container portal-shell">
+  <div class="container ejercicios-shell">
 
     <div class="portal-topbar">
       <div>
-        <h1>❓ Preguntas frecuentes de pádel y arbitraje</h1>
-        <p class="portal-whoami">Basado en las Reglas del Pádel FIP y el Manual de la Clínica de Arbitraje — 112 preguntas organizadas por tema, con la misma estructura del manual: Pregunta, Hechos comprobables, Regla o procedimiento y Decisión y comunicación.</p>
+        <h1>🎯 Ejercicios de clase de pádel</h1>
+        <p class="portal-whoami">Basado en nuestro manual de entrenador: progresiones reales de cada golpe, tablas de corrección de errores y la estructura de clase individual y grupal que usamos en academiadepadel.pe.</p>
+        <p class="field-hint" id="ejerciciosContador"></p>
       </div>
     </div>
 
-    <div class="faq-tabs" id="faqMainTabs" role="tablist">
-      <button type="button" class="faq-tab active" data-vista="faq">📖 Preguntas frecuentes</button>
-      <button type="button" class="faq-tab" data-vista="evaluacion">📝 Evaluación (10 preguntas)</button>
-    </div>
+    <div class="faq-tabs" id="ejerciciosTabs" role="tablist"></div>
+    <div id="ejerciciosVistas"></div>
 
-    <div class="faq-view active" id="vistaFaq">
-      <div class="portal-card">
-        <input type="search" id="faqBuscar" placeholder="Buscar por palabra clave (ej. net, demora, sorteo)...">
-        <div class="faq-chip-row" id="faqCategoriaChips"></div>
-        <p class="field-hint" id="faqContador"></p>
-      </div>
-      <div id="faqLista"></div>
-    </div>
-
-    <div class="faq-view" id="vistaEvaluacion">
-      <div class="portal-card" id="evalIntro">
-        <h2>Evaluación de 10 preguntas</h2>
-        <p class="field-hint">Se eligen 10 preguntas al azar de todo el banco (112). Cada una tiene 4 opciones de respuesta; al enviar, se corrige automáticamente y se muestra la regla aplicable de cada una.</p>
-        <button class="btn btn-primary" id="btnEmpezarEval">Empezar evaluación</button>
-      </div>
-      <form id="evalForm" hidden></form>
-      <div id="evalResultado" hidden></div>
-    </div>
-
-    <p class="test-prompt">¿Eres árbitro y buscas la app de marcador en vivo? <a href="arbitro.html">Ir al árbitro de pádel →</a></p>
+    <p class="test-prompt">¿No sabes qué nivel tienes? <a href="test.html">Haz el test de 30 segundos →</a></p>
 
   </div>
 </section>
@@ -126,6 +107,6 @@
 </footer>
 
 <script src="assets/js/main.js?v=12"></script>
-<script type="module" src="assets/js/faq-padel.js?v=1"></script>
+<script type="module" src="assets/js/ejercicios-padel.js?v=1"></script>
 </body>
 </html>
