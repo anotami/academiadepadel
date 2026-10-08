@@ -62,8 +62,8 @@ export const EJERCICIOS = [
       "Corrección si hace falta: marcar el grip con una lapicera para que el alumno sienta la posición correcta."
     ],
     fuente: "Manual de entrenador, p.4-5 (Empuñadura) y p.23 (Corrección de errores: Drive)",
-    diagrama: { tipo: "estatico", labelA: "A" }
-  },
+    diagrama: { tipo: "estatico", labelA: "A" },
+    foto: { src: "assets/img/court/grip-detail.jpg", alt: "Primer plano de la empuñadura de una pala de pádel" } },
   {
     id: 2, modalidad: "individual", nivel: "iniciacion", tema: "Drive",
     titulo: "Derecha: frenar y empujar",
@@ -75,8 +75,8 @@ export const EJERCICIOS = [
       "Una vez puede frenarla con comodidad, se le pide que la impacte y la empuje bien hacia adelante."
     ],
     fuente: "Manual de entrenador, p.10 (Drive, progresión, pasos 1-2)",
-    diagrama: { tipo: "feed", lado: "derecha" }
-  },
+    diagrama: { tipo: "feed", lado: "derecha" },
+    foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando de derecha con extensión completa" } },
   {
     id: 3, modalidad: "individual", nivel: "iniciacion", tema: "Revés",
     titulo: "Revés: frenar y empujar",
@@ -88,8 +88,8 @@ export const EJERCICIOS = [
       "Cuando la frena con comodidad, se le pide que impacte y empuje hacia adelante."
     ],
     fuente: "Manual de entrenador, p.12 (Revés, progresión, pasos 1-2)",
-    diagrama: { tipo: "feed", lado: "izquierda" }
-  },
+    diagrama: { tipo: "feed", lado: "izquierda" },
+    foto: { src: "assets/img/gabriel/gabriel-1.jpg", alt: "Jugador de la academia desplazándose para llegar a una bola baja" } },
   {
     id: 4, modalidad: "individual", nivel: "iniciacion", tema: "Globo",
     titulo: "Globo con la mano",
@@ -100,8 +100,8 @@ export const EJERCICIOS = [
       "Repite el lanzamiento comenzando de costado y acompañándose con las piernas."
     ],
     fuente: "Manual de entrenador, p.13 (Globo, progresión, pasos 1-2)",
-    diagrama: { tipo: "feed", lado: "centro" }
-  },
+    diagrama: { tipo: "feed", lado: "centro" },
+    foto: { src: "assets/img/gabriel/gabriel-3.jpg", alt: "Jugador de la academia en posición de espera con la pala" } },
   {
     id: 5, modalidad: "individual", nivel: "iniciacion", tema: "Saque",
     titulo: "Saque: fijar el punto de impacto",
@@ -112,8 +112,8 @@ export const EJERCICIOS = [
       "Suelta la pelota con la mano libre y practica encontrar el punto de impacto antes de golpear con intención."
     ],
     fuente: "Manual de entrenador, p.19-20 (El saque, armado)",
-    diagrama: { tipo: "saque" }
-  },
+    diagrama: { tipo: "saque" },
+    foto: { src: "assets/img/court/paddles-court.jpg", alt: "Palas de pádel y pelotas sobre la cancha" } },
   {
     id: 6, modalidad: "individual", nivel: "iniciacion", tema: "Desplazamientos",
     titulo: "Circuito de desplazamiento básico",
@@ -125,8 +125,8 @@ export const EJERCICIOS = [
       "Se repite el circuito 3 veces para automatizar la secuencia completa."
     ],
     fuente: "Manual de entrenador, p.8 (¿Cómo grabar la técnica de los desplazamientos?)",
-    diagrama: { tipo: "circuito" }
-  },
+    diagrama: { tipo: "circuito" },
+    foto: { src: "assets/img/gabriel/gabriel-1.jpg", alt: "Jugador de la academia desplazándose para llegar a una bola baja" } },
 
   // ============ INDIVIDUAL · INTERMEDIO ============
   {
@@ -139,8 +139,8 @@ export const EJERCICIOS = [
       "Se aumenta progresivamente la distancia del desplazamiento."
     ],
     fuente: "Manual de entrenador, p.10 (Drive, progresión, paso 4)",
-    diagrama: { tipo: "feedMove", lado: "derecha" }
-  },
+    diagrama: { tipo: "feedMove", lado: "derecha" },
+    foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando de derecha con extensión completa" } },
   {
     id: 8, modalidad: "individual", nivel: "intermedio", tema: "Revés",
     titulo: "Revés con desplazamiento lateral",
@@ -151,8 +151,8 @@ export const EJERCICIOS = [
       "Se aumenta progresivamente la distancia del desplazamiento."
     ],
     fuente: "Manual de entrenador, p.12 (Revés, progresión, paso 4)",
-    diagrama: { tipo: "feedMove", lado: "izquierda" }
-  },
+    diagrama: { tipo: "feedMove", lado: "izquierda" },
+    foto: { src: "assets/img/gabriel/gabriel-1.jpg", alt: "Jugador de la academia desplazándose para llegar a una bola baja" } },
   {
     id: 9, modalidad: "individual", nivel: "intermedio", tema: "Salida de pared",
     titulo: "Salida de pared controlada",
@@ -164,8 +164,8 @@ export const EJERCICIOS = [
       "Repite el ejercicio pero golpeando a un solo pique."
     ],
     fuente: "Manual de entrenador, p.16 (Salida de pared, progresión)",
-    diagrama: { tipo: "pared" }
-  },
+    diagrama: { tipo: "pared" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
   {
     id: 10, modalidad: "individual", nivel: "intermedio", tema: "Bandeja",
     titulo: "Bandeja: frena y empuja",
@@ -177,8 +177,8 @@ export const EJERCICIOS = [
       "Ante el mismo globo, el alumno \"frena y empuja\" la pelota hacia adelante."
     ],
     fuente: "Manual de entrenador, p.18 (Bandeja, progresión, pasos 1-3)",
-    diagrama: { tipo: "red" }
-  },
+    diagrama: { tipo: "red" },
+    foto: { src: "assets/img/court/net-ball.jpg", alt: "Pelota de pádel golpeando la red en plena jugada" } },
   {
     id: 11, modalidad: "individual", nivel: "intermedio", tema: "Volea",
     titulo: "10 canastos de volea con buen apoyo",
@@ -189,8 +189,8 @@ export const EJERCICIOS = [
       "Se marca con un cono la \"V\" de apoyo que debe respetar el alumno al volear."
     ],
     fuente: "Manual de entrenador, p.13-14 (Volea de drive/revés) y p.24 (Corrección de errores: Volea)",
-    diagrama: { tipo: "red" }
-  },
+    diagrama: { tipo: "red" },
+    foto: { src: "assets/img/court/net-ball.jpg", alt: "Pelota de pádel golpeando la red en plena jugada" } },
   {
     id: 12, modalidad: "individual", nivel: "intermedio", tema: "Juego",
     titulo: "Situación de juego: punto al golpe trabajado",
@@ -201,8 +201,8 @@ export const EJERCICIOS = [
       "El profesor da feedback inmediato después de cada punto."
     ],
     fuente: "Manual de entrenador, p.28 (clase individual, bloque \"situación de juego\")",
-    diagrama: { tipo: "sparring" }
-  },
+    diagrama: { tipo: "sparring" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
 
   // ============ INDIVIDUAL · CONSOLIDACIÓN ============
   {
@@ -216,8 +216,8 @@ export const EJERCICIOS = [
       "El alumno lee la señal, se desplaza e impacta con el movimiento completo."
     ],
     fuente: "Manual de entrenador, p.10 y p.12 (Drive y Revés, último paso de la progresión)",
-    diagrama: { tipo: "feedMove", lado: "derecha" }
-  },
+    diagrama: { tipo: "feedMove", lado: "derecha" },
+    foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando de derecha con extensión completa" } },
   {
     id: 14, modalidad: "individual", nivel: "consolidacion", tema: "Smash",
     titulo: "Smash en 3 pasos de potencia",
@@ -229,8 +229,8 @@ export const EJERCICIOS = [
       "De perfil, hacer \"arco y flecha\" con la pala y golpear."
     ],
     fuente: "Manual de entrenador, p.22 (Smash x3, progresión, adaptado al smash de definición)",
-    diagrama: { tipo: "smash" }
-  },
+    diagrama: { tipo: "smash" },
+    foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando de derecha con extensión completa" } },
   {
     id: 15, modalidad: "individual", nivel: "consolidacion", tema: "Víbora",
     titulo: "Introducción a la víbora",
@@ -241,8 +241,8 @@ export const EJERCICIOS = [
       "A medida que domina el gesto, el profesor se aleja y se la juega de frente con la mano."
     ],
     fuente: "Manual de entrenador, p.22-23 (La víbora, progresión)",
-    diagrama: { tipo: "pared" }
-  },
+    diagrama: { tipo: "pared" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
   {
     id: 16, modalidad: "individual", nivel: "consolidacion", tema: "Defensa",
     titulo: "Control hacia el otro campo",
@@ -252,8 +252,8 @@ export const EJERCICIOS = [
       "Sobre los ejercicios de defensa ya conocidos, se le pide al alumno buscar control de bola hacia el lado contrario de la cancha en cada repetición."
     ],
     fuente: "Manual de entrenador, p.30 (Ejercicios de enseñanza de defensa, paso 8)",
-    diagrama: { tipo: "sparring" }
-  },
+    diagrama: { tipo: "sparring" },
+    foto: { src: "assets/img/gabriel/gabriel-1.jpg", alt: "Jugador de la academia desplazándose para llegar a una bola baja" } },
   {
     id: 17, modalidad: "individual", nivel: "consolidacion", tema: "Juego",
     titulo: "Sparring de puntos dirigidos",
@@ -264,8 +264,8 @@ export const EJERCICIOS = [
       "Se pide que el alumno resuelva siempre con el mismo patrón (por ejemplo, subir a la red después de la salida de pared)."
     ],
     fuente: "Manual de entrenador, p.28 (clase individual avanzada — sparrings)",
-    diagrama: { tipo: "sparring" }
-  },
+    diagrama: { tipo: "sparring" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
   {
     id: 18, modalidad: "individual", nivel: "consolidacion", tema: "Corrección",
     titulo: "Pulido fino con tabla de errores",
@@ -276,8 +276,8 @@ export const EJERCICIOS = [
       "Se repite el gesto corregido hasta automatizarlo."
     ],
     fuente: "Manual de entrenador, p.23-26 (Corrección de errores por golpe)",
-    diagrama: { tipo: "feed", lado: "derecha" }
-  },
+    diagrama: { tipo: "feed", lado: "derecha" },
+    foto: { src: "assets/img/court/grip-detail.jpg", alt: "Primer plano de la empuñadura de una pala de pádel" } },
 
   // ============ GRUPAL · INICIACIÓN ============
   {
@@ -291,8 +291,8 @@ export const EJERCICIOS = [
       "El alumno pasa al final de la fila y sigue el siguiente."
     ],
     fuente: "Manual de entrenador, p.10 (Drive, progresión) adaptado a formato grupal",
-    diagrama: { tipo: "fila" }
-  },
+    diagrama: { tipo: "fila" },
+    foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando de derecha con extensión completa" } },
   {
     id: 20, modalidad: "grupal", nivel: "iniciacion", tema: "Revés",
     titulo: "Rotación de revés en fila",
@@ -304,8 +304,8 @@ export const EJERCICIOS = [
       "El alumno pasa al final de la fila y sigue el siguiente."
     ],
     fuente: "Manual de entrenador, p.12 (Revés, progresión) adaptado a formato grupal",
-    diagrama: { tipo: "fila" }
-  },
+    diagrama: { tipo: "fila" },
+    foto: { src: "assets/img/gabriel/gabriel-1.jpg", alt: "Jugador de la academia desplazándose para llegar a una bola baja" } },
   {
     id: 21, modalidad: "grupal", nivel: "iniciacion", tema: "Desplazamientos",
     titulo: "Circuito de desplazamiento por parejas",
@@ -317,8 +317,8 @@ export const EJERCICIOS = [
       "Rotan cada 2 minutos."
     ],
     fuente: "Manual de entrenador, p.8 (circuito de desplazamiento), adaptado a grupo de 4",
-    diagrama: { tipo: "circuitoDoble" }
-  },
+    diagrama: { tipo: "circuitoDoble" },
+    foto: { src: "assets/img/court/paddles-court.jpg", alt: "Palas de pádel y pelotas sobre la cancha" } },
   {
     id: 22, modalidad: "grupal", nivel: "iniciacion", tema: "Globo",
     titulo: "Globo en parejas",
@@ -329,8 +329,8 @@ export const EJERCICIOS = [
       "Cambian de rol cada 5 lanzamientos."
     ],
     fuente: "Manual de entrenador, p.13 (Globo, progresión, paso 1), adaptado a parejas",
-    diagrama: { tipo: "parejaRed" }
-  },
+    diagrama: { tipo: "parejaRed" },
+    foto: { src: "assets/img/gabriel/gabriel-3.jpg", alt: "Jugador de la academia en posición de espera con la pala" } },
   {
     id: 23, modalidad: "grupal", nivel: "iniciacion", tema: "Posiciones",
     titulo: "Defensa vs. ataque: siente la posición",
@@ -341,8 +341,8 @@ export const EJERCICIOS = [
       "Rotan de zona cada 2 minutos, sintiendo el cambio de peso del cuerpo y de altura de pala."
     ],
     fuente: "Manual de entrenador, p.5 (Posiciones de juego: Defensa/Ataque)",
-    diagrama: { tipo: "defensaAtaque" }
-  },
+    diagrama: { tipo: "defensaAtaque" },
+    foto: { src: "assets/img/gabriel/gabriel-3.jpg", alt: "Jugador de la academia en posición de espera con la pala" } },
   {
     id: 24, modalidad: "grupal", nivel: "iniciacion", tema: "Juego",
     titulo: "Juego libre 2 vs 2 controlado",
@@ -353,8 +353,8 @@ export const EJERCICIOS = [
       "El profesor detiene el punto para corregir solo lo más urgente de cada alumno."
     ],
     fuente: "Manual de entrenador, p.29 (estructura de clase grupal, bloque de peloteo)",
-    diagrama: { tipo: "grupo2v2" }
-  },
+    diagrama: { tipo: "grupo2v2" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
 
   // ============ GRUPAL · INTERMEDIO ============
   {
@@ -367,8 +367,8 @@ export const EJERCICIOS = [
       "Se suman ejercicios de activación de baja intensidad (sentadillas, planchas)."
     ],
     fuente: "Manual de entrenador, p.27-28 (Entrada en calor: Movilidad y Activación)",
-    diagrama: { tipo: "estatico", labelA: "4" }
-  },
+    diagrama: { tipo: "estatico", labelA: "4" },
+    foto: { src: "assets/img/gabriel/gabriel-2.jpg", alt: "Jugador de la academia con la pala, antes de empezar la clase" } },
   {
     id: 26, modalidad: "grupal", nivel: "intermedio", tema: "Volea / Bandeja",
     titulo: "Circuito de volea y bandeja en parejas",
@@ -379,8 +379,8 @@ export const EJERCICIOS = [
       "Se exige recuperar la posición de espera entre cada bola."
     ],
     fuente: "Manual de entrenador, p.29 (clase grupal, bloque \"físico técnico con golpe\")",
-    diagrama: { tipo: "redDoble" }
-  },
+    diagrama: { tipo: "redDoble" },
+    foto: { src: "assets/img/court/net-ball.jpg", alt: "Pelota de pádel golpeando la red en plena jugada" } },
   {
     id: 27, modalidad: "grupal", nivel: "intermedio", tema: "Competencia",
     titulo: "Peloteo intenso todo por abajo",
@@ -391,8 +391,8 @@ export const EJERCICIOS = [
       "Quien remata o juega alto pierde el punto."
     ],
     fuente: "Manual de entrenador, p.29 (\"peloteo intenso todo por abajo\")",
-    diagrama: { tipo: "grupo2v2" }
-  },
+    diagrama: { tipo: "grupo2v2" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
   {
     id: 28, modalidad: "grupal", nivel: "intermedio", tema: "Táctica",
     titulo: "Defensa con dos globos máximo",
@@ -403,8 +403,8 @@ export const EJERCICIOS = [
       "A partir del tercer globo \"obligado\", pierde el punto."
     ],
     fuente: "Manual de entrenador, p.29 (ejercicio de competencia con tácticas sin definición)",
-    diagrama: { tipo: "grupo2v2" }
-  },
+    diagrama: { tipo: "grupo2v2" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
   {
     id: 29, modalidad: "grupal", nivel: "intermedio", tema: "Táctica",
     titulo: "Contraataque de un solo pique",
@@ -415,8 +415,8 @@ export const EJERCICIOS = [
       "Esto obliga a adelantar el punto de impacto y jugar más de volea o bandeja."
     ],
     fuente: "Manual de entrenador, p.29 (variante — \"la bola solo puede picar una vez\")",
-    diagrama: { tipo: "grupo2v2" }
-  },
+    diagrama: { tipo: "grupo2v2" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
   {
     id: 30, modalidad: "grupal", nivel: "intermedio", tema: "Táctica",
     titulo: "Chiquita y avance en grupo",
@@ -426,8 +426,8 @@ export const EJERCICIOS = [
       "Las parejas juegan puntos donde se premia cada chiquita bien ejecutada que genere un error del rival."
     ],
     fuente: "Manual de entrenador, p.52 (mención de la jugada de chiquita y avance)",
-    diagrama: { tipo: "redDoble" }
-  },
+    diagrama: { tipo: "redDoble" },
+    foto: { src: "assets/img/court/net-ball.jpg", alt: "Pelota de pádel golpeando la red en plena jugada" } },
 
   // ============ GRUPAL · CONSOLIDACIÓN ============
   {
@@ -439,8 +439,8 @@ export const EJERCICIOS = [
       "Durante el peloteo de control de bola, solo cuentan los golpes dirigidos al centro de la pareja contraria."
     ],
     fuente: "Manual de entrenador, p.29 (clase en pareja — \"teoría del centro\"), adaptado a 4 jugadores",
-    diagrama: { tipo: "grupo2v2centro" }
-  },
+    diagrama: { tipo: "grupo2v2centro" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
   {
     id: 32, modalidad: "grupal", nivel: "consolidacion", tema: "Táctica",
     titulo: "Avance en cuña por parejas",
@@ -450,8 +450,8 @@ export const EJERCICIOS = [
       "Cada pareja practica el avance en cuña: un jugador ligeramente adelantado marca el ritmo de subida del otro, mientras la pareja rival defiende."
     ],
     fuente: "Manual de entrenador, p.29 (trabajo táctico — \"avance en cuña\")",
-    diagrama: { tipo: "cuna" }
-  },
+    diagrama: { tipo: "cuna" },
+    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la cancha" } },
   {
     id: 33, modalidad: "grupal", nivel: "consolidacion", tema: "Competencia",
     titulo: "Presión de 4 puntos consecutivos",
@@ -462,8 +462,8 @@ export const EJERCICIOS = [
       "Ese resultado marca el final del ejercicio."
     ],
     fuente: "Manual de entrenador, p.29 (ejercicios de competición — \"presión con cuatro puntos consecutivos\")",
-    diagrama: { tipo: "grupo2v2" }
-  },
+    diagrama: { tipo: "grupo2v2" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" } },
   {
     id: 34, modalidad: "grupal", nivel: "consolidacion", tema: "Táctica",
     titulo: "Método de los 16 segundos",
@@ -473,8 +473,8 @@ export const EJERCICIOS = [
       "Entre punto y punto, cada pareja tiene 16 segundos para definir en voz baja qué van a intentar en el próximo punto."
     ],
     fuente: "Manual de entrenador, p.29 (mención del \"método de los 16 segundos\")",
-    diagrama: { tipo: "grupo2v2" }
-  },
+    diagrama: { tipo: "grupo2v2" },
+    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la cancha" } },
   {
     id: 35, modalidad: "grupal", nivel: "consolidacion", tema: "Táctica",
     titulo: "Semáforo táctico",
@@ -485,8 +485,8 @@ export const EJERCICIOS = [
       "Las parejas deben ajustar su decisión en tiempo real."
     ],
     fuente: "Manual de entrenador, p.29 (mención del \"semáforo\")",
-    diagrama: { tipo: "grupo2v2" }
-  },
+    diagrama: { tipo: "grupo2v2" },
+    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la cancha" } },
   {
     id: 36, modalidad: "grupal", nivel: "consolidacion", tema: "Táctica",
     titulo: "FODA de la pareja: scouting cruzado",
@@ -497,6 +497,7 @@ export const EJERCICIOS = [
       "Juegan el set intentando explotar esa información."
     ],
     fuente: "Manual de entrenador, p.29 (mención de la \"matriz FODA de la pareja\")",
-    diagrama: { tipo: "grupo2v2" }
+    diagrama: { tipo: "grupo2v2" },
+    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la cancha" }
   }
 ];

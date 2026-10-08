@@ -154,7 +154,10 @@ function renderPlan(modalidadId) {
 function renderEjercicioCard(item) {
   const pasos = item.pasos.map((p) => `<li>${p}</li>`).join("");
   return `<article class="ejercicio-card">
-    <div class="ejercicio-diagram-wrap">${renderDiagrama(item.diagrama)}</div>
+    <div class="ejercicio-media">
+      <img class="ejercicio-foto" src="${item.foto.src}" alt="${item.foto.alt}" loading="lazy" width="300" height="225">
+      <div class="ejercicio-diagram-wrap">${renderDiagrama(item.diagrama)}</div>
+    </div>
     <div class="ejercicio-body">
       <div class="ejercicio-meta">
         <span class="ejercicio-tema">${item.tema}</span>
