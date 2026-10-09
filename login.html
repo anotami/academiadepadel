@@ -31,11 +31,11 @@
     <div class="container portal-narrow">
       <p class="eyebrow eyebrow-center">Portal de reservas</p>
       <h1 class="test-title">Alumnos y profesores</h1>
-      <p class="section-sub">Ingresa a tu cuenta o crea una como alumno para reservar tus clases.</p>
+      <p class="section-sub">Ingresa a tu cuenta o crea una nueva, como alumno o como profesor.</p>
 
       <div class="auth-tabs" role="tablist">
         <button class="auth-tab active" data-tab="login" type="button">Iniciar sesión</button>
-        <button class="auth-tab" data-tab="signup" type="button">Crear cuenta de alumno</button>
+        <button class="auth-tab" data-tab="signup" type="button">Crear cuenta</button>
       </div>
 
       <!-- Login -->
@@ -54,9 +54,14 @@
         </form>
       </div>
 
-      <!-- Signup (solo alumnos) -->
+      <!-- Signup -->
       <div class="auth-panel" id="panel-signup">
         <form class="portal-card" id="form-signup">
+          <div class="role-select" id="su-role-select">
+            <button type="button" class="role-pill active" data-role="alumno">Soy alumno</button>
+            <button type="button" class="role-pill" data-role="profesor">Soy profesor</button>
+          </div>
+
           <div class="form-grid">
             <div class="field field-full">
               <label for="su-nombre">Nombre completo</label>
@@ -70,11 +75,11 @@
               <label for="su-telefono">Teléfono / WhatsApp</label>
               <input type="tel" id="su-telefono" required>
             </div>
-            <div class="field">
+            <div class="field" id="su-campo-edad">
               <label for="su-edad">Edad</label>
               <input type="number" id="su-edad" min="5" max="99" required>
             </div>
-            <div class="field">
+            <div class="field" id="su-campo-nivel">
               <label for="su-nivel">Nivel</label>
               <select id="su-nivel">
                 <option>Inicial</option>
@@ -82,7 +87,7 @@
                 <option>Intermedio</option>
               </select>
             </div>
-            <div class="field">
+            <div class="field" id="su-campo-referido">
               <label for="su-referido">¿Alguien te invitó? (opcional)</label>
               <input type="text" id="su-referido" placeholder="Nombre de quien te recomendó la academia">
             </div>
@@ -112,9 +117,13 @@
             </label>
           </div>
 
-          <h3 style="margin-top:22px;">Tu disponibilidad habitual</h3>
-          <p class="field-hint">Marca los bloques en los que normalmente podrías tomar clase (puedes ajustarlo luego).</p>
-          <div class="availability-grid" id="su-disponibilidad"></div>
+          <div id="su-disponibilidad-wrap">
+            <h3 style="margin-top:22px;">Tu disponibilidad habitual</h3>
+            <p class="field-hint">Marca los bloques en los que normalmente podrías tomar clase (puedes ajustarlo luego).</p>
+            <div class="availability-grid" id="su-disponibilidad"></div>
+          </div>
+
+          <p class="field-hint" id="su-profesor-hint" hidden style="margin-top:22px;">Después de crear tu cuenta, completa tu especialidad, costo por hora, bio y disponibilidad en "Mis datos" dentro de tu panel.</p>
 
           <button class="btn btn-primary" type="submit" style="margin-top:20px; width:100%; justify-content:center;">Crear mi cuenta</button>
           <p class="form-msg" id="signup-msg"></p>
@@ -136,6 +145,6 @@
 </footer>
 
 <script src="assets/js/main.js?v=12"></script>
-<script type="module" src="assets/js/login-page.js?v=13"></script>
+<script type="module" src="assets/js/login-page.js?v=14"></script>
 </body>
 </html>

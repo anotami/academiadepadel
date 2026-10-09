@@ -40,6 +40,30 @@ edadInput.addEventListener("input", () => {
   apoderadoWrap.hidden = !esMenor;
 });
 
+// --- Rol en el signup: alumno (todos los campos) o profesor (datos mínimos;
+// el resto —especialidad, costo/hora, bio, disponibilidad— se completa luego
+// en "Mis datos" dentro de profesor.html) ---
+let rolSignup = "alumno";
+const roleButtons = document.querySelectorAll("#su-role-select .role-pill");
+const camposSoloAlumno = [
+  document.getElementById("su-campo-edad"),
+  document.getElementById("su-campo-nivel"),
+  document.getElementById("su-campo-referido"),
+  document.getElementById("su-disponibilidad-wrap")
+];
+const profesorHint = document.getElementById("su-profesor-hint");
+roleButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    rolSignup = btn.dataset.role;
+    roleButtons.forEach((b) => b.classList.toggle("active", b === btn));
+    const esAlumno = rolSignup === "alumno";
+    camposSoloAlumno.forEach((campo) => { campo.hidden = !esAlumno; });
+    edadInput.required = esAlumno;
+    profesorHint.hidden = esAlumno;
+    if (!esAlumno) apoderadoWrap.hidden = true;
+  });
+});
+
 const formLogin = document.getElementById("form-login");
 const loginMsg = document.getElementById("login-msg");
 const formSignup = document.getElementById("form-signup");
@@ -93,7 +117,7 @@ formLogin.addEventListener("submit", async (e) => {
   }
 });
 
-// --- Signup (alumno) ---
+// --- Signup (alumno o profesor) ---
 formSignup.addEventListener("submit", async (e) => {
   e.preventDefault();
   signupMsg.textContent = "";
@@ -108,36 +132,33 @@ formSignup.addEventListener("submit", async (e) => {
   const nombre = document.getElementById("su-nombre").value.trim();
   const email = document.getElementById("su-email").value.trim();
   const telefono = document.getElementById("su-telefono").value.trim();
-  const edad = Number(document.getElementById("su-edad").value);
-  const nivel = document.getElementById("su-nivel").value;
-  const referidoPor = document.getElementById("su-referido").value.trim();
   const password = document.getElementById("su-password").value;
 
-  if (edad < 18) {
-    const nombreApoderado = document.getElementById("su-apoderado-nombre").value.trim();
-    const telefonoApoderado = document.getElementById("su-apoderado-telefono").value.trim();
-    const autoriza = document.getElementById("su-apoderado-autoriza").checked;
-    if (!nombreApoderado || !telefonoApoderado || !autoriza) {
-      signupMsg.textContent = "Al ser menor de edad, completa los datos del apoderado y marca la autorización.";
-      signupMsg.className = "form-msg error";
-      return;
+  let datosRol = {};
+  if (rolSignup === "alumno") {
+    const edad = Number(document.getElementById("su-edad").value);
+    const nivel = document.getElementById("su-nivel").value;
+    const referidoPor = document.getElementById("su-referido").value.trim();
+
+    if (edad < 18) {
+      const nombreApoderado = document.getElementById("su-apoderado-nombre").value.trim();
+      const telefonoApoderado = document.getElementById("su-apoderado-telefono").value.trim();
+      const autoriza = document.getElementById("su-apoderado-autoriza").checked;
+      if (!nombreApoderado || !telefonoApoderado || !autoriza) {
+        signupMsg.textContent = "Al ser menor de edad, completa los datos del apoderado y marca la autorización.";
+        signupMsg.className = "form-msg error";
+        return;
+      }
     }
-  }
 
-  const disponibilidad = Array.from(
-    disponibilidadWrap.querySelectorAll("input:checked")
-  ).map((input) => {
-    const [dia, franja] = input.value.split("|");
-    return { dia, franja };
-  });
+    const disponibilidad = Array.from(
+      disponibilidadWrap.querySelectorAll("input:checked")
+    ).map((input) => {
+      const [dia, franja] = input.value.split("|");
+      return { dia, franja };
+    });
 
-  try {
-    const cred = await fb.createUserWithEmailAndPassword(fb.auth, email, password);
-    await fb.setDoc(fb.doc(fb.db, "usuarios", cred.user.uid), {
-      rol: "alumno",
-      nombre,
-      email,
-      telefono,
+    datosRol = {
       edad,
       nivel,
       referidoPor,
@@ -150,12 +171,23 @@ formSignup.addEventListener("submit", async (e) => {
             }
           }
         : {}),
-      disponibilidad,
+      disponibilidad
+    };
+  }
+
+  try {
+    const cred = await fb.createUserWithEmailAndPassword(fb.auth, email, password);
+    await fb.setDoc(fb.doc(fb.db, "usuarios", cred.user.uid), {
+      rol: rolSignup,
+      nombre,
+      email,
+      telefono,
+      ...datosRol,
       creadoEn: fb.serverTimestamp()
     });
     signupMsg.textContent = "¡Cuenta creada! Entrando...";
     signupMsg.className = "form-msg ok";
-    window.location.href = "alumno.html";
+    window.location.href = rolSignup === "profesor" ? "profesor.html" : "alumno.html";
   } catch (err) {
     signupMsg.textContent = err.code === "auth/email-already-in-use"
       ? "Ese correo ya tiene una cuenta. Prueba iniciar sesión."
