@@ -159,7 +159,6 @@ function renderPlan(modalidadId) {
   return `<div class="plan-clase">
     <h3>${plan.titulo}</h3>
     <ol class="plan-clase-bloques">${bloques}</ol>
-    <p class="ejercicio-fuente">Fuente: ${plan.fuente}</p>
   </div>`;
 }
 
@@ -178,7 +177,6 @@ function renderEjercicioCard(item) {
       <h4>${item.titulo}</h4>
       <p class="ejercicio-objetivo">${item.objetivo}</p>
       <ol class="ejercicio-pasos">${pasos}</ol>
-      <p class="ejercicio-fuente">Fuente: ${item.fuente}</p>
     </div>
   </article>`;
 }
@@ -234,7 +232,6 @@ function renderConsejos() {
     <div class="consejo-card">
       <h4>${c.titulo}</h4>
       <p>${c.texto}</p>
-      <p class="ejercicio-fuente">Fuente: ${c.fuente}</p>
     </div>`).join("");
 }
 
