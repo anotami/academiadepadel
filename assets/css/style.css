@@ -18,6 +18,13 @@
 }
 
 * { box-sizing: border-box; }
+/* El atributo hidden tiene la misma especificidad que cualquier regla de
+   clase que fije display (ej. .field { display:flex }), y como esas reglas
+   de autor se cargan después que la hoja de estilos por defecto del
+   navegador, le ganan — el elemento queda "hidden" pero visible igual.
+   Pasó en #r-profesor-wrap (siempre mostraba el campo Profesor vacío,
+   sin importar la lógica en JS que decide si corresponde mostrarlo). */
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;

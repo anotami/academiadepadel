@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=17">
+<link rel="stylesheet" href="assets/css/style.css?v=18">
 </head>
 <body>
 
@@ -116,8 +116,12 @@
 
       <!-- Mi perfil -->
       <div class="portal-card">
-        <h2>Mis datos</h2>
+        <div class="portal-topbar" style="margin-bottom:0;">
+          <h2>Mis datos</h2>
+          <button class="btn btn-outline" type="submit" form="form-perfil">Guardar cambios</button>
+        </div>
         <form id="form-perfil">
+          <p class="form-msg" id="perfil-msg"></p>
           <div class="form-grid">
             <div class="field">
               <label for="p-telefono">Teléfono / WhatsApp</label>
@@ -138,8 +142,6 @@
           </div>
           <h3 style="margin-top:20px;">Mi disponibilidad habitual</h3>
           <div class="availability-grid" id="p-disponibilidad"></div>
-          <button class="btn btn-outline" type="submit" style="margin-top:16px;">Guardar cambios</button>
-          <p class="form-msg" id="perfil-msg"></p>
         </form>
       </div>
     </div>
