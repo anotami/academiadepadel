@@ -2,7 +2,7 @@
 // bloques por nivel y las tarjetas de ejercicio, con un diagrama de cancha
 // en SVG generado a partir de una plantilla liviana (sin coordenadas a mano
 // por ejercicio). 100% local, basado en ejercicios-padel-data.js.
-import { MODALIDADES, NIVELES, PLANES, EJERCICIOS } from "./ejercicios-padel-data.js?v=1";
+import { MODALIDADES, NIVELES, PLANES, EJERCICIOS, CONSEJOS } from "./ejercicios-padel-data.js?v=1";
 
 function $(id) { return document.getElementById(id); }
 
@@ -122,6 +122,18 @@ const PLANTILLAS = {
     return marcador(260, 45, "B1", "alumno") + marcador(260, 105, "B2", "alumno") +
       flechaMov(40, 55, 100, 60) + flechaMov(40, 95, 100, 90) +
       marcador(100, 60, "A1", "alumno") + marcador(100, 90, "A2", "alumno");
+  },
+  pico() {
+    return flechaPelota(90, 75, 20, 125) + marcador(90, 75, "A", "alumno") + etiqueta(30, 132, "pico");
+  },
+  lateral() {
+    return flechaPelota(90, 75, 55, 20) + marcador(90, 75, "A", "alumno") + etiqueta(55, 12, "pared lateral");
+  },
+  pantano() {
+    return `<rect x="55" y="55" width="40" height="40" style="fill:rgba(192,57,43,0.18);stroke:#c0392b;stroke-width:1.5;stroke-dasharray:3 2"/>` +
+      etiqueta(75, 50, "zona pantano") +
+      marcador(120, 45, "A1", "alumno") + marcador(120, 105, "A2", "alumno") +
+      marcador(30, 45, "A3", "alumno") + marcador(30, 105, "A4", "alumno");
   }
 };
 
@@ -212,7 +224,19 @@ function construirTabs() {
   });
 
   const total = EJERCICIOS.length;
-  $("ejerciciosContador").textContent = `${total} ejercicios en total, basados en el manual de entrenador de la academia.`;
+  $("ejerciciosContador").textContent = `${total} ejercicios en total, basados en nuestro manual de entrenador y en guías de metodología de PadelStar.`;
+}
+
+function renderConsejos() {
+  const wrap = $("consejosLista");
+  if (!wrap) return;
+  wrap.innerHTML = CONSEJOS.map((c) => `
+    <div class="consejo-card">
+      <h4>${c.titulo}</h4>
+      <p>${c.texto}</p>
+      <p class="ejercicio-fuente">Fuente: ${c.fuente}</p>
+    </div>`).join("");
 }
 
 construirTabs();
+renderConsejos();

@@ -1,10 +1,20 @@
 // Banco de ejercicios de clase, basado en el manual de entrenador de
 // academiadepadel.pe (progresiones de golpes, tablas de corrección de
-// errores y estructura de clases individuales/grupales).
+// errores y estructura de clases individuales/grupales) y en 5 guías
+// descargables de PadelStar aportadas por la academia como fuente adicional:
+//   - Guía 2: Tipos de empuñaduras y posicionamiento táctico en defensa y ataque
+//   - Guía 3: Saque, resto y golpes fundamentales (técnicas y tácticas)
+//   - Guía 4: El remate de pádel
+//   - Guía 5: Consejos para monitores y entrenadores
+//   - Guía 6: Consejos para clases con niños
+// El contenido de esas guías se usa como referencia técnica, reescrito en
+// nuestras propias palabras (no copiado), para dar más precisión a los
+// ejercicios y para la sección de Consejos de metodología. Las fotos siguen
+// siendo únicamente las propias de la academia.
 //
 // Cada ejercicio indica: modalidad (individual/grupal), nivel (iniciacion/
 // intermedio/consolidacion), tema, objetivo, duración orientativa, pasos y
-// la página del manual de la que viene (o la base conceptual, cuando es una
+// la fuente de la que viene (o la base conceptual, cuando es una
 // adaptación a formato de clase de la academia).
 
 export const MODALIDADES = [
@@ -41,6 +51,36 @@ export const PLANES = [
       { tiempo: "20 min", actividad: "Ejercicio de competencia con tácticas sin definición (ej. defensa con solo 2 globos por punto)" }
     ],
     fuente: "Manual de entrenador, p.29 (Tipos de clases — Tres o más jugadores)"
+  }
+];
+
+// Consejos de metodología para quien da la clase, basados en las guías de
+// PadelStar aportadas por la academia (ver cabecera del archivo).
+export const CONSEJOS = [
+  {
+    titulo: "Muestra antes de explicar",
+    texto: "La mayoría de lo que se aprende en pádel viene de ver la demostración, no de escuchar la explicación. Haz tú el gesto (o pide a otro alumno que lo haga) antes de dar la consigna larga.",
+    fuente: "Guía 6, p.7 (PadelStar)"
+  },
+  {
+    titulo: "Pelota más grande cuanto más chico el alumno",
+    texto: "Con niños de iniciación conviene empezar con globos o pelotas de playa antes de pasar a la pelota de pádel estándar, para que puedan controlar el golpeo desde el primer día.",
+    fuente: "Guía 6, p.10 (PadelStar)"
+  },
+  {
+    titulo: "Un armado corto da control; uno amplio da potencia",
+    texto: "Si el alumno falla por pegarle tarde o sin control, pide un armado más corto. Si ya domina el golpe y busca más potencia (por ejemplo en la salida de pared o el remate), recién ahí sugiere un armado más amplio.",
+    fuente: "Guía 3, p.6 (PadelStar)"
+  },
+  {
+    titulo: "Corrige un solo error a la vez",
+    texto: "Elige el error más importante de cada alumno y trabaja solo ese durante la sesión. Corregir varias cosas a la vez satura al alumno y no mejora ninguna.",
+    fuente: "Guía 5, p.31 (PadelStar)"
+  },
+  {
+    titulo: "Evita la \"zona pantano\"",
+    texto: "A mitad de camino entre la red y la línea de saque (ni volea ni defensa) es la peor zona para quedarse parado: desde ahí no se vuelea cómodo ni se defiende bien. Si un alumno queda ahí seguido, es la primera corrección posicional a hacer.",
+    fuente: "Guía 2, p.25 (PadelStar)"
   }
 ];
 
@@ -109,9 +149,10 @@ export const EJERCICIOS = [
     duracion: "6 min",
     pasos: [
       "El alumno se coloca de lado, con la cara de la pala por encima de la pelota, piernas separadas al ancho de los hombros.",
-      "Suelta la pelota con la mano libre y practica encontrar el punto de impacto antes de golpear con intención."
+      "Suelta la pelota con la mano libre y practica encontrar el punto de impacto antes de golpear con intención.",
+      "Se recuerda la regla: el golpe debe darse a la altura de la cintura o por debajo, con al menos un pie en el suelo."
     ],
-    fuente: "Manual de entrenador, p.19-20 (El saque, armado)",
+    fuente: "Manual de entrenador, p.19-20 (El saque, armado) + Guía 3 de PadelStar, p.9 (Reglas de saque y resto)",
     diagrama: { tipo: "saque" },
     foto: { src: "assets/img/court/paddles-court.jpg", alt: "Palas de pádel y pelotas sobre la cancha" } },
   {
@@ -226,9 +267,9 @@ export const EJERCICIOS = [
     pasos: [
       "De frente, agarrar la pelota con la mano en el punto más alto.",
       "De perfil, dejar picar y agarrar en el punto más alto.",
-      "De perfil, hacer \"arco y flecha\" con la pala y golpear."
+      "De perfil, hacer \"arco y flecha\" con la pala y golpear, con el brazo libre extendido hacia arriba señalando la pelota (ayuda a equilibrar el cuerpo y a calcular la distancia)."
     ],
-    fuente: "Manual de entrenador, p.22 (Smash x3, progresión, adaptado al smash de definición)",
+    fuente: "Manual de entrenador, p.22 (Smash x3, progresión) + Guía 4 de PadelStar, p.9-10 (preparación y brazos en el remate)",
     diagrama: { tipo: "smash" },
     foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando de derecha con extensión completa" } },
   {
@@ -337,10 +378,11 @@ export const EJERCICIOS = [
     objetivo: "Diferenciar físicamente la posición de defensa y la de ataque.",
     duracion: "6 min",
     pasos: [
-      "Dos alumnos se ubican en zona de defensa (50 cm detrás de la línea de saque) y dos en zona de ataque (2 metros de la red).",
-      "Rotan de zona cada 2 minutos, sintiendo el cambio de peso del cuerpo y de altura de pala."
+      "Dos alumnos se ubican en zona de defensa (un palmo detrás de la línea de saque) y dos en zona de ataque (1.5 m de la red).",
+      "Rotan de zona cada 2 minutos, sintiendo el cambio de peso del cuerpo y de altura de pala.",
+      "Se marca con un cono la franja intermedia entre ambas zonas (\"zona pantano\") para que la reconozcan como el lugar donde nunca deben quedarse parados."
     ],
-    fuente: "Manual de entrenador, p.5 (Posiciones de juego: Defensa/Ataque)",
+    fuente: "Manual de entrenador, p.5 (Posiciones de juego: Defensa/Ataque) + Guía 2 de PadelStar, p.25-26 (posiciones estándar y zona pantano)",
     diagrama: { tipo: "defensaAtaque" },
     foto: { src: "assets/img/gabriel/gabriel-3.jpg", alt: "Jugador de la academia en posición de espera con la pala" } },
   {
@@ -499,5 +541,63 @@ export const EJERCICIOS = [
     fuente: "Manual de entrenador, p.29 (mención de la \"matriz FODA de la pareja\")",
     diagrama: { tipo: "grupo2v2" },
     foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la cancha" }
+  },
+
+  // ============ Ampliación con las guías de PadelStar (remate y posicionamiento) ============
+  {
+    id: 37, modalidad: "individual", nivel: "consolidacion", tema: "Remate",
+    titulo: "Remate al pico: la jugada de presión",
+    objetivo: "Sumar una variante de remate de velocidad media para desgastar al rival sin arriesgar tanto como en el remate de potencia.",
+    duracion: "10 min",
+    pasos: [
+      "El profesor juega globos cortos para que el alumno remate buscando el \"pico\" de la pista: la esquina donde se juntan la verja y la pared de fondo.",
+      "Se insiste en la paciencia: rara vez el primer remate da justo en el pico, hay que repetir buscando el fallo del rebote.",
+      "Se corrige que el remate salga cruzado y no demasiado fuerte, para controlar dónde pica."
+    ],
+    fuente: "Guía 4 de PadelStar, p.12 (\"Remate al pico como arma de presión\")",
+    diagrama: { tipo: "pico" },
+    foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando con extensión completa" }
+  },
+  {
+    id: 38, modalidad: "individual", nivel: "consolidacion", tema: "Remate",
+    titulo: "Sacarla por 3: el remate con efecto a la pared lateral",
+    objetivo: "Aprender el remate liftado que busca que la bola salga de la pista por el lateral, tras pegar primero en la pared de fondo.",
+    duracion: "10 min",
+    pasos: [
+      "El profesor juega globos hacia el lado de revés del alumno (o el lado derecho si es zurdo).",
+      "El alumno remata en cruzado imaginando la pared de fondo como un reloj y buscando pegarle \"a las tres\", con efecto liftado.",
+      "Se controla la potencia: si el golpe es demasiado fuerte la pelota puede saltar y dar tiempo al rival a llegar."
+    ],
+    fuente: "Guía 4 de PadelStar, p.13 (\"Golpear la pelota con efecto a la pared lateral\" / \"Sacarla por 3 metros\")",
+    diagrama: { tipo: "lateral" },
+    foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando con extensión completa" }
+  },
+  {
+    id: 39, modalidad: "grupal", nivel: "intermedio", tema: "Posiciones",
+    titulo: "Evita la zona pantano",
+    objetivo: "Dejar de quedarse parado en la peor zona de la pista: ni suficientemente cerca de la red para volear bien, ni suficientemente atrás para defender bien.",
+    duracion: "10 min",
+    pasos: [
+      "Se marca con conos la \"zona pantano\": la franja entre la posición de volea (1.5 m de la red) y un palmo detrás de la línea de saque.",
+      "Los 4 alumnos juegan puntos normales; cada vez que alguien golpea desde esa franja marcada, el profesor lo señala.",
+      "Se corrige el hábito: tras cada golpe, recuperar rápido una de las dos posiciones válidas (de volea o de defensa), nunca quedarse a mitad de camino."
+    ],
+    fuente: "Guía 2 de PadelStar, p.25-26 (\"La zona pantano\" y \"¿Qué hacer si me quedo en media pista?\")",
+    diagrama: { tipo: "pantano" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" }
+  },
+  {
+    id: 40, modalidad: "grupal", nivel: "consolidacion", tema: "Remate",
+    titulo: "Sacarla por 4: la bola entregada",
+    objetivo: "Aprovechar una bola fácil y cercana a la red para terminar el punto sacando la pelota de la pista por el fondo.",
+    duracion: "15 min",
+    pasos: [
+      "En un punto de competencia 2 vs 2, cuando una pareja le \"entrega\" a la otra una bola alta y cerca de la red, el que remata debe adelantarse antes de golpear.",
+      "Se busca que el bote sea cerca de la red, con un buen giro de muñeca, para que la pelota salga por el fondo de la pista (por el conjunto pared + verja, que mide 4 metros).",
+      "Si no se logra adelantar a tiempo, se corrige: mejor dejar picar y jugar un golpe seguro que forzar el remate desde atrás."
+    ],
+    fuente: "Guía 4 de PadelStar, p.12 (\"Sacar la bola de la pista — sacarla por 4\")",
+    diagrama: { tipo: "pico" },
+    foto: { src: "assets/img/court/net-ball.jpg", alt: "Pelota de pádel golpeando la red en plena jugada" }
   }
 ];
