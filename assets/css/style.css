@@ -144,6 +144,17 @@ ul { padding: 0; margin: 0; list-style: none; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Con el menú ya con varios enlaces, por encima de 1080px (donde el nav
+   sigue en línea y simplemente pasa a una segunda fila si hace falta) el
+   cálculo de flex-shrink puede repartir el espacio de forma pareja entre
+   la marca y el nav aunque el nav tenga de sobra encogiéndose por su
+   wrap interno — y terminaba aplastando el texto de la marca a unas
+   pocas letras pese a haber espacio visual de sobra. Por encima de ese
+   breakpoint la marca ya no necesita ceder espacio: que sea el nav el
+   que pase a una fila extra. */
+@media (min-width: 1081px) {
+  .brand { flex-shrink: 0; }
+}
 
 .main-nav {
   display: flex;
