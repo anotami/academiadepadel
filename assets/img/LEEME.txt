@@ -1,0 +1,3 @@
+38 fotos 800x480 para assets/img/canchas/ (nombre = slug de cada cancha en canchas-data.js).
+Fuente: Google Maps. Mostrar credito en la ficha y retirar la foto si el club lo pide.
+Revisar creditos.csv: 4 fotos marcadas para reemplazar/confirmar.
