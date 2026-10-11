@@ -45,6 +45,7 @@
 
 .cancha-media { position: relative; line-height: 0; }
 .cancha-media-svg { width: 100%; height: auto; display: block; }
+.cancha-media-foto { width: 100%; aspect-ratio: 5 / 3; object-fit: cover; object-position: center 20%; display: block; }
 .cancha-ribbon {
   position: absolute;
   top: 10px;
