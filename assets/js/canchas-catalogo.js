@@ -1,4 +1,4 @@
-import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=3";
+import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=4";
 
 const grid = document.getElementById("catalogoGrid");
 const buscarInput = document.getElementById("catalogoBuscar");
