@@ -178,6 +178,47 @@ ul { padding: 0; margin: 0; list-style: none; }
 }
 .main-nav a:hover { color: var(--court); }
 
+.nav-dropdown { position: relative; }
+.nav-dropdown-toggle {
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.nav-dropdown-toggle:hover { color: var(--court); }
+.nav-dropdown-arrow { font-size: 0.7em; transition: transform 0.15s; }
+.nav-dropdown.open .nav-dropdown-arrow { transform: rotate(180deg); }
+.nav-dropdown-menu { display: none; }
+.nav-dropdown.open .nav-dropdown-menu { display: flex; }
+.nav-dropdown-menu a { white-space: nowrap; }
+
+@media (min-width: 1081px) {
+  .nav-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 8px;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 210px;
+    z-index: 30;
+  }
+  .nav-dropdown-menu a { padding: 8px 10px; border-radius: 8px; }
+  .nav-dropdown-menu a:hover { background: var(--bg); }
+}
+
 .header-cta { margin-left: 4px; }
 .header-ctas { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
@@ -895,6 +936,16 @@ h1 .hl {
      pero el portal no tiene equivalente — ese botón se mantiene visible. */
   .header-cta { display: none; }
   .header-cta-portal { display: inline-flex; }
+
+  /* El dropdown "Recursos" pasa a ser una sublista fija dentro del menú
+     apilado (no flota) — más simple de usar con el dedo que un popover. */
+  .nav-dropdown-menu {
+    flex-direction: column;
+    gap: 12px;
+    padding-left: 14px;
+    margin-top: 10px;
+    border-left: 2px solid var(--border);
+  }
 }
 
 @media (max-width: 760px) {
