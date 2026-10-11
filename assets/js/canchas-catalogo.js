@@ -1,4 +1,4 @@
-import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=2";
+import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=3";
 
 const grid = document.getElementById("catalogoGrid");
 const buscarInput = document.getElementById("catalogoBuscar");
@@ -65,14 +65,19 @@ function tarjeta(c) {
   const nombreMostrar = c.nombre.replace(" (nuestra academia)", "");
   const mapaQuery = encodeURIComponent(`${nombreMostrar}, ${c.direccion}`);
 
-  const media = c.foto
-    ? `<img class="cancha-media-foto" src="${c.foto.src}" alt="${c.foto.alt}" loading="lazy" width="300" height="180">`
-    : `<svg viewBox="0 0 120 80" class="cancha-media-svg" aria-hidden="true">
+  let media;
+  if (c.logo) {
+    media = `<div class="cancha-media-logo-wrap"><img class="cancha-media-logo" src="${c.logo.src}" alt="${c.logo.alt}" loading="lazy"></div>`;
+  } else if (c.foto) {
+    media = `<img class="cancha-media-foto" src="${c.foto.src}" alt="${c.foto.alt}" loading="lazy" width="300" height="180">`;
+  } else {
+    media = `<svg viewBox="0 0 120 80" class="cancha-media-svg" aria-hidden="true">
         <rect width="120" height="80" rx="10" fill="#14495a"/>
         <rect x="14" y="10" width="92" height="60" rx="4" fill="none" stroke="#c8e94c" stroke-width="2"/>
         <line x1="60" y1="10" x2="60" y2="70" stroke="#c8e94c" stroke-width="2"/>
         <circle cx="60" cy="40" r="5" fill="#c8e94c"/>
       </svg>`;
+  }
 
   art.innerHTML = `
     <div class="cancha-media">

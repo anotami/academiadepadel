@@ -46,6 +46,17 @@
 .cancha-media { position: relative; line-height: 0; }
 .cancha-media-svg { width: 100%; height: auto; display: block; }
 .cancha-media-foto { width: 100%; aspect-ratio: 5 / 3; object-fit: cover; object-position: center 20%; display: block; }
+
+.cancha-media-logo-wrap {
+  width: 100%;
+  aspect-ratio: 5 / 3;
+  background: #14495a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.cancha-media-logo { max-width: 70%; max-height: 60%; object-fit: contain; }
 .cancha-ribbon {
   position: absolute;
   top: 10px;
