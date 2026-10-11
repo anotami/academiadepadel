@@ -68,7 +68,7 @@ setInterval(() => {
 if (!id) {
   mostrarError();
 } else {
-  import("./firebase-app.js?v=12")
+  import("./firebase-app.js?v=13")
     .then(({ db, doc, onSnapshot }) => {
       onSnapshot(doc(db, "arbitrajes", id), (snap) => {
         if (!snap.exists()) { mostrarError(); return; }

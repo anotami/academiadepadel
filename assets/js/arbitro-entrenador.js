@@ -380,7 +380,7 @@ function wireInforme() {
 function iniciarSuscripciones() {
   $("entCodigo").hidden = true;
   $("entCargando").hidden = false;
-  import("./firebase-app.js?v=12")
+  import("./firebase-app.js?v=13")
     .then((mod) => {
       db = mod.db; doc = mod.doc; onSnapshot = mod.onSnapshot;
       collection = mod.collection; addDoc = mod.addDoc; deleteDoc = mod.deleteDoc;

@@ -75,7 +75,7 @@ function mostrarSinConexion(el) {
 }
 
 let fb = null;
-import("./firebase-app.js?v=12")
+import("./firebase-app.js?v=13")
   .then((mod) => { fb = mod; })
   .catch(() => { fb = null; });
 

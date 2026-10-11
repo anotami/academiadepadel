@@ -1,0 +1,116 @@
+/* Catálogo de canchas de pádel en Lima */
+
+.catalogo-filtros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 28px 0 22px;
+}
+.catalogo-filtros input[type="search"],
+.catalogo-filtros select {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 10px 13px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+}
+.catalogo-filtros input[type="search"] { flex: 1 1 240px; }
+.catalogo-filtros select { flex: 0 1 220px; }
+.catalogo-contador {
+  width: 100%;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.catalogo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.cancha-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.cancha-card-featured { border-color: var(--court); border-width: 2px; }
+
+.cancha-media { position: relative; line-height: 0; }
+.cancha-media-svg { width: 100%; height: auto; display: block; }
+.cancha-ribbon {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--accent, #c8e94c);
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.cancha-body { padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.cancha-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.cancha-head h3 { font-size: 1.05rem; margin: 0; }
+.cancha-distrito { margin: 0; font-size: 0.85rem; color: var(--ink-soft); font-weight: 700; }
+
+.cancha-meta { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.cancha-meta li { font-size: 0.86rem; color: var(--ink); }
+.cancha-meta strong { color: var(--ink-soft); font-weight: 700; }
+
+.cancha-redes { margin: 0; font-size: 0.82rem; }
+.cancha-redes a { color: var(--court); }
+
+.cancha-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+.cancha-mapa-wrap { margin-top: 6px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.cancha-mapa { width: 100%; height: 220px; border: 0; display: block; }
+
+.rating-resumen { display: flex; align-items: center; gap: 8px; }
+.estrellas { color: #e8a800; letter-spacing: 1px; font-size: 1rem; }
+.estrella-fija { display: inline-block; }
+.rating-count { font-size: 0.8rem; color: var(--ink-soft); }
+
+.estrellas-input { display: inline-flex; gap: 2px; margin: 6px 0; }
+.estrella-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #e8a800;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.cancha-resenas-wrap { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 12px; }
+.cancha-resena-item { padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.cancha-resena-item:last-child { border-bottom: none; }
+.cancha-resena-item p { margin: 4px 0 0; font-size: 0.86rem; }
+
+.cancha-resena-form { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.cancha-resena-form input,
+.cancha-resena-form textarea {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  resize: vertical;
+}
+
+@media (max-width: 640px) {
+  .catalogo-grid { grid-template-columns: 1fr; }
+  .catalogo-filtros select { flex: 1 1 100%; }
+}

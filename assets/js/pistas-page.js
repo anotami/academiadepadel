@@ -1,4 +1,4 @@
-import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=12";
+import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=13";
 import { DIAS, FRANJAS, estaDisponible } from "./portal-common.js?v=12";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];

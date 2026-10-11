@@ -15,7 +15,7 @@ import {
 let fb = null;
 async function cargarFirebase() {
   try {
-    fb = await import("./firebase-app.js?v=12");
+    fb = await import("./firebase-app.js?v=13");
   } catch (e) {
     fb = null;
   }
