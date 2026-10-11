@@ -1,4 +1,4 @@
-import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=4";
+import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=5";
 
 const grid = document.getElementById("catalogoGrid");
 const buscarInput = document.getElementById("catalogoBuscar");
@@ -62,11 +62,16 @@ function tarjeta(c) {
 
   const redesHtml = c.redesLinks.map((r) => `<a href="${r.url}" target="_blank" rel="noopener">${r.label}</a>`).join(" · ");
   const waTexto = encodeURIComponent(`Hola, vi ${c.nombre.replace(" (nuestra academia)", "")} en el directorio de academiadepadel.pe y quisiera consultar disponibilidad.`);
+  const contacto = !c.telefono
+    ? ""
+    : /^519\d{8}$/.test(c.telefono)
+      ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${c.telefono}?text=${waTexto}">WhatsApp</a>`
+      : `<a class="btn btn-outline btn-small" href="tel:+${c.telefono}">Llamar</a>`;
   const nombreMostrar = c.nombre.replace(" (nuestra academia)", "");
   const mapaQuery = encodeURIComponent(`${nombreMostrar}, ${c.direccion}`);
 
   let media;
-  if (c.logo) {
+  if (c.logo && !c.foto) {
     media = `<div class="cancha-media-logo-wrap"><img class="cancha-media-logo" src="${c.logo.src}" alt="${c.logo.alt}" loading="lazy"></div>`;
   } else if (c.foto) {
     media = `<img class="cancha-media-foto" src="${c.foto.src}" alt="${c.foto.alt}" loading="lazy" width="300" height="180">`;
@@ -99,7 +104,7 @@ function tarjeta(c) {
       </ul>
       <p class="cancha-redes">${redesHtml}</p>
       <div class="cancha-acciones">
-        <a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${c.telefono}?text=${waTexto}">WhatsApp</a>
+        ${contacto}
         <button type="button" class="btn btn-outline btn-small cancha-toggle-mapa">Ver mapa</button>
         <button type="button" class="btn btn-outline btn-small cancha-toggle-resena">Dejar reseña</button>
       </div>
