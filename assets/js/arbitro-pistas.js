@@ -2,6 +2,7 @@
 // arbitrando ahora mismo, y un ranking interno acumulado de partidos
 // finalizados que se jugaron con marcador en vivo activado.
 import { nombreEquipo, labelsDePuntos, tiempoRelativo } from "./arbitro-common.js?v=4";
+import { escapeHtml } from "./utils.js?v=1";
 
 // El cambio de pestañas es pura UI local: se conecta primero y sin depender
 // de que Firebase cargue bien, para que nunca quede "colgado".
@@ -20,14 +21,14 @@ function tarjetaPartido(id, data) {
   const [la, lb] = m.isSuperTiebreakSet || m.inTiebreak ? [m.currentGame.a, m.currentGame.b] : labelsDePuntos(m.currentGame.a, m.currentGame.b);
   const sets = m.sets.map((s) => `${s.a}-${s.b}`).join(" · ") || "Set 1";
   const actualizadoMs = data.actualizadoEn && data.actualizadoEn.toMillis ? data.actualizadoEn.toMillis() : Date.now();
-  const alerta = m.interrupcionActiva ? `<span class="badge badge-pendiente">⏸ ${m.interrupcionActiva.tipo}</span>` : "";
+  const alerta = m.interrupcionActiva ? `<span class="badge badge-pendiente">⏸ ${escapeHtml(m.interrupcionActiva.tipo)}</span>` : "";
 
   const div = document.createElement("div");
   div.className = "court-card arbitro-multipista-card";
   div.innerHTML = `
-    <h3>${c.pista ? `Pista ${c.pista}` : "Pista sin nombre"} ${alerta}</h3>
-    <p class="court-meta">${[c.club, c.pais].filter(Boolean).join(" · ")}</p>
-    <p><strong>${nombreEquipo(c, "A")}</strong> vs <strong>${nombreEquipo(c, "B")}</strong></p>
+    <h3>${c.pista ? `Pista ${escapeHtml(c.pista)}` : "Pista sin nombre"} ${alerta}</h3>
+    <p class="court-meta">${escapeHtml([c.club, c.pais].filter(Boolean).join(" · "))}</p>
+    <p><strong>${escapeHtml(nombreEquipo(c, "A"))}</strong> vs <strong>${escapeHtml(nombreEquipo(c, "B"))}</strong></p>
     <p>Sets: ${sets} · Juego actual: ${m.currentSet.a}-${m.currentSet.b} (${la}-${lb})</p>
     <p class="field-hint">Actualizado ${tiempoRelativo(actualizadoMs)}</p>
     <a class="btn btn-outline btn-small" href="arbitro-vivo.html?id=${id}" target="_blank" rel="noopener">Ver pantalla completa</a>
@@ -77,7 +78,7 @@ function renderRanking(docs) {
   document.getElementById("sinRanking").hidden = filas.length > 0;
   filas.forEach((f, i) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${i + 1}</td><td style="text-align:left">${f.nombre}</td><td>${f.jugados}</td><td>${f.ganados}</td><td>${f.pct}%</td>`;
+    tr.innerHTML = `<td>${i + 1}</td><td style="text-align:left">${escapeHtml(f.nombre)}</td><td>${f.jugados}</td><td>${f.ganados}</td><td>${f.pct}%</td>`;
     body.appendChild(tr);
   });
 }

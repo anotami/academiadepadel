@@ -2,6 +2,7 @@
 // la nube (si el partido se compartió en vivo, recuperable desde cualquier
 // dispositivo con la misma cuenta).
 import { tiempoRelativo } from "./arbitro-common.js?v=4";
+import { escapeHtml } from "./utils.js?v=1";
 
 const HISTORIAL_KEY = "arbitro_historial_v1";
 
@@ -18,10 +19,11 @@ function renderLocal() {
     li.className = "arbitro-incident-item";
     const setsTxt = (item.sets || []).map((s) => `${s.a}-${s.b}`).join(", ") || "—";
     const fecha = new Date(item.ts).toLocaleString("es-PE");
-    const meta = [item.club, item.pista ? `Pista ${item.pista}` : ""].filter(Boolean).join(" · ");
+    const meta = escapeHtml([item.club, item.pista ? `Pista ${item.pista}` : ""].filter(Boolean).join(" · "));
+    const ganadorNombre = item.ganador ? (item.ganador === "A" ? item.equipoA : item.equipoB) : "sin terminar";
     li.innerHTML = `<span>
-        <span class="inc-tipo">${item.equipoA} vs ${item.equipoB}</span><br>
-        <small>${meta ? meta + " · " : ""}Sets: ${setsTxt} · Gana: ${item.ganador ? (item.ganador === "A" ? item.equipoA : item.equipoB) : "sin terminar"}</small>
+        <span class="inc-tipo">${escapeHtml(item.equipoA)} vs ${escapeHtml(item.equipoB)}</span><br>
+        <small>${meta ? meta + " · " : ""}Sets: ${setsTxt} · Gana: ${escapeHtml(ganadorNombre)}</small>
       </span><span>${fecha}</span>`;
     ul.appendChild(li);
   });
@@ -67,9 +69,9 @@ import("./firebase-app.js?v=13")
           const badge = data.estado === "finalizado" ? "Finalizado" : data.estado === "interrumpido" ? "Interrumpido" : "En curso";
           const ganadorTxt = data.match.matchWinner ? (data.match.matchWinner === "A" ? `${c.a1} / ${c.a2}` : `${c.b1} / ${c.b2}`) : "sin terminar";
           li.innerHTML = `<span>
-              <span class="inc-tipo">${c.a1} / ${c.a2} vs ${c.b1} / ${c.b2}</span>
+              <span class="inc-tipo">${escapeHtml(c.a1)} / ${escapeHtml(c.a2)} vs ${escapeHtml(c.b1)} / ${escapeHtml(c.b2)}</span>
               <span class="badge badge-confirmada" style="margin-left:6px">${badge}</span><br>
-              <small>${[c.club, c.pista ? "Pista " + c.pista : ""].filter(Boolean).join(" · ")} · Sets: ${setsTxt} · Gana: ${ganadorTxt}</small>
+              <small>${escapeHtml([c.club, c.pista ? "Pista " + c.pista : ""].filter(Boolean).join(" · "))} · Sets: ${setsTxt} · Gana: ${escapeHtml(ganadorTxt)}</small>
             </span>
             <span>${tiempoRelativo(actualizadoMs)}<br>
               <a class="btn btn-outline btn-small" style="margin-top:4px" href="arbitro-vivo.html?id=${d.id}" target="_blank" rel="noopener">Ver acta</a>

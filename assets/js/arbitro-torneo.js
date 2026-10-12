@@ -2,6 +2,8 @@
 // (sin Firebase): rota parejas, acumula puntos individuales por ronda y arma
 // la tabla de posiciones.
 
+import { escapeHtml } from "./utils.js?v=1";
+
 const STORAGE_KEY = "arbitro_torneo_v1";
 
 function estadoInicial() {
@@ -148,12 +150,12 @@ function render() {
     const todasGuardadas = ronda.partidos.every((p) => p.guardado);
     div.innerHTML = `
       <h3>Ronda ${ronda.numero}${todasGuardadas ? " ✓" : ""}</h3>
-      ${ronda.descansan.length ? `<p class="field-hint">Descansan: ${ronda.descansan.join(", ")}</p>` : ""}
+      ${ronda.descansan.length ? `<p class="field-hint">Descansan: ${ronda.descansan.map(escapeHtml).join(", ")}</p>` : ""}
       ${ronda.partidos.map((p, i) => `
         <div class="request-card">
           <div class="request-info">
             <p class="request-title">Pista ${p.pista}</p>
-            <p>${p.equipoA.join(" / ")} <strong>vs</strong> ${p.equipoB.join(" / ")}</p>
+            <p>${p.equipoA.map(escapeHtml).join(" / ")} <strong>vs</strong> ${p.equipoB.map(escapeHtml).join(" / ")}</p>
           </div>
           <div class="request-actions">
             <input type="number" min="0" style="width:60px" id="golesA-${idx}-${i}" value="${p.golesA ?? ""}" ${p.guardado ? "disabled" : ""} placeholder="A">
@@ -193,7 +195,7 @@ function render() {
   body.innerHTML = "";
   filas.forEach((f, i) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${i + 1}</td><td style="text-align:left">${f.nombre}</td><td>${f.puntos}</td><td>${f.rondas}</td>`;
+    tr.innerHTML = `<td>${i + 1}</td><td style="text-align:left">${escapeHtml(f.nombre)}</td><td>${f.puntos}</td><td>${f.rondas}</td>`;
     body.appendChild(tr);
   });
 }

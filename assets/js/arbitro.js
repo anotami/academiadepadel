@@ -7,6 +7,13 @@ import {
   nombreEquipo, nombreJugador, otro, labelsDePuntos, formatMMSS,
   consecuenciaConducta, consecuenciaDemora, peloteoSugeridoSeg
 } from "./arbitro-common.js?v=4";
+import { escapeHtml } from "./utils.js?v=1";
+
+// nomEq() ya existe para texto plano (textContent, mensajes de WhatsApp);
+// esta variante escapa el resultado para los sitios que arman HTML con
+// innerHTML, ya que los nombres de pareja son texto libre que escribe
+// el árbitro (y en el marcador compartido, cualquiera que abra el link lo ve).
+function nomEqHtml(team) { return escapeHtml(nombreEquipo(state.config, team)); }
 
 // Firebase se carga de forma diferida (import dinámico) y nunca de forma
 // estática: si no hay internet o falla la red, el resto del árbitro (marcador,
@@ -953,7 +960,7 @@ function renderIncidencias() {
     li.className = "arbitro-incident-item";
     const hora = new Date(inc.ts).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
     const etiqueta = inc.numero ? `${inc.consecuencia} (infracción #${inc.numero})` : inc.consecuencia;
-    li.innerHTML = `<span><span class="inc-tipo">${etiqueta}</span> — ${inc.categoria} — ${nomEq(inc.equipo)}<br><small>${inc.marcador}</small></span><span>${hora}</span>`;
+    li.innerHTML = `<span><span class="inc-tipo">${escapeHtml(etiqueta)}</span> — ${escapeHtml(inc.categoria)} — ${nomEqHtml(inc.equipo)}<br><small>${escapeHtml(inc.marcador)}</small></span><span>${hora}</span>`;
     incLog.appendChild(li);
   });
 }
@@ -968,7 +975,7 @@ function renderDemoras() {
     const li = document.createElement("li");
     li.className = "arbitro-incident-item";
     const hora = new Date(d.ts).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
-    li.innerHTML = `<span><span class="inc-tipo">${d.consecuencia}</span> — ${nomEq(d.equipo)} (demora #${d.numero})<br><small>${d.marcador}</small></span><span>${hora}</span>`;
+    li.innerHTML = `<span><span class="inc-tipo">${escapeHtml(d.consecuencia)}</span> — ${nomEqHtml(d.equipo)} (demora #${d.numero})<br><small>${escapeHtml(d.marcador)}</small></span><span>${hora}</span>`;
     log.appendChild(li);
   });
 }
@@ -983,7 +990,7 @@ function renderInterrupciones() {
     const li = document.createElement("li");
     li.className = "arbitro-incident-item";
     const hora = new Date(it.inicio).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
-    li.innerHTML = `<span><span class="inc-tipo">${it.tipo}</span>${it.nota ? ` — ${it.nota}` : ""}<br><small>Duración: ${formatMMSS(it.duracionSeg)}</small></span><span>${hora}</span>`;
+    li.innerHTML = `<span><span class="inc-tipo">${escapeHtml(it.tipo)}</span>${it.nota ? ` — ${escapeHtml(it.nota)}` : ""}<br><small>Duración: ${formatMMSS(it.duracionSeg)}</small></span><span>${hora}</span>`;
     log.appendChild(li);
   });
 }
@@ -995,7 +1002,7 @@ function renderHistorial() {
     const li = document.createElement("li");
     li.className = "arbitro-incident-item";
     const hora = new Date(e.ts).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    li.innerHTML = `<span>${e.texto}</span><span>${hora}</span>`;
+    li.innerHTML = `<span>${escapeHtml(e.texto)}</span><span>${hora}</span>`;
     log.appendChild(li);
   });
 }
@@ -1019,7 +1026,7 @@ function renderActa() {
     return `<td>${s.a}-${s.b}${s.tiebreak ? ` (${s.tiebreak})` : ""}${s.super ? " ST" : ""}</td>`;
   }).join("");
 
-  const ganador = m.matchWinner ? `${nomEq(m.matchWinner)} gana el partido` : "Partido no finalizado por marcador (retiro / w.o. / suspendido)";
+  const ganador = m.matchWinner ? `${nomEqHtml(m.matchWinner)} gana el partido` : "Partido no finalizado por marcador (retiro / w.o. / suspendido)";
   const duracionMin = m.horaInicio && m.horaFin ? Math.round((m.horaFin - m.horaInicio) / 60000) : null;
 
   const puntosLog = m.log.filter((e) => e.tipo === "punto");
@@ -1031,7 +1038,7 @@ function renderActa() {
 
   const statsHtml = `
     <table>
-      <thead><tr><th></th><th>${nomEq("A")}</th><th>${nomEq("B")}</th></tr></thead>
+      <thead><tr><th></th><th>${nomEqHtml("A")}</th><th>${nomEqHtml("B")}</th></tr></thead>
       <tbody>
         <tr><td style="text-align:left">Puntos jugados</td><td>${puntosA}</td><td>${puntosB}</td></tr>
         <tr><td style="text-align:left">Juegos ganados</td><td>${juegosA}</td><td>${juegosB}</td></tr>
@@ -1046,34 +1053,34 @@ function renderActa() {
 
   const incidentesHtml = state.incidents.length
     ? `<div class="arbitro-table-scroll"><table><thead><tr><th>Hora</th><th>Consecuencia</th><th>Categoría</th><th>Pareja</th><th>Marcador</th></tr></thead><tbody>
-        ${state.incidents.map((i) => `<tr><td>${new Date(i.ts).toLocaleTimeString("es-PE")}</td><td>${i.consecuencia}</td><td>${i.categoria}</td><td>${nomEq(i.equipo)}</td><td>${i.marcador}</td></tr>`).join("")}
+        ${state.incidents.map((i) => `<tr><td>${new Date(i.ts).toLocaleTimeString("es-PE")}</td><td>${escapeHtml(i.consecuencia)}</td><td>${escapeHtml(i.categoria)}</td><td>${nomEqHtml(i.equipo)}</td><td>${escapeHtml(i.marcador)}</td></tr>`).join("")}
        </tbody></table></div>`
     : "<p>Sin infracciones de conducta registradas.</p>";
 
   const demorasHtml = m.demoras.length
     ? `<div class="arbitro-table-scroll"><table><thead><tr><th>Hora</th><th>Consecuencia</th><th>Pareja</th><th>Marcador</th></tr></thead><tbody>
-        ${m.demoras.map((d) => `<tr><td>${new Date(d.ts).toLocaleTimeString("es-PE")}</td><td>${d.consecuencia}</td><td>${nomEq(d.equipo)}</td><td>${d.marcador}</td></tr>`).join("")}
+        ${m.demoras.map((d) => `<tr><td>${new Date(d.ts).toLocaleTimeString("es-PE")}</td><td>${escapeHtml(d.consecuencia)}</td><td>${nomEqHtml(d.equipo)}</td><td>${escapeHtml(d.marcador)}</td></tr>`).join("")}
        </tbody></table></div>`
     : "<p>Sin infracciones de tiempo registradas.</p>";
 
   const interrupcionesHtml = m.interrupciones.length
     ? `<div class="arbitro-table-scroll"><table><thead><tr><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Nota</th></tr></thead><tbody>
-        ${m.interrupciones.map((it) => `<tr><td>${it.tipo}</td><td>${new Date(it.inicio).toLocaleTimeString("es-PE")}</td><td>${new Date(it.fin).toLocaleTimeString("es-PE")}</td><td>${formatMMSS(it.duracionSeg)}</td><td>${it.nota || "—"}</td></tr>`).join("")}
+        ${m.interrupciones.map((it) => `<tr><td>${escapeHtml(it.tipo)}</td><td>${new Date(it.inicio).toLocaleTimeString("es-PE")}</td><td>${new Date(it.fin).toLocaleTimeString("es-PE")}</td><td>${formatMMSS(it.duracionSeg)}</td><td>${it.nota ? escapeHtml(it.nota) : "—"}</td></tr>`).join("")}
        </tbody></table></div>`
     : "<p>Sin interrupciones registradas.</p>";
 
   document.getElementById("actaContenido").innerHTML = `
     <h2>Acta de partido</h2>
     <p class="acta-meta">
-      ${c.club ? c.club + " · " : ""}${c.pista ? "Pista " + c.pista + " · " : ""}${c.pais}<br>
+      ${c.club ? escapeHtml(c.club) + " · " : ""}${c.pista ? "Pista " + escapeHtml(c.pista) + " · " : ""}${escapeHtml(c.pais)}<br>
       ${m.horaInicio ? new Date(m.horaInicio).toLocaleString("es-PE") : ""}<br>
-      ${c.arbitroNombre ? `Árbitro: ${c.arbitroNombre}` : ""}${c.juezArbitroNombre ? ` · Juez árbitro principal: ${c.juezArbitroNombre}` : ""}
+      ${c.arbitroNombre ? `Árbitro: ${escapeHtml(c.arbitroNombre)}` : ""}${c.juezArbitroNombre ? ` · Juez árbitro principal: ${escapeHtml(c.juezArbitroNombre)}` : ""}
     </p>
     <table>
       <thead><tr><th>Pareja</th><th>Set 1</th><th>Set 2</th><th>Set 3</th></tr></thead>
       <tbody>
-        <tr><td style="text-align:left;font-weight:700">${nomEq("A")}</td>${[0, 1, 2].map((i) => m.sets[i] ? `<td>${m.sets[i].a}</td>` : "<td>–</td>").join("")}</tr>
-        <tr><td style="text-align:left;font-weight:700">${nomEq("B")}</td>${[0, 1, 2].map((i) => m.sets[i] ? `<td>${m.sets[i].b}</td>` : "<td>–</td>").join("")}</tr>
+        <tr><td style="text-align:left;font-weight:700">${nomEqHtml("A")}</td>${[0, 1, 2].map((i) => m.sets[i] ? `<td>${m.sets[i].a}</td>` : "<td>–</td>").join("")}</tr>
+        <tr><td style="text-align:left;font-weight:700">${nomEqHtml("B")}</td>${[0, 1, 2].map((i) => m.sets[i] ? `<td>${m.sets[i].b}</td>` : "<td>–</td>").join("")}</tr>
       </tbody>
     </table>
     <p class="acta-resultado">${ganador}</p>

@@ -7,6 +7,7 @@ import {
   nombreEquipo, nombreJugador, labelsDePuntos, tiempoRelativo,
   SHOT_TYPES, POINT_OUTCOMES, COURT_ZONES, outcomeInfo
 } from "./arbitro-common.js?v=4";
+import { escapeHtml } from "./utils.js?v=1";
 
 const params = new URLSearchParams(location.search);
 let matchId = params.get("id") || "";
@@ -185,7 +186,7 @@ function renderMatch(data) {
     cont.textContent = "Todavía no hay puntos jugados en este partido.";
   } else {
     const ganoPropio = ultimo.equipoGana === equipo;
-    cont.innerHTML = `Último punto: ganó <strong>${ganoPropio ? nombrePropio : nombreRival}</strong> (${ultimo.equipoGana === "A" ? "Pareja A" : "Pareja B"}) → ${ultimo.marcador}<br><small>${tiempoRelativo(ultimo.ts)} · Set ${ultimo.setIdx + 1}</small>`;
+    cont.innerHTML = `Último punto: ganó <strong>${escapeHtml(ganoPropio ? nombrePropio : nombreRival)}</strong> (${ultimo.equipoGana === "A" ? "Pareja A" : "Pareja B"}) → ${escapeHtml(ultimo.marcador)}<br><small>${tiempoRelativo(ultimo.ts)} · Set ${ultimo.setIdx + 1}</small>`;
   }
 
   renderFeedback();

@@ -1,4 +1,5 @@
 import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=5";
+import { escapeHtml } from "./utils.js?v=1";
 
 const grid = document.getElementById("catalogoGrid");
 const buscarInput = document.getElementById("catalogoBuscar");
@@ -206,8 +207,8 @@ function pintarListaResenas(clubId, contenedor) {
   contenedor.innerHTML = lista.slice(0, 5).map((r) => `
     <div class="cancha-resena-item">
       ${estrellasHTML(r.estrellas, false)}
-      <strong>${r.nombre}</strong>
-      ${r.comentario ? `<p>${r.comentario}</p>` : ""}
+      <strong>${escapeHtml(r.nombre)}</strong>
+      ${r.comentario ? `<p>${escapeHtml(r.comentario)}</p>` : ""}
     </div>
   `).join("");
 }
