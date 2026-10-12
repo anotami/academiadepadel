@@ -18,6 +18,9 @@ const mapaDistritoWrap = document.getElementById("catalogoMapaDistritoWrap");
 
 let visiblesHasta = PAGINA;
 
+// Permite llegar con un distrito ya filtrado desde las páginas /canchas/<distrito>.html.
+const distritoURL = new URLSearchParams(location.search).get("distrito");
+
 DISTRITOS.forEach((d) => {
   const opt = document.createElement("option");
   opt.value = d;
@@ -311,6 +314,10 @@ mapaDistritoToggle.addEventListener("click", () => {
   mapaDistritoWrap.hidden = !mapaDistritoWrap.hidden;
   actualizarMapaDistrito(distritoSelect.value);
 });
+
+if (distritoURL && DISTRITOS.some((d) => d.toLowerCase() === distritoURL.toLowerCase())) {
+  distritoSelect.value = DISTRITOS.find((d) => d.toLowerCase() === distritoURL.toLowerCase());
+}
 
 render();
 

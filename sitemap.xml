@@ -50,4 +50,51 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  <!-- BUILD:DISTRITOS:START -->
+  <url>
+    <loc>https://academiadepadel.pe/canchas/chorrillos.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/canchas/jesus-maria.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/canchas/la-molina.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/canchas/magdalena-del-mar.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/canchas/miraflores.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/canchas/san-borja.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/canchas/san-isidro.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/canchas/santiago-de-surco.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/canchas/surquillo.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+<!-- BUILD:DISTRITOS:END -->
 </urlset>

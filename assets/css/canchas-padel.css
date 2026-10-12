@@ -153,3 +153,39 @@
   .catalogo-grid { grid-template-columns: 1fr; }
   .catalogo-filtros select { flex: 1 1 100%; }
 }
+
+.distrito-breadcrumb {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+  text-align: center;
+}
+.distrito-breadcrumb a { color: var(--ink-soft); }
+.distrito-breadcrumb a:hover { color: var(--court); }
+
+.catalogo-intro, .catalogo-faq, .catalogo-explora {
+  max-width: 760px;
+  margin: 44px auto 0;
+}
+.catalogo-intro h2, .catalogo-faq h2, .catalogo-explora h2 {
+  font-size: 1.3rem;
+  margin-bottom: 14px;
+}
+.catalogo-intro p { color: var(--ink-soft); margin: 0 0 12px; }
+
+.catalogo-explora-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.catalogo-explora-links a {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  color: var(--court);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.catalogo-explora-links a:hover { border-color: var(--court); background: var(--surface); }
