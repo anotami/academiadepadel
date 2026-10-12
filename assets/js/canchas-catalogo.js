@@ -1,10 +1,22 @@
-import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=5";
+import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=6";
 import { escapeHtml } from "./utils.js?v=1";
+
+const PAGINA = 12;
+const NUESTRO_WHATSAPP = "51957085531";
 
 const grid = document.getElementById("catalogoGrid");
 const buscarInput = document.getElementById("catalogoBuscar");
 const distritoSelect = document.getElementById("catalogoDistrito");
+const techadaSelect = document.getElementById("catalogoTechada");
+const ordenSelect = document.getElementById("catalogoOrden");
 const contador = document.getElementById("catalogoContador");
+const paginacion = document.getElementById("catalogoPaginacion");
+const btnVerMas = document.getElementById("catalogoVerMas");
+const mapaDistritoBox = document.getElementById("catalogoMapaDistrito");
+const mapaDistritoToggle = document.getElementById("catalogoMapaDistritoToggle");
+const mapaDistritoWrap = document.getElementById("catalogoMapaDistritoWrap");
+
+let visiblesHasta = PAGINA;
 
 DISTRITOS.forEach((d) => {
   const opt = document.createElement("option");
@@ -12,6 +24,12 @@ DISTRITOS.forEach((d) => {
   opt.textContent = d;
   distritoSelect.appendChild(opt);
 });
+
+function precioMinimo(c) {
+  const match = c.tarifa.match(/S\/\s*([\d,.]+)/);
+  if (!match) return Infinity;
+  return Number(match[1].replace(/[.,]/g, ""));
+}
 
 const ESTADO_BADGE = {
   Habilitada: "badge-confirmada",
@@ -70,12 +88,14 @@ function tarjeta(c) {
       : `<a class="btn btn-outline btn-small" href="tel:+${c.telefono}">Llamar</a>`;
   const nombreMostrar = c.nombre.replace(" (nuestra academia)", "");
   const mapaQuery = encodeURIComponent(`${nombreMostrar}, ${c.direccion}`);
+  const techadaTexto = c.techada === true ? "Techada" : c.techada === false ? "Aire libre" : "Techada/aire libre: no especificado";
+  const actualizaTexto = encodeURIComponent(`Hola, soy de ${nombreMostrar} y quiero actualizar nuestros datos en el directorio de canchas de academiadepadel.pe`);
 
   let media;
   if (c.logo && !c.foto) {
     media = `<div class="cancha-media-logo-wrap"><img class="cancha-media-logo" src="${c.logo.src}" alt="${c.logo.alt}" loading="lazy"></div>`;
   } else if (c.foto) {
-    media = `<img class="cancha-media-foto" src="${c.foto.src}" alt="${c.foto.alt}" loading="lazy" width="300" height="180">`;
+    media = `<img class="cancha-media-foto" src="${c.foto.src}" alt="${c.foto.alt}" loading="lazy" width="300" height="180"><span class="cancha-foto-credito">Foto: Google Maps</span>`;
   } else {
     media = `<svg viewBox="0 0 120 80" class="cancha-media-svg" aria-hidden="true">
         <rect width="120" height="80" rx="10" fill="#14495a"/>
@@ -102,6 +122,7 @@ function tarjeta(c) {
         <li><strong>Cancha:</strong> ${c.cancha}</li>
         <li><strong>Horario:</strong> ${c.dias}, ${c.horario}</li>
         <li><strong>Tarifa estimada:</strong> ${c.tarifa}</li>
+        <li><strong>Tipo:</strong> ${techadaTexto}</li>
       </ul>
       <p class="cancha-redes">${redesHtml}</p>
       <div class="cancha-acciones">
@@ -109,6 +130,7 @@ function tarjeta(c) {
         <button type="button" class="btn btn-outline btn-small cancha-toggle-mapa">Ver mapa</button>
         <button type="button" class="btn btn-outline btn-small cancha-toggle-resena">Dejar reseña</button>
       </div>
+      ${c.featured ? "" : `<a class="cancha-actualiza" target="_blank" rel="noopener" href="https://wa.me/${NUESTRO_WHATSAPP}?text=${actualizaTexto}">¿Eres el club? Actualiza tus datos</a>`}
       <div class="cancha-mapa-wrap" hidden>
         <iframe class="cancha-mapa" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
           src="https://www.google.com/maps?q=${mapaQuery}&output=embed" title="Mapa de ${nombreMostrar}"></iframe>
@@ -213,25 +235,82 @@ function pintarListaResenas(clubId, contenedor) {
   `).join("");
 }
 
-function render() {
-  const texto = buscarInput.value.trim().toLowerCase();
-  const distrito = distritoSelect.value.toLowerCase();
-  const visibles = CANCHAS.filter((c) => {
-    const matchTexto = !texto || c.nombre.toLowerCase().includes(texto) || c.distrito.toLowerCase().includes(texto);
-    const matchDistrito = !distrito || c.distrito.toLowerCase() === distrito;
-    return matchTexto && matchDistrito;
-  });
-  grid.innerHTML = "";
-  if (!visibles.length) {
-    grid.innerHTML = `<p class="empty-state">No encontramos canchas con ese filtro.</p>`;
-  } else {
-    visibles.forEach((c) => grid.appendChild(tarjeta(c)));
+function actualizarMapaDistrito(distrito) {
+  if (!distrito) {
+    mapaDistritoBox.hidden = true;
+    mapaDistritoWrap.hidden = true;
+    mapaDistritoWrap.innerHTML = "";
+    mapaDistritoToggle.textContent = "Ver mapa de este distrito";
+    return;
   }
-  contador.textContent = `${visibles.length} cancha${visibles.length === 1 ? "" : "s"} encontrada${visibles.length === 1 ? "" : "s"}`;
+  mapaDistritoBox.hidden = false;
+  mapaDistritoToggle.textContent = mapaDistritoWrap.hidden
+    ? `Ver mapa de ${distrito}`
+    : `Ocultar mapa de ${distrito}`;
+  if (!mapaDistritoWrap.hidden) {
+    const query = encodeURIComponent(`Canchas de pádel en ${distrito}, Lima, Perú`);
+    mapaDistritoWrap.innerHTML = `<iframe class="cancha-mapa" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+      src="https://www.google.com/maps?q=${query}&output=embed" title="Mapa de canchas de pádel en ${distrito}"></iframe>`;
+  } else {
+    mapaDistritoWrap.innerHTML = "";
+  }
 }
 
-buscarInput.addEventListener("input", render);
-distritoSelect.addEventListener("change", render);
+function render() {
+  const texto = buscarInput.value.trim().toLowerCase();
+  const distrito = distritoSelect.value;
+  const techada = techadaSelect.value;
+  const orden = ordenSelect.value;
+
+  let visibles = CANCHAS.filter((c) => {
+    const matchTexto = !texto || c.nombre.toLowerCase().includes(texto) || c.distrito.toLowerCase().includes(texto);
+    const matchDistrito = !distrito || c.distrito.toLowerCase() === distrito.toLowerCase();
+    const matchTechada = !techada || (techada === "techada" ? c.techada === true : c.techada === false);
+    return matchTexto && matchDistrito && matchTechada;
+  });
+
+  const destacada = visibles.filter((c) => c.featured);
+  const resto = visibles.filter((c) => !c.featured);
+  if (orden === "precio") {
+    resto.sort((a, b) => precioMinimo(a) - precioMinimo(b));
+  } else if (orden === "nombre") {
+    resto.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  }
+  visibles = destacada.concat(resto);
+
+  const total = visibles.length;
+  const mostrar = visibles.slice(0, visiblesHasta);
+
+  grid.innerHTML = "";
+  if (!total) {
+    grid.innerHTML = `<p class="empty-state">No encontramos canchas con ese filtro.</p>`;
+  } else {
+    mostrar.forEach((c) => grid.appendChild(tarjeta(c)));
+  }
+  contador.textContent = `${total} cancha${total === 1 ? "" : "s"} encontrada${total === 1 ? "" : "s"}`;
+
+  paginacion.hidden = mostrar.length >= total;
+
+  actualizarMapaDistrito(distrito);
+}
+
+function reiniciarYRenderizar() {
+  visiblesHasta = PAGINA;
+  render();
+}
+
+buscarInput.addEventListener("input", reiniciarYRenderizar);
+distritoSelect.addEventListener("change", reiniciarYRenderizar);
+techadaSelect.addEventListener("change", reiniciarYRenderizar);
+ordenSelect.addEventListener("change", reiniciarYRenderizar);
+btnVerMas.addEventListener("click", () => {
+  visiblesHasta += PAGINA;
+  render();
+});
+mapaDistritoToggle.addEventListener("click", () => {
+  mapaDistritoWrap.hidden = !mapaDistritoWrap.hidden;
+  actualizarMapaDistrito(distritoSelect.value);
+});
 
 render();
 

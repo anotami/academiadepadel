@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=23">
-<link rel="stylesheet" href="assets/css/canchas-padel.css?v=3">
+<link rel="stylesheet" href="assets/css/canchas-padel.css?v=4">
 
 <!-- Open Graph -->
 <meta property="og:title" content="Canchas de pádel en Lima: directorio con mapa y reseñas">
@@ -64,11 +64,30 @@
         <select id="catalogoDistrito" aria-label="Filtrar por distrito">
           <option value="">Todos los distritos</option>
         </select>
+        <select id="catalogoTechada" aria-label="Filtrar por techada o aire libre">
+          <option value="">Techada o aire libre</option>
+          <option value="techada">Techada</option>
+          <option value="aire-libre">Aire libre</option>
+        </select>
+        <select id="catalogoOrden" aria-label="Ordenar canchas">
+          <option value="relevancia">Ordenar: relevancia</option>
+          <option value="precio">Ordenar: precio (menor a mayor)</option>
+          <option value="nombre">Ordenar: nombre (A-Z)</option>
+        </select>
         <p class="catalogo-contador" id="catalogoContador"></p>
+      </div>
+
+      <div class="catalogo-mapa-distrito" id="catalogoMapaDistrito" hidden>
+        <button type="button" class="btn btn-outline btn-small" id="catalogoMapaDistritoToggle">Ver mapa de este distrito</button>
+        <div class="catalogo-mapa-distrito-wrap" id="catalogoMapaDistritoWrap" hidden></div>
       </div>
 
       <div class="catalogo-grid" id="catalogoGrid">
         <p class="empty-state">Cargando canchas...</p>
+      </div>
+
+      <div class="catalogo-paginacion" id="catalogoPaginacion" hidden>
+        <button type="button" class="btn btn-outline" id="catalogoVerMas">Ver más canchas</button>
       </div>
     </div>
   </section>
@@ -87,6 +106,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script src="assets/js/cookie-banner.js?v=1"></script>
-<script type="module" src="assets/js/canchas-catalogo.js?v=5"></script>
+<script type="module" src="assets/js/canchas-catalogo.js?v=6"></script>
 </body>
 </html>
