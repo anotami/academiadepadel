@@ -29,7 +29,7 @@ function promedio(lista) {
 }
 
 function estrellasHTML(valor, interactivo, clubId) {
-  let html = `<span class="estrellas${interactivo ? " estrellas-input" : ""}" data-club="${clubId || ""}">`;
+  let html = `<span class="estrellas${interactivo ? " estrellas-input" : ""}" data-club="${clubId || ""}"${interactivo ? ' role="radiogroup" aria-label="Califica de 1 a 5 estrellas"' : ""}>`;
   for (let i = 1; i <= 5; i++) {
     const llena = valor && i <= Math.round(valor);
     if (interactivo) {
@@ -118,8 +118,8 @@ function tarjeta(c) {
         <form class="cancha-resena-form">
           <p class="field-hint">Califica tu experiencia en esta cancha.</p>
           ${estrellasHTML(0, true, c.id)}
-          <input type="text" class="resena-nombre" placeholder="Tu nombre (opcional)" maxlength="40">
-          <textarea class="resena-comentario" placeholder="Cuéntanos cómo estuvo la cancha, el horario, la atención..." maxlength="300" rows="2"></textarea>
+          <input type="text" class="resena-nombre" placeholder="Tu nombre (opcional)" maxlength="40" aria-label="Tu nombre (opcional)">
+          <textarea class="resena-comentario" placeholder="Cuéntanos cómo estuvo la cancha, el horario, la atención..." maxlength="300" rows="2" aria-label="Comentario sobre la cancha"></textarea>
           <button class="btn btn-primary btn-small" type="submit">Publicar reseña</button>
           <p class="form-msg resena-msg"></p>
         </form>
