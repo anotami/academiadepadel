@@ -59,7 +59,7 @@
         { tag: "Recomendado", title: "¡Conociendo el Pádel!", text: "Jornada grupal gratuita para probar el pádel desde cero, sin compromiso.", link: "index.html#ofertas" },
         { tag: "Siguiente paso", title: "Clínicas · Nivel inicial", text: "Sesiones temáticas de S/70 para afirmar tus primeros golpes.", link: "index.html#clinicas" }
       ],
-      waText: "Hola, hice el test de nivel en la web y me salió nivel Iniciación ({score}/8), equivalente a 8ª–7ª en el sistema argentino. Quiero información sobre la jornada gratuita ¡Conociendo el Pádel!"
+      waText: "Hola, hice el test de nivel en la web y me salió nivel Iniciación ({score}/8), equivalente a 8ª–7ª en el sistema argentino. Quiero reservar mi clase de prueba / la jornada gratuita ¡Conociendo el Pádel!"
     },
     {
       min: 3,
@@ -75,7 +75,7 @@
         { tag: "Recomendado", title: "Clínicas · Nivel inicial", text: "Sesiones temáticas puntuales (derecha, saque, volea, revés) para cerrar tus vacíos técnicos.", link: "index.html#clinicas" },
         { tag: "Para progresar", title: "Programa regular", text: "Junior o Adultos — clases por nivel con metodología progresiva.", link: "index.html#programas" }
       ],
-      waText: "Hola, hice el test de nivel en la web y me salió nivel Intermedio ({score}/8), equivalente a 6ª–5ª en el sistema argentino. Quiero información sobre las clínicas de nivel inicial."
+      waText: "Hola, hice el test de nivel en la web y me salió nivel Intermedio ({score}/8), equivalente a 6ª–5ª en el sistema argentino. Quiero reservar mi clase de prueba / las clínicas de nivel inicial."
     },
     {
       min: 6,
@@ -91,7 +91,7 @@
         { tag: "Recomendado", title: "Clínicas · Nivel intermedio", text: "Salida de pared, posicionamiento en pareja y bandeja, S/70 por sesión.", link: "index.html#clinicas" },
         { tag: "Para consolidar", title: "Paquete 8 clases", text: "El mejor precio por clase para seguir subiendo de nivel.", link: "index.html#precios" }
       ],
-      waText: "Hola, hice el test de nivel en la web y me salió nivel Consolidación ({score}/8), equivalente a 4ª en el sistema argentino. Quiero información sobre las clínicas de nivel intermedio y el paquete de 8 clases."
+      waText: "Hola, hice el test de nivel en la web y me salió nivel Consolidación ({score}/8), equivalente a 4ª en el sistema argentino. Quiero reservar mi clase de prueba / las clínicas de nivel intermedio y el paquete de 8 clases."
     }
   ];
 
@@ -173,6 +173,8 @@
     var waLink = document.getElementById("quizWhatsapp");
     var message = result.waText.replace("{score}", totalScore);
     waLink.href = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message);
+    var waLabel = document.getElementById("quizWhatsappLabel");
+    if (waLabel) waLabel.textContent = "Reservar mi clase de prueba";
 
     if (typeof gtag === "function") {
       gtag("event", "nivel_test_completado", { nivel: result.level, puntaje: totalScore });
