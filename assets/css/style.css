@@ -80,7 +80,10 @@ ul { padding: 0; margin: 0; list-style: none; }
 .btn-outline { background: transparent; color: var(--court); border-color: var(--border); }
 .btn-outline:hover { border-color: var(--court); }
 
-.btn-whatsapp { background: var(--whatsapp); color: #fff; }
+/* Texto blanco sobre el verde de WhatsApp no llega al contraste AA
+   (≈2:1); el mismo verde de marca con texto en var(--court-dark) sí
+   (≈6.9:1), así que el botón sigue siendo "WhatsApp verde" pero legible. */
+.btn-whatsapp { background: var(--whatsapp); color: var(--court-dark); }
 .btn-whatsapp:hover { background: var(--whatsapp-dark); }
 
 .btn-small { padding: 9px 16px; font-size: 0.88rem; min-height: 44px; }
@@ -907,7 +910,7 @@ h1 .hl {
   transition: transform 0.15s ease;
 }
 .whatsapp-float:hover { transform: scale(1.08); }
-.whatsapp-float svg { width: 30px; height: 30px; fill: #fff; }
+.whatsapp-float svg { width: 30px; height: 30px; fill: var(--court-dark); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
