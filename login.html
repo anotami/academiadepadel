@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20">
+<link rel="stylesheet" href="assets/css/style.css?v=21">
 </head>
 <body>
 
@@ -92,8 +92,9 @@
               <input type="text" id="su-referido" placeholder="Nombre de quien te recomendó la academia">
             </div>
             <div class="field field-full">
-              <label for="su-password">Contraseña (mínimo 6 caracteres)</label>
-              <input type="password" id="su-password" minlength="6" required autocomplete="new-password">
+              <label for="su-password">Contraseña (mínimo 8 caracteres)</label>
+              <input type="password" id="su-password" minlength="8" required autocomplete="new-password" aria-describedby="su-password-hint">
+              <p class="field-hint" id="su-password-hint">Mínimo 8 caracteres.</p>
             </div>
           </div>
 
@@ -145,6 +146,6 @@
 </footer>
 
 <script src="assets/js/main.js?v=13"></script>
-<script type="module" src="assets/js/login-page.js?v=14"></script>
+<script type="module" src="assets/js/login-page.js?v=15"></script>
 </body>
 </html>

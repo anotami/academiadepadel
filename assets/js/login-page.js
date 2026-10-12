@@ -69,13 +69,22 @@ const loginMsg = document.getElementById("login-msg");
 const formSignup = document.getElementById("form-signup");
 const signupMsg = document.getElementById("signup-msg");
 
+// --- Validación visible de la contraseña (mínimo 8 caracteres) ---
+const passwordInput = document.getElementById("su-password");
+const passwordHint = document.getElementById("su-password-hint");
+passwordInput.addEventListener("input", () => {
+  const ok = passwordInput.value.length >= 8;
+  passwordHint.textContent = ok ? "✓ Mínimo 8 caracteres" : `Mínimo 8 caracteres (llevas ${passwordInput.value.length})`;
+  passwordHint.className = "field-hint" + (passwordInput.value.length === 0 ? "" : ok ? " valido" : " invalido");
+});
+
 function mostrarSinConexion(el) {
   el.textContent = "No se pudo conectar (revisa tu internet) — inténtalo de nuevo en un momento.";
   el.className = "form-msg error";
 }
 
 let fb = null;
-import("./firebase-app.js?v=13")
+import("./firebase-app.js?v=14")
   .then((mod) => { fb = mod; })
   .catch(() => { fb = null; });
 
@@ -185,13 +194,15 @@ formSignup.addEventListener("submit", async (e) => {
       ...datosRol,
       creadoEn: fb.serverTimestamp()
     });
-    signupMsg.textContent = "¡Cuenta creada! Entrando...";
+    try { await fb.sendEmailVerification(cred.user); } catch (e) { /* no bloquea el alta si falla el envío */ }
+    signupMsg.textContent = "¡Cuenta creada! Te enviamos un correo para confirmar tu email. Entrando...";
     signupMsg.className = "form-msg ok";
     window.location.href = rolSignup === "profesor" ? "profesor.html" : "alumno.html";
   } catch (err) {
-    signupMsg.textContent = err.code === "auth/email-already-in-use"
-      ? "Ese correo ya tiene una cuenta. Prueba iniciar sesión."
-      : "No pudimos crear tu cuenta: " + (err.message || "intenta de nuevo.");
+    // Mensaje genérico a propósito: no decimos si el correo ya tenía cuenta
+    // ni mostramos el error crudo de Firebase, para no filtrar esa info a
+    // quien esté probando direcciones de correo al azar.
+    signupMsg.textContent = "No pudimos crear tu cuenta con esos datos. Revisa el correo y la contraseña, o inicia sesión si ya tienes una cuenta.";
     signupMsg.className = "form-msg error";
   }
 });
