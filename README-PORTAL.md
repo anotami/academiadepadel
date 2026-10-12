@@ -198,67 +198,7 @@ sistema lo redirige igual a `arbitro.html`.
 1. **Crea el proyecto Firebase** (gratis): [console.firebase.google.com](https://console.firebase.google.com) → "Agregar proyecto".
 2. **Activa el login:** *Authentication* → *Sign-in method* → habilita **Correo/contraseña** y también **Anónimo** (lo usa el catálogo de canchas para dejar reseñas sin pedir cuenta).
 3. **Crea la base de datos:** *Firestore Database* → *Crear base de datos* → modo producción → región cercana (ej. `southamerica-east1`).
-4. **Pega las reglas de seguridad** en *Firestore Database → Reglas*, reemplazando todo por:
-
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /usuarios/{uid} {
-         allow read: if request.auth != null;
-         allow write: if request.auth != null && request.auth.uid == uid;
-       }
-       match /pistas/{id} {
-         allow read: if request.auth != null;
-         allow write: if request.auth != null;
-       }
-       match /reservas/{id} {
-         allow read: if request.auth != null;
-         allow create: if request.auth != null && (
-           request.resource.data.alumnoId == request.auth.uid ||
-           get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor'
-         );
-         allow update: if request.auth != null;
-       }
-       match /paquetes/{id} {
-         allow read: if request.auth != null;
-         allow write: if request.auth != null;
-       }
-       match /esperas/{id} {
-         allow read: if request.auth != null;
-         allow write: if request.auth != null;
-       }
-       match /partidos/{id} {
-         allow read: if request.auth != null;
-         allow write: if request.auth != null;
-       }
-       match /arbitrajes/{id} {
-         allow read: if true;
-         allow write: if request.auth != null;
-
-         match /feedback/{feedbackId} {
-           allow read: if true;
-           allow create: if true;
-           allow delete: if true;
-         }
-       }
-       match /resenas_canchas/{resenaId} {
-         allow read: if true;
-         allow create: if request.auth != null
-           && request.resource.data.clubId is string
-           && request.resource.data.estrellas is int
-           && request.resource.data.estrellas >= 1
-           && request.resource.data.estrellas <= 5;
-       }
-     }
-   }
-   ```
-
-   Reglas intencionalmente simples: cualquier usuario logueado puede leer todo y escribir en la mayoría de colecciones (lo necesita el profesor para confirmar, activar paquetes, administrar pistas, etc.). Razonable para una academia chica sin datos de pago en el sistema; no lo uses así si algún día guardas tarjetas o datos sensibles.
-
-   `arbitrajes` es la única colección de lectura pública (`allow read: if true`), a propósito: son partidos de pádel (nombres y marcador, nada sensible) pensados para que cualquiera con el link los vea sin crear cuenta — eso es lo que hace posible el marcador en vivo y la multipista.
-
-   `arbitrajes/{id}/feedback` (la devolución táctica de la vista de entrenadores) es abierta a propósito, igual que `arbitrajes`: los entrenadores entran solo con el link del partido, sin cuenta, así que no hay `request.auth` que exigir. Es la misma decisión de "nada sensible, abierto por simplicidad" que ya se tomó para `arbitrajes`.
+4. **Pega las reglas de seguridad** en *Firestore Database → Reglas*: copia el contenido completo de [`firestore.rules`](./firestore.rules) (archivo en la raíz de este repo) y reemplaza todo por eso. La explicación de cada colección, por qué `arbitrajes` y `arbitrajes/feedback` son de lectura pública a propósito, y los pasos para activar App Check, están en [`README-seguridad.md`](./README-seguridad.md) — léelo antes de tocar las reglas si algo deja de funcionar después de pegarlas.
 
    `resenas_canchas` (reseñas del catálogo público `canchas-padel-lima.html`) tiene lectura abierta para que cualquier visitante vea las calificaciones sin loguearse, pero exige `request.auth != null` para publicar — por eso el paso 2 pide habilitar el proveedor **Anónimo**: el visitante se loguea anónimamente sin notarlo justo antes de enviar su reseña, solo para que la escritura cumpla la regla.
 
