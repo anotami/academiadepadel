@@ -86,29 +86,45 @@ ul { padding: 0; margin: 0; list-style: none; }
 .btn-small { padding: 9px 16px; font-size: 0.88rem; min-height: 44px; }
 .btn-large { padding: 16px 30px; font-size: 1.05rem; }
 
-/* ---------- Announce bar ---------- */
-.announce-bar {
-  background: var(--court-dark);
-  color: #fff;
-  text-align: center;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 9px 16px;
-}
-
-.test-banner {
-  display: block;
+/* ---------- Promo bar ---------- */
+.promo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   background: var(--accent);
+  padding: 11px 44px;
+  position: relative;
+}
+.promo-bar-msg {
+  display: block;
   color: var(--court-dark);
   text-align: center;
   text-decoration: none;
   font-size: 0.92rem;
   font-weight: 600;
-  padding: 11px 16px;
-  transition: background 0.15s ease;
+  transition: color 0.15s ease;
 }
-.test-banner strong { font-weight: 800; }
-.test-banner:hover { background: var(--accent-dark); }
+.promo-bar-msg strong { font-weight: 800; }
+.promo-bar-msg:hover { color: var(--court); }
+.promo-bar-close {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--court-dark);
+  min-width: 44px;
+  min-height: 44px;
+}
+@media (max-width: 480px) {
+  .promo-bar { padding: 11px 40px; }
+  .promo-bar-msg { font-size: 0.85rem; }
+}
 
 /* ---------- Header ---------- */
 .site-header {

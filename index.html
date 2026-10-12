@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=22">
+<link rel="stylesheet" href="assets/css/style.css?v=23">
 
 <!-- Open Graph -->
 <meta property="og:title" content="academiadepadel.pe">
@@ -36,11 +36,10 @@
 
 <a class="skip-link" href="#main">Saltar al contenido</a>
 
-<div class="announce-bar">🎾 ¿No tienes pala? Te la prestamos sin costo en tus primeras clases.</div>
-
-<a class="test-banner" href="test.html">
-  🎯 ¿No sabes tu nivel de pádel? <strong>Descúbrelo en 30 segundos</strong> y te decimos tu plan ideal →
-</a>
+<div class="promo-bar" id="promoBar" hidden>
+  <a class="promo-bar-msg" id="promoBarMsg" href="test.html">🎯 ¿No sabes tu nivel de pádel? <strong>Descúbrelo en 30 segundos</strong> y te decimos tu plan ideal →</a>
+  <button type="button" class="promo-bar-close" id="promoBarClose" aria-label="Cerrar aviso">×</button>
+</div>
 
 <header class="site-header" id="top">
   <div class="container header-inner">
@@ -683,6 +682,7 @@
 </a>
 
 <script src="assets/js/main.js?v=13"></script>
+<script src="assets/js/promo-bar.js?v=1"></script>
 <script src="assets/js/cookie-banner.js?v=1"></script>
 </body>
 </html>
