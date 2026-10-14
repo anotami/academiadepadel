@@ -783,6 +783,7 @@ h1 .hl {
   color: var(--ink-soft);
 }
 .price-table tr:last-child td { border-bottom: none; }
+.price-table-sub { display: block; font-size: 0.74rem; font-weight: 600; color: var(--ink-soft); }
 .price-table td:last-child {
   text-align: right;
   font-family: "Sora", sans-serif;
@@ -1423,6 +1424,21 @@ h1 .hl {
 @media (max-width: 480px) {
   .cookie-banner { flex-direction: column; align-items: stretch; }
   .cookie-banner-acciones { justify-content: flex-end; }
+}
+
+/* ---------- Agenda tu clase ---------- */
+.agenda-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.agenda-form .btn, .agenda-form .field-hint { grid-column: 1 / -1; }
+.agenda-form .btn { justify-self: start; }
+@media (max-width: 640px) {
+  .agenda-form { grid-template-columns: 1fr; }
+  .agenda-form .btn { justify-self: stretch; justify-content: center; }
 }
 
 /* ---------- Bloque "Probá una clase" + enlaces internos ---------- */
