@@ -1,5 +1,5 @@
 import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=14";
-import { construirGrillaDisponibilidad } from "./portal-common.js?v=13";
+import { construirGrillaTarifaPista } from "./portal-common.js?v=14";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];
 const BADGE_POR_ESTADO = { Habilitada: "badge-confirmada", Reservada: "badge-pendiente", Bloqueada: "badge-rechazada" };
@@ -40,7 +40,8 @@ function construirFormularioNuevaPista() {
       <div class="field"><label>Teléfono</label><input type="text" data-campo="telefono"></div>
       <div class="field"><label>Horario (texto libre)</label><input type="text" data-campo="horario" placeholder="Ej: Lunes a domingo, 6:00 - 22:00"></div>
       <div class="field"><label>Precio (público, el que ve el alumno)</label><input type="text" data-campo="precio" placeholder="Ej: S/ 90 - S/ 130 / hr"></div>
-      <div class="field"><label>Tu costo real por hora (S/, solo lo ves tú)</label><input type="number" min="0" step="1" data-campo="costoHora" placeholder="Ej: 100"></div>
+      <div class="field"><label>Tu costo sin luz, por hora (S/, solo lo ves tú)</label><input type="number" min="0" step="1" data-campo="costoHoraSinLuz" placeholder="Ej: 80"></div>
+      <div class="field"><label>Tu costo con luz, por hora (S/, solo lo ves tú)</label><input type="number" min="0" step="1" data-campo="costoHoraConLuz" placeholder="Ej: 100"></div>
       <div class="field"><label>Web / redes</label><input type="text" data-campo="web" placeholder="Ej: sitio.com | @usuario"></div>
       <div class="field">
         <label>Estado</label>
@@ -48,21 +49,25 @@ function construirFormularioNuevaPista() {
       </div>
     </div>
     <div class="disp-grid-head">
-      <h3 style="margin:16px 0 0; font-size:0.92rem;">Disponibilidad habitual</h3>
+      <h3 style="margin:16px 0 0; font-size:0.92rem;">Horario y tarifa (con o sin luz)</h3>
       <div class="disp-grid-actions">
-        <button class="btn btn-outline btn-small" type="button" data-accion="marcar-todo">Marcar todo</button>
+        <button class="btn btn-outline btn-small" type="button" data-accion="todo-sin-luz">Todo sin luz</button>
+        <button class="btn btn-outline btn-small" type="button" data-accion="todo-con-luz">Todo con luz</button>
         <button class="btn btn-outline btn-small" type="button" data-accion="limpiar-todo">Limpiar todo</button>
       </div>
     </div>
+    <p class="field-hint">Toca cada bloque para rotar: libre → sin luz → con luz → libre.</p>
+    <p class="disp-legend"><span class="disp-legend-swatch tarifa-sin-luz"></span> Sin luz <span class="disp-legend-swatch tarifa-con-luz"></span> Con luz</p>
     <div class="availability-grid" data-campo="disponibilidad"></div>
     <button class="btn btn-primary btn-small" type="button" style="margin-top:14px;">Crear pista</button>
     <p class="form-msg"></p>
   `;
 
   const gridWrap = card.querySelector('[data-campo="disponibilidad"]');
-  const grid = construirGrillaDisponibilidad(gridWrap);
-  card.querySelector('[data-accion="marcar-todo"]').addEventListener("click", () => grid.seleccionarTodo(true));
-  card.querySelector('[data-accion="limpiar-todo"]').addEventListener("click", () => grid.seleccionarTodo(false));
+  const grid = construirGrillaTarifaPista(gridWrap);
+  card.querySelector('[data-accion="todo-sin-luz"]').addEventListener("click", () => grid.marcarTodoComo("sin-luz"));
+  card.querySelector('[data-accion="todo-con-luz"]').addEventListener("click", () => grid.marcarTodoComo("con-luz"));
+  card.querySelector('[data-accion="limpiar-todo"]').addEventListener("click", () => grid.marcarTodoComo(null));
 
   const msg = card.querySelector(".form-msg");
   card.querySelector("button").addEventListener("click", async () => {
@@ -85,7 +90,8 @@ function construirFormularioNuevaPista() {
         telefono: campo("telefono"),
         horario: campo("horario"),
         precio: campo("precio"),
-        costoHora: Number(campo("costoHora")) || 0,
+        costoHoraSinLuz: Number(campo("costoHoraSinLuz")) || 0,
+        costoHoraConLuz: Number(campo("costoHoraConLuz")) || 0,
         web: campo("web"),
         estadoPista: card.querySelector('[data-campo="estadoPista"]').value,
         notas: "",
@@ -128,15 +134,29 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
     ${pista.web ? `<p class="court-meta">🔗 ${renderWeb(pista.web)}</p>` : ""}
     ${pista.notas ? `<p class="court-meta">${pista.notas}</p>` : ""}
     <p><span class="badge ${BADGE_POR_ESTADO[estado] || "badge-confirmada"}">${estado}</span></p>
-    <h3 style="margin-top:16px; font-size:0.92rem;">${esProfesor ? "Disponibilidad habitual (editable)" : "Disponibilidad habitual"}</h3>
+    <h3 style="margin-top:16px; font-size:0.92rem;">${esProfesor ? "Horario y tarifa (editable)" : "Horario y tarifa"}</h3>
+    <p class="disp-legend"><span class="disp-legend-swatch tarifa-sin-luz"></span> Sin luz <span class="disp-legend-swatch tarifa-con-luz"></span> Con luz</p>
   `;
   card.appendChild(header);
 
   const gridWrap = document.createElement("div");
-  const grid = construirGrillaDisponibilidad(gridWrap, { editable: esProfesor, marcadas: pista.disponibilidad || [] });
+  const grid = construirGrillaTarifaPista(gridWrap, { editable: esProfesor, marcadas: pista.disponibilidad || [] });
   card.appendChild(gridWrap);
 
   if (esProfesor) {
+    const accionesWrap = document.createElement("div");
+    accionesWrap.className = "disp-grid-actions";
+    accionesWrap.style.marginTop = "8px";
+    accionesWrap.innerHTML = `
+      <button class="btn btn-outline btn-small" type="button" data-accion="todo-sin-luz">Todo sin luz</button>
+      <button class="btn btn-outline btn-small" type="button" data-accion="todo-con-luz">Todo con luz</button>
+      <button class="btn btn-outline btn-small" type="button" data-accion="limpiar-todo">Limpiar todo</button>
+    `;
+    accionesWrap.querySelector('[data-accion="todo-sin-luz"]').addEventListener("click", () => grid.marcarTodoComo("sin-luz"));
+    accionesWrap.querySelector('[data-accion="todo-con-luz"]').addEventListener("click", () => grid.marcarTodoComo("con-luz"));
+    accionesWrap.querySelector('[data-accion="limpiar-todo"]').addEventListener("click", () => grid.marcarTodoComo(null));
+    card.appendChild(accionesWrap);
+
     const fieldsWrap = document.createElement("div");
     fieldsWrap.className = "form-grid";
     fieldsWrap.style.maxWidth = "460px";
@@ -147,12 +167,17 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
         <select data-campo="estadoPista">${ESTADOS_PISTA.map((e) => `<option ${e === estado ? "selected" : ""}>${e}</option>`).join("")}</select>
       </div>
       <div class="field">
-        <label>Tu costo real por hora (S/)</label>
-        <input type="number" min="0" step="1" data-campo="costoHora" value="${pista.costoHora || 0}">
+        <label>Tu costo sin luz, por hora (S/)</label>
+        <input type="number" min="0" step="1" data-campo="costoHoraSinLuz" value="${pista.costoHoraSinLuz || 0}">
+      </div>
+      <div class="field">
+        <label>Tu costo con luz, por hora (S/)</label>
+        <input type="number" min="0" step="1" data-campo="costoHoraConLuz" value="${pista.costoHoraConLuz || 0}">
       </div>
     `;
     const estadoSelect = fieldsWrap.querySelector('[data-campo="estadoPista"]');
-    const costoInput = fieldsWrap.querySelector('[data-campo="costoHora"]');
+    const costoSinLuzInput = fieldsWrap.querySelector('[data-campo="costoHoraSinLuz"]');
+    const costoConLuzInput = fieldsWrap.querySelector('[data-campo="costoHoraConLuz"]');
     card.appendChild(fieldsWrap);
 
     const msg = document.createElement("p");
@@ -169,7 +194,8 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
         await updateDoc(doc(db, "pistas", pistaId), {
           disponibilidad,
           estadoPista: estadoSelect.value,
-          costoHora: Number(costoInput.value) || 0
+          costoHoraSinLuz: Number(costoSinLuzInput.value) || 0,
+          costoHoraConLuz: Number(costoConLuzInput.value) || 0
         });
         msg.textContent = "Guardado.";
         msg.className = "form-msg ok";

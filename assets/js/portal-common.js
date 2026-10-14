@@ -133,6 +133,69 @@ export function construirGrillaDisponibilidad(container, { editable = true, marc
   };
 }
 
+// Grilla franja×día para el horario de UNA PISTA, con 2 niveles de tarifa
+// (sin luz / con luz) en vez de un simple sí/no: muchas canchas cobran más
+// de noche porque prenden reflectores. Un clic va rotando cada celda entre
+// 3 estados: libre -> sin luz -> con luz -> libre.
+//
+// El resultado de obtenerSeleccion() es [{dia, franja, tarifa}], con
+// tarifa "sin-luz" o "con-luz" — estaDisponible() sigue funcionando igual
+// sobre este array (solo mira dia/franja, ignora el campo tarifa de más).
+export function construirGrillaTarifaPista(container, { editable = true, marcadas = [] } = {}) {
+  const mapaMarcadas = new Map((marcadas || []).map((d) => [`${d.dia}|${d.franja}`, d.tarifa || "sin-luz"]));
+  container.classList.add("disp-grid");
+  container.innerHTML = "";
+
+  const headRow = document.createElement("div");
+  headRow.className = "disp-row disp-row-head";
+  headRow.innerHTML = `<span class="disp-cell disp-cell-corner"></span>` +
+    DIAS.map((dia, i) => `<span class="disp-cell disp-cell-head" title="${dia}">${DIAS_CORTO[i]}</span>`).join("");
+  container.appendChild(headRow);
+
+  function etiqueta(estado) {
+    return estado === "con-luz" ? "con luz" : estado === "sin-luz" ? "sin luz" : "no disponible";
+  }
+  function pintar(cell, estado) {
+    cell.dataset.estado = estado || "";
+    cell.className = "disp-cell disp-toggle" + (estado ? ` tarifa-${estado}` : " disp-off");
+    cell.setAttribute("aria-label", `${cell.dataset.dia}, ${cell.dataset.franja}: ${etiqueta(estado)}`);
+  }
+
+  FRANJAS.forEach((franja) => {
+    const row = document.createElement("div");
+    row.className = "disp-row";
+    row.innerHTML = `<span class="disp-cell disp-cell-label">${franja}</span>`;
+    DIAS.forEach((dia) => {
+      const estado = mapaMarcadas.get(`${dia}|${franja}`) || null;
+      const cell = document.createElement(editable ? "button" : "span");
+      if (editable) cell.type = "button";
+      cell.dataset.dia = dia;
+      cell.dataset.franja = franja;
+      pintar(cell, estado);
+      if (editable) {
+        cell.addEventListener("click", () => {
+          const actual = cell.dataset.estado || "";
+          const siguiente = actual === "" ? "sin-luz" : actual === "sin-luz" ? "con-luz" : "";
+          pintar(cell, siguiente || null);
+        });
+      }
+      row.appendChild(cell);
+    });
+    container.appendChild(row);
+  });
+
+  return {
+    obtenerSeleccion() {
+      return Array.from(container.querySelectorAll(".disp-toggle"))
+        .filter((el) => el.dataset.estado)
+        .map((el) => ({ dia: el.dataset.dia, franja: el.dataset.franja, tarifa: el.dataset.estado }));
+    },
+    marcarTodoComo(tarifa) {
+      container.querySelectorAll(".disp-toggle").forEach((el) => pintar(el, tarifa || null));
+    }
+  };
+}
+
 // Niveles de la metodología del sitio (sección #metodologia de index.html).
 export const NIVELES = ["Iniciación", "Intermedio", "Consolidación"];
 

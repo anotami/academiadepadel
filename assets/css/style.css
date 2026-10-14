@@ -1360,6 +1360,17 @@ h1 .hl {
 .disp-toggle.disp-off { background: var(--bg); cursor: default; opacity: 0.45; }
 span.disp-toggle.on { background: var(--court); }
 
+/* Tarifa de pistas: sin luz (día) vs con luz (noche, reflectores) */
+.disp-toggle.tarifa-sin-luz { background: var(--accent); }
+.disp-toggle.tarifa-sin-luz:hover { background: var(--accent-dark); }
+.disp-toggle.tarifa-con-luz { background: var(--court); }
+.disp-toggle.tarifa-con-luz:hover { background: var(--court-dark); }
+
+.disp-legend { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--ink-soft); margin: 6px 0; }
+.disp-legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; }
+.disp-legend-swatch.tarifa-sin-luz { background: var(--accent); }
+.disp-legend-swatch.tarifa-con-luz { background: var(--court); margin-left: 10px; }
+
 .avail-slot {
   display: flex;
   align-items: center;

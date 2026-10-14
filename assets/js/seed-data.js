@@ -3,7 +3,7 @@
 // del sitio); confirma precios y disponibilidad real con cada club antes de coordinar una
 // clase ahí, y actualiza aquí si algo cambia.
 
-import { DIAS, FRANJAS } from "./portal-common.js?v=13";
+import { DIAS, FRANJAS } from "./portal-common.js?v=14";
 
 // Rangos [horaInicio, horaFin) de cada franja de portal-common.js, derivados
 // de sus propias etiquetas ("6:00–8:00" -> [6, 8]) para que nunca se
@@ -85,26 +85,32 @@ const PISTAS_RAW = [
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 const FIN_DE_SEMANA = ["Sábado", "Domingo"];
 
-function grilla(dias, franjas) {
-  return dias.flatMap((dia) => franjas.map((franja) => ({ dia, franja })));
+// tarifa: "sin-luz" (de día) o "con-luz" (de noche, con reflectores) —
+// cada cancha cobra distinto según tenga que prender luz o no.
+function grilla(dias, franjas, tarifa) {
+  return dias.flatMap((dia) => franjas.map((franja) => ({ dia, franja, tarifa })));
 }
 
 const PISTAS_OVERRIDE = {
   "Club adidas X3": {
     estadoPista: "Habilitada",
-    costoHora: 70,
+    costoHoraSinLuz: 70,
+    costoHoraConLuz: 0,
     horario: "Lunes a Domingo, 7:30 – 18:00",
-    notas: "Costo fijo: S/ 70/hora.",
-    disponibilidad: grilla(DIAS, ["6:00–8:00", "8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00"])
+    notas: "Costo fijo: S/ 70/hora (no juega de noche, no necesita luz).",
+    disponibilidad: grilla(DIAS, ["6:00–8:00", "8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00"], "sin-luz")
   },
   "Club Pádel Lima (La Once)": {
     estadoPista: "Habilitada",
-    costoHora: 80,
+    costoHoraSinLuz: 80,
+    costoHoraConLuz: 100,
     horario: "Lunes a Viernes 6:00-8:00 y 16:00-23:00 · Sábado y domingo 6:00-22:00",
-    notas: "S/ 80/hora hasta las 18:00; desde las 18:00 sube a S/ 100/hora.",
+    notas: "S/ 80/hora hasta las 18:00 (sin luz); desde las 18:00 sube a S/ 100/hora (con luz).",
     disponibilidad: [
-      ...grilla(DIAS_SEMANA, ["6:00–8:00", "16:00–18:00", "18:00–20:00", "20:00–22:00"]),
-      ...grilla(FIN_DE_SEMANA, FRANJAS)
+      ...grilla(DIAS_SEMANA, ["6:00–8:00", "16:00–18:00"], "sin-luz"),
+      ...grilla(DIAS_SEMANA, ["18:00–20:00", "20:00–22:00"], "con-luz"),
+      ...grilla(FIN_DE_SEMANA, ["6:00–8:00", "8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00"], "sin-luz"),
+      ...grilla(FIN_DE_SEMANA, ["18:00–20:00", "20:00–22:00"], "con-luz")
     ]
   }
 };
@@ -119,7 +125,8 @@ export const PISTAS_SEED = PISTAS_RAW.map(
       telefono,
       horario: `${dias}, ${horaInicio} – ${horaFin}`,
       estadoPista,
-      costoHora: 0,
+      costoHoraSinLuz: 0,
+      costoHoraConLuz: 0,
       web,
       precio,
       notas: notas || "",

@@ -7,7 +7,7 @@ import {
 import {
   NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
-} from "./portal-common.js?v=13";
+} from "./portal-common.js?v=14";
 
 let currentUid = null;
 let currentPerfil = null;
