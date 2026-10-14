@@ -5,9 +5,9 @@ import {
   query, where, orderBy, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=14";
 import {
-  DIAS, FRANJAS, HORAS_RESERVA, TIPOS_CLASE,
-  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos
-} from "./portal-common.js?v=12";
+  HORAS_RESERVA, TIPOS_CLASE,
+  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad
+} from "./portal-common.js?v=13";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -201,29 +201,16 @@ function actualizarHint() {
 
 // ---- Disponibilidad grid (perfil) ----
 const dispWrap = document.getElementById("p-disponibilidad");
-DIAS.forEach((dia) => {
-  FRANJAS.forEach((franja) => {
-    const id = `pav-${dia}-${franja}`.replace(/\s+/g, "");
-    const label = document.createElement("label");
-    label.className = "avail-slot";
-    label.innerHTML = `<input type="checkbox" value="${dia}|${franja}" id="${id}"> ${dia} · ${franja}`;
-    const input = label.querySelector("input");
-    input.addEventListener("change", () => label.classList.toggle("checked", input.checked));
-    dispWrap.appendChild(label);
-  });
-});
+let dispGrid = construirGrillaDisponibilidad(dispWrap);
+
+document.getElementById("p-disp-todo")?.addEventListener("click", () => dispGrid.seleccionarTodo(true));
+document.getElementById("p-disp-ninguno")?.addEventListener("click", () => dispGrid.seleccionarTodo(false));
 
 function rellenarPerfil(perfil) {
   document.getElementById("p-telefono").value = perfil.telefono || "";
   document.getElementById("p-edad").value = perfil.edad || "";
   document.getElementById("p-nivel").value = perfil.nivel || "Inicial";
-  const marcadas = new Set((perfil.disponibilidad || []).map((d) => `${d.dia}|${d.franja}`));
-  dispWrap.querySelectorAll("input[type=checkbox]").forEach((input) => {
-    if (marcadas.has(input.value)) {
-      input.checked = true;
-      input.closest(".avail-slot").classList.add("checked");
-    }
-  });
+  dispGrid = construirGrillaDisponibilidad(dispWrap, { marcadas: perfil.disponibilidad || [] });
 }
 
 document.getElementById("form-perfil").addEventListener("submit", async (e) => {

@@ -1,13 +1,19 @@
 // Constantes compartidas por todo el portal (login, alumno, profesor, setup).
 
 export const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+export const DIAS_CORTO = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
-export const FRANJAS = [
-  "Mañana (6:00–10:00)",
-  "Mediodía (10:00–14:00)",
-  "Tarde (14:00–18:00)",
-  "Noche (18:00–22:00)"
-];
+// Bloques de disponibilidad de 2 horas, de 6:00 a 22:00 (8 bloques/día).
+// Generados en vez de escritos a mano para que horaAFranja() siempre calce
+// con la lista real, sin importar si se ajusta el rango o el paso.
+const FRANJA_INICIO = 6;
+const FRANJA_FIN = 22;
+const FRANJA_PASO = 2;
+
+export const FRANJAS = [];
+for (let h = FRANJA_INICIO; h < FRANJA_FIN; h += FRANJA_PASO) {
+  FRANJAS.push(`${h}:00–${h + FRANJA_PASO}:00`);
+}
 
 // Horas sueltas para agendar una clase puntual (reserva con fecha exacta).
 export const HORAS_RESERVA = [
@@ -53,14 +59,78 @@ export function diaDeSemana(fechaStr) {
 // Convierte una hora suelta ("06:00".."21:00") en su franja de disponibilidad.
 export function horaAFranja(hora) {
   const h = Number(hora.split(":")[0]);
-  if (h < 10) return FRANJAS[0];
-  if (h < 14) return FRANJAS[1];
-  if (h < 18) return FRANJAS[2];
-  return FRANJAS[3];
+  const idx = Math.floor((h - FRANJA_INICIO) / FRANJA_PASO);
+  return FRANJAS[Math.max(0, Math.min(idx, FRANJAS.length - 1))];
 }
 
 export function estaDisponible(disponibilidad, dia, franja) {
   return (disponibilidad || []).some((d) => d.dia === dia && d.franja === franja);
+}
+
+// Grilla compacta día×franja para elegir disponibilidad (reemplaza la lista
+// larga de checkboxes de "Lunes · Mañana (6:00–10:00)" uno debajo del otro).
+// Franjas en filas, días en columnas, con la columna de franja fija (sticky)
+// para poder desplazar horizontal en pantallas angostas sin perder la fila.
+//
+// container: el elemento donde se arma la grilla.
+// opciones.editable: si es false, las celdas quedan solo de lectura.
+// opciones.marcadas: array [{dia, franja}] ya seleccionado (al editar un perfil existente).
+//
+// Devuelve { obtenerSeleccion(), seleccionarTodo(valor) } para que cada
+// pantalla lea la selección al guardar y arme sus propios botones de
+// "Marcar todo" / "Limpiar todo" si quiere.
+export function construirGrillaDisponibilidad(container, { editable = true, marcadas = [] } = {}) {
+  const marcadasSet = new Set((marcadas || []).map((d) => `${d.dia}|${d.franja}`));
+  container.classList.add("disp-grid");
+  container.innerHTML = "";
+
+  const headRow = document.createElement("div");
+  headRow.className = "disp-row disp-row-head";
+  headRow.innerHTML = `<span class="disp-cell disp-cell-corner"></span>` +
+    DIAS.map((dia, i) => `<span class="disp-cell disp-cell-head" title="${dia}">${DIAS_CORTO[i]}</span>`).join("");
+  container.appendChild(headRow);
+
+  FRANJAS.forEach((franja) => {
+    const row = document.createElement("div");
+    row.className = "disp-row";
+    row.innerHTML = `<span class="disp-cell disp-cell-label">${franja}</span>`;
+    DIAS.forEach((dia) => {
+      const checked = marcadasSet.has(`${dia}|${franja}`);
+      const cell = document.createElement(editable ? "button" : "span");
+      if (editable) cell.type = "button";
+      cell.className = "disp-cell disp-toggle" + (checked ? " on" : "");
+      cell.dataset.dia = dia;
+      cell.dataset.franja = franja;
+      cell.setAttribute("aria-pressed", checked ? "true" : "false");
+      cell.setAttribute("aria-label", `${dia}, ${franja}`);
+      if (editable) {
+        cell.addEventListener("click", () => {
+          const on = !cell.classList.contains("on");
+          cell.classList.toggle("on", on);
+          cell.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      } else if (!checked) {
+        cell.classList.add("disp-off");
+      }
+      row.appendChild(cell);
+    });
+    container.appendChild(row);
+  });
+
+  return {
+    obtenerSeleccion() {
+      return Array.from(container.querySelectorAll(".disp-toggle.on")).map((el) => ({
+        dia: el.dataset.dia,
+        franja: el.dataset.franja
+      }));
+    },
+    seleccionarTodo(valor) {
+      container.querySelectorAll(".disp-toggle").forEach((el) => {
+        el.classList.toggle("on", valor);
+        el.setAttribute("aria-pressed", valor ? "true" : "false");
+      });
+    }
+  };
 }
 
 // Niveles de la metodología del sitio (sección #metodologia de index.html).

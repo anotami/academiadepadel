@@ -3,15 +3,12 @@
 // del sitio); confirma precios y disponibilidad real con cada club antes de coordinar una
 // clase ahí, y actualiza aquí si algo cambia.
 
-import { DIAS, FRANJAS } from "./portal-common.js?v=12";
+import { DIAS, FRANJAS } from "./portal-common.js?v=13";
 
-// Rangos [horaInicio, horaFin) de cada franja de portal-common.js, en ese mismo orden.
-const RANGOS_FRANJA = [
-  [6, 10],
-  [10, 14],
-  [14, 18],
-  [18, 22]
-];
+// Rangos [horaInicio, horaFin) de cada franja de portal-common.js, derivados
+// de sus propias etiquetas ("6:00–8:00" -> [6, 8]) para que nunca se
+// desalineen si cambia el paso o el rango horario allá.
+const RANGOS_FRANJA = FRANJAS.map((f) => f.split("–").map((h) => Number(h.split(":")[0])));
 
 function aMinutos(hhmm) {
   const [h, m] = hhmm.split(":").map(Number);
@@ -79,21 +76,62 @@ const PISTAS_RAW = [
   ["Mad Padel - La Molina", "Cancha 1", "Lunes a Domingo", "06:00", "23:00", "Habilitada", "+51 950 303 330", "La Molina, Lima", "madpadel.pe | @madpadelpe", "S/ 90 - S/ 130 / hr"]
 ];
 
+// Gabriel solo dicta clase en 2 de estas canchas por ahora (el resto queda
+// en el directorio solo como referencia pública, bloqueado para clases):
+// Club adidas X3 y Club Pádel Lima (La Once, su "Cancha 11"). Sus horarios
+// reales no entran en el modelo simple de "un rango de horas" de la tabla
+// de arriba (La Once tiene un hueco al mediodía entre semana y un precio
+// que sube de noche), así que se arman a mano acá.
+const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+const FIN_DE_SEMANA = ["Sábado", "Domingo"];
+
+function grilla(dias, franjas) {
+  return dias.flatMap((dia) => franjas.map((franja) => ({ dia, franja })));
+}
+
+const PISTAS_OVERRIDE = {
+  "Club adidas X3": {
+    estadoPista: "Habilitada",
+    costoHora: 70,
+    horario: "Lunes a Domingo, 7:30 – 18:00",
+    notas: "Costo fijo: S/ 70/hora.",
+    disponibilidad: grilla(DIAS, ["6:00–8:00", "8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00"])
+  },
+  "Club Pádel Lima (La Once)": {
+    estadoPista: "Habilitada",
+    costoHora: 80,
+    horario: "Lunes a Viernes 6:00-8:00 y 16:00-23:00 · Sábado y domingo 6:00-22:00",
+    notas: "S/ 80/hora hasta las 18:00; desde las 18:00 sube a S/ 100/hora.",
+    disponibilidad: [
+      ...grilla(DIAS_SEMANA, ["6:00–8:00", "16:00–18:00", "18:00–20:00", "20:00–22:00"]),
+      ...grilla(FIN_DE_SEMANA, FRANJAS)
+    ]
+  }
+};
+
 export const PISTAS_SEED = PISTAS_RAW.map(
-  ([nombre, cancha, dias, horaInicio, horaFin, estadoPista, telefono, direccion, web, precio, notas]) => ({
-    nombre,
-    cancha,
-    distrito: extraerDistrito(direccion),
-    direccion,
-    telefono,
-    horario: `${dias}, ${horaInicio} – ${horaFin}`,
-    estadoPista,
-    web,
-    precio,
-    notas: notas || "",
-    fuente: "Recopilado por el dueño del sitio (oct. 2026)",
-    disponibilidad: disponibilidadDesde(dias, horaInicio, horaFin)
-  })
+  ([nombre, cancha, dias, horaInicio, horaFin, estadoPista, telefono, direccion, web, precio, notas]) => {
+    const base = {
+      nombre,
+      cancha,
+      distrito: extraerDistrito(direccion),
+      direccion,
+      telefono,
+      horario: `${dias}, ${horaInicio} – ${horaFin}`,
+      estadoPista,
+      costoHora: 0,
+      web,
+      precio,
+      notas: notas || "",
+      fuente: "Recopilado por el dueño del sitio (oct. 2026)",
+      disponibilidad: disponibilidadDesde(dias, horaInicio, horaFin)
+    };
+    const override = PISTAS_OVERRIDE[nombre];
+    // Por pedido de Gabriel (oct. 2026): bloqueadas para dar clases todas las
+    // pistas salvo las 2 donde realmente dicta clase hoy.
+    if (override) return { ...base, ...override };
+    return { ...base, estadoPista: "Bloqueada" };
+  }
 );
 
 function disponibilidadDesde(dias, horaInicio, horaFin) {
@@ -110,13 +148,20 @@ export const PROFESOR_SEED = {
   especialidad: "Adultos — ejecutivos y nivel inicial/intermedio",
   bio: "Fundador de academiadepadel.pe. Clases para adultos con foco en aprendizaje a tu ritmo, sin presión de competir.",
   disponibilidad: [
-    { dia: "Lunes", franja: "Noche (18:00–22:00)" },
-    { dia: "Martes", franja: "Noche (18:00–22:00)" },
-    { dia: "Miércoles", franja: "Noche (18:00–22:00)" },
-    { dia: "Jueves", franja: "Noche (18:00–22:00)" },
-    { dia: "Viernes", franja: "Noche (18:00–22:00)" },
-    { dia: "Sábado", franja: "Mañana (6:00–10:00)" },
-    { dia: "Sábado", franja: "Mediodía (10:00–14:00)" }
+    { dia: "Lunes", franja: "18:00–20:00" },
+    { dia: "Lunes", franja: "20:00–22:00" },
+    { dia: "Martes", franja: "18:00–20:00" },
+    { dia: "Martes", franja: "20:00–22:00" },
+    { dia: "Miércoles", franja: "18:00–20:00" },
+    { dia: "Miércoles", franja: "20:00–22:00" },
+    { dia: "Jueves", franja: "18:00–20:00" },
+    { dia: "Jueves", franja: "20:00–22:00" },
+    { dia: "Viernes", franja: "18:00–20:00" },
+    { dia: "Viernes", franja: "20:00–22:00" },
+    { dia: "Sábado", franja: "6:00–8:00" },
+    { dia: "Sábado", franja: "8:00–10:00" },
+    { dia: "Sábado", franja: "10:00–12:00" },
+    { dia: "Sábado", franja: "12:00–14:00" }
   ]
 };
 
@@ -130,9 +175,12 @@ export const ALUMNOS_SEED = [
     nivel: "Inicial",
     programa: "Adultos — mujeres",
     disponibilidad: [
-      { dia: "Martes", franja: "Noche (18:00–22:00)" },
-      { dia: "Jueves", franja: "Noche (18:00–22:00)" },
-      { dia: "Sábado", franja: "Mañana (6:00–10:00)" }
+      { dia: "Martes", franja: "18:00–20:00" },
+      { dia: "Martes", franja: "20:00–22:00" },
+      { dia: "Jueves", franja: "18:00–20:00" },
+      { dia: "Jueves", franja: "20:00–22:00" },
+      { dia: "Sábado", franja: "6:00–8:00" },
+      { dia: "Sábado", franja: "8:00–10:00" }
     ]
   },
   {
@@ -144,9 +192,12 @@ export const ALUMNOS_SEED = [
     nivel: "Intermedio",
     programa: "Adultos — ejecutivos",
     disponibilidad: [
-      { dia: "Lunes", franja: "Noche (18:00–22:00)" },
-      { dia: "Miércoles", franja: "Noche (18:00–22:00)" },
-      { dia: "Sábado", franja: "Mediodía (10:00–14:00)" }
+      { dia: "Lunes", franja: "18:00–20:00" },
+      { dia: "Lunes", franja: "20:00–22:00" },
+      { dia: "Miércoles", franja: "18:00–20:00" },
+      { dia: "Miércoles", franja: "20:00–22:00" },
+      { dia: "Sábado", franja: "10:00–12:00" },
+      { dia: "Sábado", franja: "12:00–14:00" }
     ]
   }
 ];

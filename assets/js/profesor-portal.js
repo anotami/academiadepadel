@@ -5,9 +5,9 @@ import {
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=14";
 import {
-  DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
-  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso
-} from "./portal-common.js?v=12";
+  NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
+  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
+} from "./portal-common.js?v=13";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -59,39 +59,23 @@ async function cargarPistasCache() {
 
 // ---- Disponibilidad grid ----
 const dispWrap = document.getElementById("p-disponibilidad");
-DIAS.forEach((dia) => {
-  FRANJAS.forEach((franja) => {
-    const id = `pav-${dia}-${franja}`.replace(/\s+/g, "");
-    const label = document.createElement("label");
-    label.className = "avail-slot";
-    label.innerHTML = `<input type="checkbox" value="${dia}|${franja}" id="${id}"> ${dia} · ${franja}`;
-    const input = label.querySelector("input");
-    input.addEventListener("change", () => label.classList.toggle("checked", input.checked));
-    dispWrap.appendChild(label);
-  });
-});
+let dispGrid = construirGrillaDisponibilidad(dispWrap);
+
+document.getElementById("p-disp-todo")?.addEventListener("click", () => dispGrid.seleccionarTodo(true));
+document.getElementById("p-disp-ninguno")?.addEventListener("click", () => dispGrid.seleccionarTodo(false));
 
 function rellenarPerfil(perfil) {
   document.getElementById("p-telefono").value = perfil.telefono || "";
   document.getElementById("p-especialidad").value = perfil.especialidad || "";
   document.getElementById("p-costo-hora").value = perfil.costoHora || 0;
   document.getElementById("p-bio").value = perfil.bio || "";
-  const marcadas = new Set((perfil.disponibilidad || []).map((d) => `${d.dia}|${d.franja}`));
-  dispWrap.querySelectorAll("input[type=checkbox]").forEach((input) => {
-    if (marcadas.has(input.value)) {
-      input.checked = true;
-      input.closest(".avail-slot").classList.add("checked");
-    }
-  });
+  dispGrid = construirGrillaDisponibilidad(dispWrap, { marcadas: perfil.disponibilidad || [] });
 }
 
 document.getElementById("form-perfil").addEventListener("submit", async (e) => {
   e.preventDefault();
   const msg = document.getElementById("perfil-msg");
-  const disponibilidad = Array.from(dispWrap.querySelectorAll("input:checked")).map((input) => {
-    const [dia, franja] = input.value.split("|");
-    return { dia, franja };
-  });
+  const disponibilidad = dispGrid.obtenerSeleccion();
   try {
     const costoHora = Number(document.getElementById("p-costo-hora").value) || 0;
     await updateDoc(doc(db, "usuarios", currentUid), {

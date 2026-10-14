@@ -1,4 +1,4 @@
-import { DIAS, FRANJAS } from "./portal-common.js?v=12";
+import { construirGrillaDisponibilidad } from "./portal-common.js?v=13";
 
 // El cambio de pestañas, la grilla de disponibilidad y el campo de
 // apoderado son pura UI local: se conectan primero y sin depender de que
@@ -20,17 +20,9 @@ tabs.forEach((tab) => {
 
 // --- Grilla de disponibilidad para el signup ---
 const disponibilidadWrap = document.getElementById("su-disponibilidad");
-DIAS.forEach((dia) => {
-  FRANJAS.forEach((franja) => {
-    const id = `av-${dia}-${franja}`.replace(/\s+/g, "");
-    const label = document.createElement("label");
-    label.className = "avail-slot";
-    label.innerHTML = `<input type="checkbox" value="${dia}|${franja}" id="${id}"> ${dia} · ${franja}`;
-    const input = label.querySelector("input");
-    input.addEventListener("change", () => label.classList.toggle("checked", input.checked));
-    disponibilidadWrap.appendChild(label);
-  });
-});
+const disponibilidadGrid = construirGrillaDisponibilidad(disponibilidadWrap);
+document.getElementById("su-disp-todo")?.addEventListener("click", () => disponibilidadGrid.seleccionarTodo(true));
+document.getElementById("su-disp-ninguno")?.addEventListener("click", () => disponibilidadGrid.seleccionarTodo(false));
 
 // --- Mostrar datos de apoderado si el alumno es menor de edad ---
 const edadInput = document.getElementById("su-edad");
@@ -160,12 +152,7 @@ formSignup.addEventListener("submit", async (e) => {
       }
     }
 
-    const disponibilidad = Array.from(
-      disponibilidadWrap.querySelectorAll("input:checked")
-    ).map((input) => {
-      const [dia, franja] = input.value.split("|");
-      return { dia, franja };
-    });
+    const disponibilidad = disponibilidadGrid.obtenerSeleccion();
 
     datosRol = {
       edad,

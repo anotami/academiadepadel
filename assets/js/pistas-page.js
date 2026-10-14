@@ -1,5 +1,5 @@
 import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=14";
-import { DIAS, FRANJAS, estaDisponible } from "./portal-common.js?v=12";
+import { construirGrillaDisponibilidad } from "./portal-common.js?v=13";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];
 const BADGE_POR_ESTADO = { Habilitada: "badge-confirmada", Reservada: "badge-pendiente", Bloqueada: "badge-rechazada" };
@@ -47,23 +47,22 @@ function construirFormularioNuevaPista() {
         <select data-campo="estadoPista">${ESTADOS_PISTA.map((e) => `<option>${e}</option>`).join("")}</select>
       </div>
     </div>
-    <h3 style="margin-top:16px; font-size:0.92rem;">Disponibilidad habitual</h3>
+    <div class="disp-grid-head">
+      <h3 style="margin:16px 0 0; font-size:0.92rem;">Disponibilidad habitual</h3>
+      <div class="disp-grid-actions">
+        <button class="btn btn-outline btn-small" type="button" data-accion="marcar-todo">Marcar todo</button>
+        <button class="btn btn-outline btn-small" type="button" data-accion="limpiar-todo">Limpiar todo</button>
+      </div>
+    </div>
     <div class="availability-grid" data-campo="disponibilidad"></div>
     <button class="btn btn-primary btn-small" type="button" style="margin-top:14px;">Crear pista</button>
     <p class="form-msg"></p>
   `;
 
-  const grid = card.querySelector('[data-campo="disponibilidad"]');
-  DIAS.forEach((dia) => {
-    FRANJAS.forEach((franja) => {
-      const label = document.createElement("label");
-      label.className = "avail-slot";
-      label.innerHTML = `<input type="checkbox" data-dia="${dia}" data-franja="${franja}"> ${dia} · ${franja}`;
-      const input = label.querySelector("input");
-      input.addEventListener("change", () => label.classList.toggle("checked", input.checked));
-      grid.appendChild(label);
-    });
-  });
+  const gridWrap = card.querySelector('[data-campo="disponibilidad"]');
+  const grid = construirGrillaDisponibilidad(gridWrap);
+  card.querySelector('[data-accion="marcar-todo"]').addEventListener("click", () => grid.seleccionarTodo(true));
+  card.querySelector('[data-accion="limpiar-todo"]').addEventListener("click", () => grid.seleccionarTodo(false));
 
   const msg = card.querySelector(".form-msg");
   card.querySelector("button").addEventListener("click", async () => {
@@ -76,10 +75,7 @@ function construirFormularioNuevaPista() {
       msg.className = "form-msg error";
       return;
     }
-    const disponibilidad = Array.from(grid.querySelectorAll("input:checked")).map((input) => ({
-      dia: input.dataset.dia,
-      franja: input.dataset.franja
-    }));
+    const disponibilidad = grid.obtenerSeleccion();
     try {
       await addDoc(collection(db, "pistas"), {
         nombre,
@@ -136,22 +132,9 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
   `;
   card.appendChild(header);
 
-  const grid = document.createElement("div");
-  grid.className = "availability-grid";
-  DIAS.forEach((dia) => {
-    FRANJAS.forEach((franja) => {
-      const checked = estaDisponible(pista.disponibilidad, dia, franja);
-      const label = document.createElement("label");
-      label.className = "avail-slot" + (checked ? " checked" : "");
-      label.innerHTML = `<input type="checkbox" data-dia="${dia}" data-franja="${franja}" ${checked ? "checked" : ""} ${esProfesor ? "" : "disabled"}> ${dia} · ${franja}`;
-      if (esProfesor) {
-        const input = label.querySelector("input");
-        input.addEventListener("change", () => label.classList.toggle("checked", input.checked));
-      }
-      grid.appendChild(label);
-    });
-  });
-  card.appendChild(grid);
+  const gridWrap = document.createElement("div");
+  const grid = construirGrillaDisponibilidad(gridWrap, { editable: esProfesor, marcadas: pista.disponibilidad || [] });
+  card.appendChild(gridWrap);
 
   if (esProfesor) {
     const fieldsWrap = document.createElement("div");
@@ -181,10 +164,7 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
     btn.textContent = "Guardar cambios";
     btn.style.marginTop = "10px";
     btn.addEventListener("click", async () => {
-      const disponibilidad = Array.from(grid.querySelectorAll("input:checked")).map((input) => ({
-        dia: input.dataset.dia,
-        franja: input.dataset.franja
-      }));
+      const disponibilidad = grid.obtenerSeleccion();
       try {
         await updateDoc(doc(db, "pistas", pistaId), {
           disponibilidad,
