@@ -186,6 +186,10 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
         <label>Estado de la pista</label>
         <select data-campo="estadoPista">${ESTADOS_PISTA.map((e) => `<option ${e === estado ? "selected" : ""}>${e}</option>`).join("")}</select>
       </div>
+      <div class="field field-full">
+        <label>Precio (público, el que ve el alumno)</label>
+        <input type="text" data-campo="precio" value="${pista.precio || ""}" placeholder="Ej: S/ 80 (sin luz) - S/ 100 (con luz) / hr">
+      </div>
       <div class="field">
         <label>Tu costo sin luz, por hora (S/)</label>
         <input type="number" min="0" step="1" data-campo="costoHoraSinLuz" value="${pista.costoHoraSinLuz || 0}">
@@ -196,6 +200,7 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
       </div>
     `;
     const estadoSelect = fieldsWrap.querySelector('[data-campo="estadoPista"]');
+    const precioInput = fieldsWrap.querySelector('[data-campo="precio"]');
     const costoSinLuzInput = fieldsWrap.querySelector('[data-campo="costoHoraSinLuz"]');
     const costoConLuzInput = fieldsWrap.querySelector('[data-campo="costoHoraConLuz"]');
     card.appendChild(fieldsWrap);
@@ -214,6 +219,7 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
         await updateDoc(doc(db, "pistas", pistaId), {
           disponibilidad,
           estadoPista: estadoSelect.value,
+          precio: precioInput.value.trim(),
           costoHoraSinLuz: Number(costoSinLuzInput.value) || 0,
           costoHoraConLuz: Number(costoConLuzInput.value) || 0
         });
