@@ -1379,6 +1379,31 @@ span.disp-toggle.on { background: var(--court); }
 .disp-legend-swatch.tarifa-sin-luz { background: var(--accent); }
 .disp-legend-swatch.tarifa-con-luz { background: var(--court); margin-left: 10px; }
 
+/* Calendario público "Agenda tu clase" (index.html#agenda) */
+.agenda-grid-wrap { margin: 18px 0 26px; }
+.agenda-cancha-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.agenda-cancha-tab {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.agenda-cancha-tab.activa { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.agenda-slot.seleccionada { outline: 3px solid var(--ink); outline-offset: -3px; }
+.agenda-confirm {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  max-width: 420px;
+}
+.agenda-confirm-resumen { font-weight: 800; margin: 0 0 12px; }
+
 .avail-slot {
   display: flex;
   align-items: center;
