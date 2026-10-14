@@ -1,4 +1,4 @@
-import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=6";
+import { CANCHAS, DISTRITOS } from "./canchas-data.js?v=7";
 import { escapeHtml } from "./utils.js?v=1";
 
 const PAGINA = 12;

@@ -3,6 +3,26 @@ import { construirGrillaTarifaPista } from "./portal-common.js?v=14";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];
 const BADGE_POR_ESTADO = { Habilitada: "badge-confirmada", Reservada: "badge-pendiente", Bloqueada: "badge-rechazada" };
+const ORDEN_ESTADO = { Habilitada: 0, Reservada: 1, Bloqueada: 2 };
+
+// X3 y La Once (Cancha 11) primero, siempre — son las 2 sedes donde Gabriel
+// realmente dicta clase hoy. Después, el resto ordenado por estado
+// (Habilitada antes que Reservada/Bloqueada) y luego por nombre.
+function prioridadPista(pista) {
+  const nombre = (pista.nombre || "").toLowerCase();
+  const cancha = (pista.cancha || "").toLowerCase();
+  if (nombre.includes("x3")) return 0;
+  if (nombre.includes("once") || cancha.includes("11")) return 1;
+  return 2 + (ORDEN_ESTADO[pista.estadoPista] ?? 3);
+}
+
+function ordenarPistas(docs) {
+  return docs.slice().sort((a, b) => {
+    const pa = prioridadPista(a.data()), pb = prioridadPista(b.data());
+    if (pa !== pb) return pa - pb;
+    return (a.data().nombre || "").localeCompare(b.data().nombre || "", "es");
+  });
+}
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -24,7 +44,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   wrap.innerHTML = "";
-  snap.docs.forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor)));
+  ordenarPistas(snap.docs).forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor)));
 });
 
 function construirFormularioNuevaPista() {
