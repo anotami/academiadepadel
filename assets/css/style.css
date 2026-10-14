@@ -1561,6 +1561,10 @@ span.disp-toggle.on { background: var(--court); }
 .filtro-distrito-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
 .filtro-distrito-item { padding: 7px 12px; font-size: 0.82rem; }
 
+.paquete-fila { padding: 8px 0; border-top: 1px dashed var(--border); }
+.paquete-fila:first-of-type { border-top: none; }
+.paquete-fila p { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
 /* ---------- Accesibilidad ---------- */
 :focus-visible {
   outline: 3px solid var(--court-dark);

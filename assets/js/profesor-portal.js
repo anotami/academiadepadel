@@ -1,7 +1,7 @@
 import {
   auth, db,
   onAuthStateChanged, signOut,
-  doc, getDoc, updateDoc, addDoc,
+  doc, getDoc, updateDoc, addDoc, deleteDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=15";
 import {
@@ -243,6 +243,7 @@ function construirTarjetaFutura(r) {
       <span class="badge badge-confirmada">confirmada</span>
       ${linkRecordatorio(r)}
       <button class="btn btn-outline btn-small" type="button" data-toggle-reprogramar>Reprogramar</button>
+      <button class="btn btn-outline btn-small" type="button" data-cancelar>Cancelar</button>
     </div>`;
 
   const form = card.querySelector("[data-reprogramar-form]");
@@ -250,6 +251,16 @@ function construirTarjetaFutura(r) {
     form.hidden = !form.hidden;
   });
   const msg = card.querySelector(".form-msg");
+
+  card.querySelector("[data-cancelar]").addEventListener("click", async () => {
+    if (!confirm(`¿Cancelar la clase de ${r.alumnoNombre} del ${formatearFecha(r.fecha)}?`)) return;
+    try {
+      await updateDoc(doc(db, "reservas", r.id), { estado: "cancelada" });
+    } catch (err) {
+      msg.textContent = "No se pudo cancelar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
   card.querySelector("[data-guardar-reprogramacion]").addEventListener("click", async () => {
     const fecha = form.querySelector('[data-campo="fecha"]').value;
     const hora = form.querySelector('[data-campo="hora"]').value;
@@ -406,21 +417,77 @@ function cargarPaquetes() {
     }
     const porAlumno = {};
     snap.docs.forEach((d) => {
-      const p = d.data();
+      const p = { id: d.id, ...d.data() };
       (porAlumno[p.alumnoId] ||= []).push(p);
     });
-    wrap.innerHTML = Object.values(porAlumno).map((paquetes) => {
+    wrap.innerHTML = "";
+    Object.values(porAlumno).forEach((paquetes) => {
       paquetes.sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0));
-      const filas = paquetes.map((p) => {
-        const agotado = p.clasesUsadas >= p.clasesTotales;
-        return `<p>${p.tipo}: ${p.clasesUsadas}/${p.clasesTotales} usadas
-          <span class="badge ${agotado ? "badge-rechazada" : "badge-confirmada"}">${agotado ? "agotado" : "activo"}</span>
-          <span class="badge ${p.pagado ? "badge-confirmada" : "badge-pendiente"}">${p.pagado ? "pagado" : "pendiente de pago"}</span>
-          · S/ ${p.monto}</p>`;
-      }).join("");
-      return `<div class="court-card"><h3>${paquetes[0].alumnoNombre}</h3>${filas}</div>`;
-    }).join("");
+      const card = document.createElement("div");
+      card.className = "court-card";
+      card.innerHTML = `<h3>${paquetes[0].alumnoNombre}</h3>`;
+      paquetes.forEach((p) => card.appendChild(construirFilaPaquete(p)));
+      wrap.appendChild(card);
+    });
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+function construirFilaPaquete(p) {
+  const agotado = p.clasesUsadas >= p.clasesTotales;
+  const fila = document.createElement("div");
+  fila.className = "paquete-fila";
+  fila.innerHTML = `
+    <p>
+      ${p.tipo}: ${p.clasesUsadas}/${p.clasesTotales} usadas
+      <span class="badge ${agotado ? "badge-rechazada" : "badge-confirmada"}">${agotado ? "agotado" : "activo"}</span>
+      <span class="badge ${p.pagado ? "badge-confirmada" : "badge-pendiente"}">${p.pagado ? "pagado" : "pendiente de pago"}</span>
+      · S/ ${p.monto}
+      <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
+      <button class="btn btn-outline btn-small" type="button" data-borrar>Borrar</button>
+    </p>
+    <div class="form-grid" data-editar-form hidden style="margin:8px 0;">
+      <div class="field"><label>Clases usadas</label><input type="number" min="0" data-campo="clasesUsadas" value="${p.clasesUsadas}"></div>
+      <div class="field"><label>Monto (S/)</label><input type="number" min="0" data-campo="monto" value="${p.monto}"></div>
+      <div class="field"><label>Pagado</label>
+        <label class="avail-slot" style="display:inline-flex;"><input type="checkbox" data-campo="pagado" ${p.pagado ? "checked" : ""}> Ya pagó</label>
+      </div>
+      <button class="btn btn-primary btn-small" type="button" data-guardar-paquete>Guardar</button>
+    </div>
+    <p class="form-msg"></p>
+  `;
+
+  const form = fila.querySelector("[data-editar-form]");
+  const msg = fila.querySelector(".form-msg");
+
+  fila.querySelector("[data-toggle-editar]").addEventListener("click", () => {
+    form.hidden = !form.hidden;
+  });
+
+  fila.querySelector("[data-guardar-paquete]").addEventListener("click", async () => {
+    const clasesUsadas = Number(form.querySelector('[data-campo="clasesUsadas"]').value) || 0;
+    const monto = Number(form.querySelector('[data-campo="monto"]').value) || 0;
+    const pagado = form.querySelector('[data-campo="pagado"]').checked;
+    try {
+      await updateDoc(doc(db, "paquetes", p.id), { clasesUsadas, monto, pagado });
+      msg.textContent = "Guardado.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo guardar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
+
+  fila.querySelector("[data-borrar]").addEventListener("click", async () => {
+    if (!confirm(`¿Borrar este paquete de ${p.alumnoNombre} (${p.tipo}, S/ ${p.monto})?`)) return;
+    try {
+      await deleteDoc(doc(db, "paquetes", p.id));
+    } catch (err) {
+      msg.textContent = "No se pudo borrar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
+
+  return fila;
 }
 
 // ---- Recordatorio por WhatsApp (link manual, no se envía solo) ----
