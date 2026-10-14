@@ -5,13 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.gstatic.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>Pistas disponibles | academiadepadel.pe</title>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-C2DJ9V0L4Z"></script>
+<script src="assets/js/gtag-init.js?v=2"></script>
+
+<title>Pistas disponibles para tus clases | academiadepadel.pe</title>
+<meta name="description" content="Canchas de pádel en Lima donde academiadepadel.pe coordina clases, con horario, tarifa y disponibilidad real de cada una.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=33">
+<link rel="stylesheet" href="assets/css/style.css?v=34">
 </head>
 <body>
 
@@ -23,7 +29,7 @@
       <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
       <span>Academia de Pádel GP</span>
     </a>
-    <a href="login.html" class="test-back-link">← Volver al portal</a>
+    <a href="index.html" class="test-back-link">← Volver al sitio</a>
   </div>
 </header>
 
@@ -37,6 +43,7 @@
         Confirma siempre el precio y la disponibilidad real con el club antes de tu clase.
       </p>
       <div id="form-nueva-pista-wrap"></div>
+      <div class="portal-card" id="filtro-distrito" hidden></div>
       <div id="lista-pistas"><p class="empty-state">Cargando...</p></div>
     </div>
   </section>
@@ -49,11 +56,12 @@
       <span>Academia de Pádel GP</span>
     </div>
     <p>Lima, Perú · <a href="https://wa.me/51957085531" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://www.instagram.com/academiapadelgp/" target="_blank" rel="noopener">Instagram</a></p>
-    <p class="footer-copy">© <span id="year"></span> academiadepadel.pe. Todos los derechos reservados. · <a href="privacidad.html">Privacidad</a></p>
+    <p class="footer-copy">© <span id="year"></span> academiadepadel.pe. Todos los derechos reservados. · <a href="privacidad.html">Privacidad</a> · <a href="arbitro.html" rel="nofollow">Árbitro</a> · <a href="login.html" rel="nofollow">Acceso Portal</a></p>
   </div>
 </footer>
 
 <script src="assets/js/main.js?v=13"></script>
+<script src="assets/js/cookie-banner.js?v=1"></script>
 <script type="module" src="assets/js/pistas-page.js?v=16"></script>
 </body>
 </html>

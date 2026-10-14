@@ -1,4 +1,4 @@
-import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=15";
+import { auth, db, onAuthStateChanged, signInAnonymously, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=15";
 import { construirGrillaTarifaPista } from "./portal-common.js?v=14";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];
@@ -24,11 +24,23 @@ function ordenarPistas(docs) {
   });
 }
 
+// La página es pública: cualquiera puede ver las pistas sin crear cuenta.
+// Si no hay sesión, entra con una cuenta anónima (igual que al dejar una
+// reseña en el catálogo de canchas) solo para cumplir la regla de
+// Firestore "allow read: if request.auth != null" — no crea ni pide
+// ninguna cuenta real. Si ya hay una cuenta de profesor, además habilita
+// el formulario para crear/editar pistas.
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "login.html";
-    return;
+    try {
+      await signInAnonymously(auth);
+    } catch (err) {
+      document.getElementById("lista-pistas").innerHTML =
+        '<p class="empty-state">No se pudo cargar (revisa tu conexión) — recarga la página.</p>';
+    }
+    return; // onAuthStateChanged se vuelve a disparar con la cuenta anónima
   }
+
   const usuarioSnap = await getDoc(doc(db, "usuarios", user.uid));
   const esProfesor = usuarioSnap.exists() && usuarioSnap.data().rol === "profesor";
 
@@ -43,9 +55,65 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  wrap.innerHTML = "";
-  ordenarPistas(snap.docs).forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor)));
+  const pistasOrdenadas = ordenarPistas(snap.docs);
+  construirFiltroDistrito(pistasOrdenadas, esProfesor);
 });
+
+// ---- Filtro por distrito (checkboxes múltiples) ----
+function construirFiltroDistrito(docs, esProfesor) {
+  const wrap = document.getElementById("lista-pistas");
+  const filtroWrap = document.getElementById("filtro-distrito");
+  const distritos = Array.from(new Set(docs.map((d) => d.data().distrito).filter(Boolean))).sort((a, b) => a.localeCompare(b, "es"));
+
+  function renderLista() {
+    const seleccionados = new Set(
+      Array.from(filtroWrap.querySelectorAll("input:checked")).map((i) => i.value)
+    );
+    const visibles = docs.filter((d) => seleccionados.has(d.data().distrito));
+    wrap.innerHTML = "";
+    if (!visibles.length) {
+      wrap.innerHTML = '<p class="empty-state">No hay pistas en los distritos elegidos.</p>';
+      return;
+    }
+    visibles.forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor)));
+  }
+
+  if (!distritos.length) {
+    filtroWrap.hidden = true;
+    wrap.innerHTML = "";
+    docs.forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor)));
+    return;
+  }
+
+  filtroWrap.hidden = false;
+  filtroWrap.innerHTML = `
+    <p class="field-hint" style="margin:0 0 8px; font-weight:700; color:var(--ink);">Filtrar por distrito</p>
+    <div class="filtro-distrito-opciones">
+      ${distritos.map((d) => `
+        <label class="avail-slot filtro-distrito-item">
+          <input type="checkbox" value="${d}" checked> ${d}
+        </label>
+      `).join("")}
+    </div>
+    <div class="disp-grid-actions" style="margin-top:8px;">
+      <button class="btn btn-outline btn-small" type="button" id="filtro-todos">Marcar todos</button>
+      <button class="btn btn-outline btn-small" type="button" id="filtro-ninguno">Ninguno</button>
+    </div>
+  `;
+  filtroWrap.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+    input.addEventListener("change", renderLista);
+  });
+  filtroWrap.querySelector("#filtro-todos").addEventListener("click", () => {
+    filtroWrap.querySelectorAll('input[type="checkbox"]').forEach((i) => { i.checked = true; });
+    renderLista();
+  });
+  filtroWrap.querySelector("#filtro-ninguno").addEventListener("click", () => {
+    filtroWrap.querySelectorAll('input[type="checkbox"]').forEach((i) => { i.checked = false; });
+    renderLista();
+  });
+
+  renderLista();
+}
 
 function construirFormularioNuevaPista() {
   const card = document.createElement("div");

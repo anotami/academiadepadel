@@ -1558,6 +1558,9 @@ span.disp-toggle.on { background: var(--court); }
   min-height: 44px;
 }
 
+.filtro-distrito-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.filtro-distrito-item { padding: 7px 12px; font-size: 0.82rem; }
+
 /* ---------- Accesibilidad ---------- */
 :focus-visible {
   outline: 3px solid var(--court-dark);
