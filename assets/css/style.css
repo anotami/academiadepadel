@@ -1538,6 +1538,18 @@ span.disp-toggle.on { background: var(--court); }
 }
 .cross-links a:hover { border-color: var(--court); }
 
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--court);
+  text-decoration: underline;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  min-height: 44px;
+}
+
 /* ---------- Accesibilidad ---------- */
 :focus-visible {
   outline: 3px solid var(--court-dark);

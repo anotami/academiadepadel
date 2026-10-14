@@ -3,7 +3,7 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=14";
+} from "./firebase-app.js?v=15";
 import {
   NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad

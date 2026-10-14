@@ -76,7 +76,7 @@ function mostrarSinConexion(el) {
 }
 
 let fb = null;
-import("./firebase-app.js?v=14")
+import("./firebase-app.js?v=15")
   .then((mod) => { fb = mod; })
   .catch(() => { fb = null; });
 
@@ -115,6 +115,32 @@ formLogin.addEventListener("submit", async (e) => {
   } catch (err) {
     loginMsg.textContent = "No pudimos iniciar sesión: correo o contraseña incorrectos.";
     loginMsg.className = "form-msg error";
+  }
+});
+
+// --- ¿Olvidaste tu contraseña? ---
+document.getElementById("btn-olvide-clave").addEventListener("click", async () => {
+  loginMsg.className = "form-msg";
+  if (!fb) { mostrarSinConexion(loginMsg); return; }
+  if (fb.CONFIG_IS_PLACEHOLDER) {
+    loginMsg.textContent = "El portal todavía no está conectado a una base de datos.";
+    loginMsg.className = "form-msg error";
+    return;
+  }
+  const email = document.getElementById("login-email").value.trim();
+  if (!email) {
+    loginMsg.textContent = "Escribe tu correo arriba y vuelve a tocar \"¿Olvidaste tu contraseña?\".";
+    loginMsg.className = "form-msg error";
+    return;
+  }
+  try {
+    await fb.sendPasswordResetEmail(fb.auth, email);
+    loginMsg.textContent = `Te enviamos un correo a ${email} con un link para crear una contraseña nueva. Revisa también spam.`;
+    loginMsg.className = "form-msg ok";
+  } catch (err) {
+    // No confirmamos ni negamos si el correo existe, para no filtrar esa info.
+    loginMsg.textContent = `Si ${email} tiene una cuenta, te llegará un correo para restablecer la contraseña. Revisa también spam.`;
+    loginMsg.className = "form-msg ok";
   }
 });
 

@@ -2,7 +2,7 @@ import {
   auth, db, CONFIG_IS_PLACEHOLDER,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   doc, setDoc, deleteDoc, addDoc, collection, getDocs, serverTimestamp
-} from "./firebase-app.js?v=14";
+} from "./firebase-app.js?v=15";
 import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=14";
 import { TIPOS_CLASE } from "./portal-common.js?v=14";
 
