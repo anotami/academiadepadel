@@ -61,6 +61,53 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
+    // ---------- Grupo nuevo (widget público "¿Eres nuevo en el pádel?") ----------
+
+    match /turnos_grupales/{id} {
+      // Mismo patrón que pistas: cualquiera logueado (incluye anónimos) lee
+      // los turnos y sus cupos para mostrarlos en la web; solo el admin
+      // (tu custom claim) los crea/edita/cierra desde el panel de profesor.
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+      // Excepción angosta: el widget público necesita subir el contador de
+      // cupoUsado cuando alguien se anota, sin ser admin. Esta regla SOLO
+      // permite sumar 1 a ese campo exacto — no toca nombre/horario/cupoTotal
+      // ni nada más, así que no abre ninguna puerta nueva.
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cupoUsado'])
+        && request.resource.data.cupoUsado == resource.data.cupoUsado + 1;
+    }
+
+    match /interesados_grupo/{id} {
+      // A propósito NO es lectura abierta como usuarios/pistas: acá hay
+      // teléfono y correo de cada interesado, y cualquier visitante anónimo
+      // podría leer la colección entera si la regla fuera "auth != null".
+      // Cualquiera puede CREAR su propio registro (es el formulario público),
+      // pero solo tú (admin) puedes leer la lista, cambiar el estado o borrar.
+      allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['nombre', 'whatsapp', 'email', 'nivel', 'turnoId', 'turnoNombre', 'estado', 'creadoEn'])
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() >= 1
+        && request.resource.data.nombre.size() <= 60
+        && request.resource.data.whatsapp is string
+        && request.resource.data.whatsapp.size() >= 6
+        && request.resource.data.whatsapp.size() <= 20
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 120
+        && request.resource.data.nivel in [
+          'Nunca jugué pádel ni un deporte de raqueta',
+          'Jugué tenis, frontón o peloteos casuales, pero no domino el rebote en pared',
+          'Mantengo peloteo con control básico y rebote simple, busco regularidad y táctica'
+        ]
+        && request.resource.data.turnoId is string
+        && request.resource.data.turnoId.size() > 0
+        && request.resource.data.turnoNombre is string
+        && request.resource.data.turnoNombre.size() <= 100
+        && request.resource.data.estado == 'nuevo'
+        && request.resource.data.creadoEn == request.time;
+    }
+
     // ---------- Árbitro ----------
 
     match /arbitrajes/{id} {

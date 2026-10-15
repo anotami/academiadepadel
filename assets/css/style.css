@@ -1404,6 +1404,48 @@ span.disp-toggle.on { background: var(--court); }
 }
 .agenda-confirm-resumen { font-weight: 800; margin: 0 0 12px; }
 
+/* Widget público "¿Eres nuevo en el pádel?" (index.html#grupo-nuevo) */
+.grupo-wizard { margin-top: 22px; }
+.grupo-paso { margin-bottom: 26px; }
+.grupo-paso h3 { margin: 0 0 12px; font-size: 1.05rem; }
+
+.nivel-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 760px) { .nivel-cards { grid-template-columns: 1fr; } }
+.nivel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.nivel-card strong { font-size: 0.95rem; }
+.nivel-card span { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.35; }
+.nivel-card.seleccionada { border-color: var(--ink); outline: 2px solid var(--ink); outline-offset: -2px; }
+
+.turnos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (max-width: 760px) { .turnos-grid { grid-template-columns: 1fr; } }
+.turno-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  text-align: left;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.turno-card span:not(.badge) { font-size: 0.84rem; color: var(--ink-soft); }
+.turno-card.seleccionada { border-color: var(--ink); outline: 2px solid var(--ink); outline-offset: -2px; }
+.turno-card-gratis { border-color: var(--accent); }
+
+.grupo-resumen { font-weight: 800; margin: 0 0 14px; }
+
 .avail-slot {
   display: flex;
   align-items: center;

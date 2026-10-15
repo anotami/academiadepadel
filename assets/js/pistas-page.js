@@ -1,4 +1,4 @@
-import { auth, db, onAuthStateChanged, signInAnonymously, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=15";
+import { auth, db, onAuthStateChanged, signInAnonymously, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=16";
 import { construirGrillaTarifaPista } from "./portal-common.js?v=14";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];

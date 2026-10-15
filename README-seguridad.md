@@ -77,4 +77,6 @@ No se agregó este código todavía porque necesita la site key, que solo se con
 - `resenas_canchas`: validación completa de campos (tipos, tamaños, rango de estrellas, sin campos extra), nada de update/delete.
 - `arbitrajes`: escritura/actualización/borrado restringidos al creador del partido.
 - `pistas`: lectura requiere login (ya era así).
+- `interesados_grupo`: lectura SOLO admin (acá sí hay datos personales — teléfono y correo — de gente que no tiene cuenta en el portal); cualquiera puede crear su propio registro, con validación completa de campos igual que `resenas_canchas`.
+- `turnos_grupales`: mismo patrón que `pistas` — lectura para cualquier logueado (incluye anónimos), escritura solo admin.
 - Deny-all explícito para cualquier colección no listada.

@@ -3,7 +3,7 @@ import {
   onAuthStateChanged, signOut,
   doc, getDoc, updateDoc, addDoc, deleteDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=15";
+} from "./firebase-app.js?v=16";
 import {
   NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
@@ -13,6 +13,8 @@ let currentUid = null;
 let currentPerfil = null;
 let alumnosCache = [];
 let pistasCache = [];
+let turnosGrupalesCache = [];
+let interesadosGrupoCache = [];
 
 function mostrarErrorConsulta(wrap, err) {
   const match = err.message && err.message.match(/https:\/\/\S+/);
@@ -46,6 +48,8 @@ onAuthStateChanged(auth, async (user) => {
   cargarMetricas(user.uid);
   cargarSeguimiento(user.uid);
   cargarEsperas();
+  cargarTurnosGrupales();
+  cargarInteresadosGrupo();
 });
 
 function poblarSelectPaquete() {
@@ -739,6 +743,134 @@ function cargarEsperas() {
         </div>`;
     }).join("");
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+// ---- Grupo nuevo: turnos e interesados ("¿Eres nuevo en el pádel?" en la web) ----
+
+document.getElementById("form-turno").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("turno-msg");
+  const nombre = document.getElementById("tg-nombre").value.trim();
+  const horarioTexto = document.getElementById("tg-horario").value.trim();
+  const cupoTotal = Number(document.getElementById("tg-cupo").value) || 1;
+  const tipo = document.getElementById("tg-tipo").value;
+  try {
+    await addDoc(collection(db, "turnos_grupales"), {
+      nombre, horarioTexto, cupoTotal, tipo, activo: true, cupoUsado: 0, creadoEn: serverTimestamp()
+    });
+    e.target.reset();
+    document.getElementById("tg-cupo").value = 4;
+    msg.textContent = "Turno agregado."; msg.className = "form-msg ok";
+  } catch (err) {
+    msg.textContent = "No se pudo agregar: " + err.message; msg.className = "form-msg error";
+  }
+});
+
+function cargarTurnosGrupales() {
+  onSnapshot(collection(db, "turnos_grupales"), (snap) => {
+    turnosGrupalesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.creadoEn?.seconds || 0) - (b.creadoEn?.seconds || 0));
+    renderTurnos();
+  }, (err) => mostrarErrorConsulta(document.getElementById("lista-turnos"), err));
+}
+
+function renderTurnos() {
+  const wrap = document.getElementById("lista-turnos");
+  if (!turnosGrupalesCache.length) {
+    wrap.innerHTML = '<p class="empty-state">Todavía no creaste ningún turno — agrega uno arriba para que aparezca en la web.</p>';
+    return;
+  }
+  wrap.innerHTML = "";
+  turnosGrupalesCache.forEach((t) => {
+    const interesados = interesadosGrupoCache.filter((i) => i.turnoId === t.id && i.estado !== "descartado");
+    const lleno = interesados.length >= t.cupoTotal;
+    const card = document.createElement("div");
+    card.className = "court-card";
+    card.innerHTML = `
+      <h3>${t.nombre} ${t.tipo === "clinica-gratuita" ? '<span class="badge badge-pendiente">Clínica gratuita</span>' : ""}</h3>
+      <p class="court-meta">${t.horarioTexto}</p>
+      <p>
+        <span class="badge ${lleno ? "badge-pendiente" : "badge-confirmada"}">${interesados.length}/${t.cupoTotal} interesados</span>
+        <span class="badge ${t.activo ? "badge-confirmada" : "badge-rechazada"}">${t.activo ? "Abierto en la web" : "Cerrado"}</span>
+      </p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <button class="btn btn-outline btn-small" type="button" data-toggle-activo>${t.activo ? "Cerrar turno" : "Abrir turno"}</button>
+        <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
+        <button class="btn btn-outline btn-small" type="button" data-borrar>Borrar</button>
+      </div>
+      <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
+        <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${t.nombre}"></div>
+        <div class="field"><label>Horario</label><input type="text" data-campo="horarioTexto" value="${t.horarioTexto}"></div>
+        <div class="field"><label>Cupos</label><input type="number" min="1" data-campo="cupoTotal" value="${t.cupoTotal}"></div>
+        <button class="btn btn-primary btn-small" type="button" data-guardar-turno>Guardar</button>
+      </div>
+      <p class="form-msg"></p>`;
+    const form = card.querySelector("[data-editar-form]");
+    const msg = card.querySelector(".form-msg");
+    card.querySelector("[data-toggle-activo]").addEventListener("click", async () => {
+      try { await updateDoc(doc(db, "turnos_grupales", t.id), { activo: !t.activo }); }
+      catch (err) { msg.textContent = "No se pudo cambiar: " + err.message; msg.className = "form-msg error"; }
+    });
+    card.querySelector("[data-toggle-editar]").addEventListener("click", () => { form.hidden = !form.hidden; });
+    card.querySelector("[data-guardar-turno]").addEventListener("click", async () => {
+      const nombre = form.querySelector('[data-campo="nombre"]').value.trim();
+      const horarioTexto = form.querySelector('[data-campo="horarioTexto"]').value.trim();
+      const cupoTotal = Number(form.querySelector('[data-campo="cupoTotal"]').value) || 1;
+      try {
+        await updateDoc(doc(db, "turnos_grupales", t.id), { nombre, horarioTexto, cupoTotal });
+        msg.textContent = "Guardado."; msg.className = "form-msg ok";
+      } catch (err) { msg.textContent = "No se pudo guardar: " + err.message; msg.className = "form-msg error"; }
+    });
+    card.querySelector("[data-borrar]").addEventListener("click", async () => {
+      if (!confirm(`¿Borrar el turno "${t.nombre}"? Los interesados que ya se anotaron no se borran.`)) return;
+      try { await deleteDoc(doc(db, "turnos_grupales", t.id)); }
+      catch (err) { msg.textContent = "No se pudo borrar: " + err.message; msg.className = "form-msg error"; }
+    });
+    wrap.appendChild(card);
+  });
+}
+
+const ESTADOS_INTERESADO = ["nuevo", "contactado", "descartado"];
+const BADGE_POR_ESTADO_INTERESADO = { nuevo: "badge-pendiente", contactado: "badge-confirmada", descartado: "badge-rechazada" };
+
+function cargarInteresadosGrupo() {
+  onSnapshot(collection(db, "interesados_grupo"), (snap) => {
+    interesadosGrupoCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0));
+    renderTurnos();
+    renderInteresados();
+  }, (err) => mostrarErrorConsulta(document.getElementById("lista-interesados"), err));
+}
+
+function renderInteresados() {
+  const wrap = document.getElementById("lista-interesados");
+  if (!interesadosGrupoCache.length) {
+    wrap.innerHTML = '<p class="empty-state">Todavía nadie se anotó en "¿Eres nuevo en el pádel?".</p>';
+    return;
+  }
+  wrap.innerHTML = "";
+  interesadosGrupoCache.forEach((i) => {
+    const telefono = soloDigitos(i.whatsapp);
+    const texto = `Hola ${i.nombre}, soy Gabriel de Academia de Pádel GP. Vi que te interesó el turno "${i.turnoNombre}" — ¿coordinamos tu primera clase?`;
+    const waLink = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Escribirle</a>` : "";
+    const card = document.createElement("div");
+    card.className = "request-card";
+    card.innerHTML = `
+      <div class="request-info">
+        <p class="request-title">${i.nombre} <span class="badge ${BADGE_POR_ESTADO_INTERESADO[i.estado] || "badge-pendiente"}">${i.estado}</span></p>
+        <p>${i.turnoNombre} · ${i.nivel}</p>
+        <p class="court-meta">${i.whatsapp}${i.email ? " · " + i.email : ""}</p>
+        <select data-estado style="margin-top:6px;">
+          ${ESTADOS_INTERESADO.map((e) => `<option value="${e}" ${e === i.estado ? "selected" : ""}>${e}</option>`).join("")}
+        </select>
+      </div>
+      ${waLink}`;
+    card.querySelector("[data-estado]").addEventListener("change", async (e) => {
+      try { await updateDoc(doc(db, "interesados_grupo", i.id), { estado: e.target.value }); }
+      catch (err) { alert("No se pudo cambiar el estado: " + err.message); }
+    });
+    wrap.appendChild(card);
+  });
 }
 
 // ---- Exportar a CSV ----

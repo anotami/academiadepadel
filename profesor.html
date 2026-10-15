@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=36">
+<link rel="stylesheet" href="assets/css/style.css?v=37">
 </head>
 <body>
 
@@ -121,6 +121,41 @@
         <div id="lista-esperas"><p class="empty-state">Cargando...</p></div>
       </div>
 
+      <!-- Grupos e interesados (widget público "¿Eres nuevo en el pádel?") -->
+      <div class="portal-card">
+        <h2>Grupos e interesados</h2>
+        <p class="field-hint">Turnos que ves en "¿Eres nuevo en el pádel?" de la web, y quién se anotó en cada uno. Abre o cierra turnos según la demanda real.</p>
+
+        <h3 style="margin-top:4px;">Turnos</h3>
+        <form id="form-turno" class="form-grid">
+          <div class="field">
+            <label for="tg-nombre">Nombre del turno</label>
+            <input type="text" id="tg-nombre" required maxlength="60" placeholder="Ej: Mañanas entre semana">
+          </div>
+          <div class="field">
+            <label for="tg-horario">Horario (texto libre)</label>
+            <input type="text" id="tg-horario" required maxlength="100" placeholder="Ej: Lunes a viernes, 7:00 - 8:30 am">
+          </div>
+          <div class="field">
+            <label for="tg-cupo">Cupos</label>
+            <input type="number" id="tg-cupo" min="1" required value="4">
+          </div>
+          <div class="field">
+            <label for="tg-tipo">Tipo</label>
+            <select id="tg-tipo">
+              <option value="regular">Turno regular</option>
+              <option value="clinica-gratuita">Clínica gratuita mensual</option>
+            </select>
+          </div>
+          <button class="btn btn-outline" type="submit">Agregar turno</button>
+          <p class="form-msg" id="turno-msg"></p>
+        </form>
+        <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
+
+        <h3 style="margin-top:26px;">Interesados</h3>
+        <div id="lista-interesados"><p class="empty-state">Cargando...</p></div>
+      </div>
+
       <!-- Disponibilidad de alumnos -->
       <div class="portal-card">
         <h2>Disponibilidad de tus alumnos</h2>
@@ -179,6 +214,6 @@
 </footer>
 
 <script src="assets/js/main.js?v=13"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=14"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=15"></script>
 </body>
 </html>
