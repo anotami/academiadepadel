@@ -12,7 +12,7 @@ import {
   auth, db, onAuthStateChanged, signInAnonymously,
   collection, query, where, getDocs, addDoc, updateDoc, doc, increment, serverTimestamp
 } from "./firebase-app.js?v=16";
-import { formatearFechaLarga, fechaYaPaso } from "./portal-common.js?v=15";
+import { formatearFechaLarga, fechaYaPaso } from "./portal-common.js?v=16";
 
 const WHATSAPP_NUMBER = "51957085531";
 

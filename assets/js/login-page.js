@@ -1,4 +1,4 @@
-import { construirGrillaDisponibilidad } from "./portal-common.js?v=15";
+import { construirGrillaDisponibilidad } from "./portal-common.js?v=16";
 
 // El cambio de pestañas, la grilla de disponibilidad y el campo de
 // apoderado son pura UI local: se conectan primero y sin depender de que
