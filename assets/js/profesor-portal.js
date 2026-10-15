@@ -7,7 +7,7 @@ import {
 import {
   DIAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
-} from "./portal-common.js?v=17";
+} from "./portal-common.js?v=18";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -481,8 +481,8 @@ function construirTarjetaHistorial(r) {
           <label>Modalidad</label>
           <select data-campo="modalidad">
             <option value="Particular" ${r.modalidad === "Particular" ? "selected" : ""}>Particular</option>
-            <option value="Dúo (2 personas)" ${r.modalidad === "Dúo (2 personas)" ? "selected" : ""}>Dúo (2 personas)</option>
-            <option value="Grupal (3-4 personas)" ${r.modalidad === "Grupal (3-4 personas)" ? "selected" : ""}>Grupal (3-4 personas)</option>
+            <option value="Grupal (2-4 personas)" ${r.modalidad === "Grupal (2-4 personas)" ? "selected" : ""}>Grupal (2-4 personas)</option>
+            ${r.modalidad === "Dúo (2 personas)" || r.modalidad === "Grupal (3-4 personas)" ? `<option value="${r.modalidad}" selected>${r.modalidad} (anterior)</option>` : ""}
           </select>
         </div>
         <div class="field">
