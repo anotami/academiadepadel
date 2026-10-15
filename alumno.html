@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=38">
+<link rel="stylesheet" href="assets/css/style.css?v=39">
 </head>
 <body>
 
@@ -38,120 +38,137 @@
         <button class="btn btn-outline btn-small" id="btn-logout" type="button">Cerrar sesión</button>
       </div>
 
-      <!-- Mi paquete de clases -->
-      <div class="portal-card">
-        <h2>Mi paquete de clases</h2>
-        <div id="mi-paquete"><p class="empty-state">Cargando...</p></div>
-      </div>
+      <nav class="portal-tabs" role="tablist" aria-label="Secciones de mi cuenta">
+        <button class="portal-tab" type="button" role="tab" data-tab="clase">Mi clase</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="reservar">Reservar</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="progreso">Mi progreso</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="datos">Mis datos</button>
+      </nav>
 
-      <!-- Reservar clase -->
-      <div class="portal-card">
-        <h2>Reservar una clase</h2>
-        <p class="field-hint">Tu profesor verá la solicitud y la confirmará según la disponibilidad de la pista.</p>
-        <form id="form-reserva">
-          <div class="form-grid">
-            <div class="field field-full">
-              <label for="r-tipo">Tipo de clase</label>
-              <select id="r-tipo" required></select>
-            </div>
-            <div class="field field-full" id="r-profesor-wrap" hidden>
-              <label for="r-profesor">Profesor</label>
-              <select id="r-profesor"></select>
-            </div>
-            <div class="field field-full">
-              <label for="r-pista">Pista</label>
-              <select id="r-pista" required></select>
-            </div>
-            <div class="field">
-              <label for="r-fecha">Fecha</label>
-              <input type="date" id="r-fecha" required>
-            </div>
-            <div class="field">
-              <label for="r-hora">Hora</label>
-              <select id="r-hora" required></select>
-            </div>
-            <div class="field field-full">
-              <label for="r-nota">Nota para el profesor (opcional)</label>
-              <input type="text" id="r-nota" placeholder="Ej: primera vez, quiero practicar saque...">
-            </div>
-          </div>
-          <p class="field-hint" id="r-disponibilidad-hint"></p>
-          <button class="btn btn-primary" type="submit" style="margin-top:16px;">Enviar solicitud</button>
-          <p class="form-msg" id="reserva-msg"></p>
-        </form>
-      </div>
-
-      <!-- Busco con quién jugar -->
-      <div class="portal-card">
-        <h2>Busco con quién jugar</h2>
-        <p class="field-hint">Publica cuándo quieres jugar un partido recreativo y otros alumnos te contactan por WhatsApp.</p>
-        <form id="form-jugar">
-          <div class="form-grid">
-            <div class="field">
-              <label for="jg-fecha">¿Cuándo?</label>
-              <input type="date" id="jg-fecha" required>
-            </div>
-            <div class="field field-full">
-              <label for="jg-nota">Nota (horario, nivel, pista preferida...)</label>
-              <input type="text" id="jg-nota" placeholder="Ej: Sábado en la tarde, nivel intermedio, en La Once">
-            </div>
-          </div>
-          <button class="btn btn-outline btn-small" type="submit" style="margin-top:12px;">Publicarme</button>
-          <p class="form-msg" id="jugar-msg"></p>
-        </form>
-        <h3 style="margin-top:18px;">Alumnos buscando partido</h3>
-        <div id="lista-jugar"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Mi progreso -->
-      <div class="portal-card">
-        <h2>Mi progreso</h2>
-        <p class="field-hint">Lo que tu profesor fue registrando después de cada clase, en orden.</p>
-        <div id="mi-progreso"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Mis reservas -->
-      <div class="portal-card">
-        <h2>Mis reservas</h2>
-        <div id="lista-reservas"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Mi perfil -->
-      <div class="portal-card">
-        <div class="portal-topbar" style="margin-bottom:0;">
-          <h2>Mis datos</h2>
-          <button class="btn btn-outline" type="submit" form="form-perfil">Guardar cambios</button>
+      <!-- MI CLASE: dónde estoy parado -->
+      <div data-tabpanel="clase">
+        <!-- Mi paquete de clases -->
+        <div class="portal-card">
+          <h2>Mi paquete de clases</h2>
+          <div id="mi-paquete"><p class="empty-state">Cargando...</p></div>
         </div>
-        <form id="form-perfil">
-          <p class="form-msg" id="perfil-msg"></p>
-          <div class="form-grid">
-            <div class="field">
-              <label for="p-telefono">Teléfono / WhatsApp</label>
-              <input type="tel" id="p-telefono" required>
+
+        <!-- Mis reservas -->
+        <div class="portal-card">
+          <h2>Mis reservas</h2>
+          <div id="lista-reservas"><p class="empty-state">Cargando...</p></div>
+        </div>
+      </div>
+
+      <!-- RESERVAR -->
+      <div data-tabpanel="reservar" hidden>
+        <!-- Reservar clase -->
+        <div class="portal-card">
+          <h2>Reservar una clase</h2>
+          <p class="field-hint">Tu profesor verá la solicitud y la confirmará según la disponibilidad de la pista.</p>
+          <form id="form-reserva">
+            <div class="form-grid">
+              <div class="field field-full">
+                <label for="r-tipo">Tipo de clase</label>
+                <select id="r-tipo" required></select>
+              </div>
+              <div class="field field-full" id="r-profesor-wrap" hidden>
+                <label for="r-profesor">Profesor</label>
+                <select id="r-profesor"></select>
+              </div>
+              <div class="field field-full">
+                <label for="r-pista">Pista</label>
+                <select id="r-pista" required></select>
+              </div>
+              <div class="field">
+                <label for="r-fecha">Fecha</label>
+                <input type="date" id="r-fecha" required>
+              </div>
+              <div class="field">
+                <label for="r-hora">Hora</label>
+                <select id="r-hora" required></select>
+              </div>
+              <div class="field field-full">
+                <label for="r-nota">Nota para el profesor (opcional)</label>
+                <input type="text" id="r-nota" placeholder="Ej: primera vez, quiero practicar saque...">
+              </div>
             </div>
-            <div class="field">
-              <label for="p-edad">Edad</label>
-              <input type="number" id="p-edad" min="5" max="99" required>
+            <p class="field-hint" id="r-disponibilidad-hint"></p>
+            <button class="btn btn-primary" type="submit" style="margin-top:16px;">Enviar solicitud</button>
+            <p class="form-msg" id="reserva-msg"></p>
+          </form>
+        </div>
+
+        <!-- Busco con quién jugar -->
+        <div class="portal-card">
+          <h2>Busco con quién jugar</h2>
+          <p class="field-hint">Publica cuándo quieres jugar un partido recreativo y otros alumnos te contactan por WhatsApp.</p>
+          <form id="form-jugar">
+            <div class="form-grid">
+              <div class="field">
+                <label for="jg-fecha">¿Cuándo?</label>
+                <input type="date" id="jg-fecha" required>
+              </div>
+              <div class="field field-full">
+                <label for="jg-nota">Nota (horario, nivel, pista preferida...)</label>
+                <input type="text" id="jg-nota" placeholder="Ej: Sábado en la tarde, nivel intermedio, en La Once">
+              </div>
             </div>
-            <div class="field field-full">
-              <label for="p-nivel">Nivel</label>
-              <select id="p-nivel">
-                <option>Inicial</option>
-                <option>Inicial-Intermedio</option>
-                <option>Intermedio</option>
-              </select>
-            </div>
+            <button class="btn btn-outline btn-small" type="submit" style="margin-top:12px;">Publicarme</button>
+            <p class="form-msg" id="jugar-msg"></p>
+          </form>
+          <h3 style="margin-top:18px;">Alumnos buscando partido</h3>
+          <div id="lista-jugar"><p class="empty-state">Cargando...</p></div>
+        </div>
+      </div>
+
+      <!-- MI PROGRESO -->
+      <div data-tabpanel="progreso" hidden>
+        <div class="portal-card">
+          <h2>Mi progreso</h2>
+          <p class="field-hint">Lo que tu profesor fue registrando después de cada clase, en orden.</p>
+          <div id="mi-progreso"><p class="empty-state">Cargando...</p></div>
+        </div>
+      </div>
+
+      <!-- MIS DATOS -->
+      <div data-tabpanel="datos" hidden>
+        <div class="portal-card">
+          <div class="portal-topbar" style="margin-bottom:0;">
+            <h2>Mis datos</h2>
+            <button class="btn btn-outline" type="submit" form="form-perfil">Guardar cambios</button>
           </div>
-          <div class="disp-grid-head">
-            <h3 style="margin:0;">Mi disponibilidad habitual</h3>
-            <div class="disp-grid-actions">
-              <button class="btn btn-outline btn-small" type="button" id="p-disp-todo">Marcar todo</button>
-              <button class="btn btn-outline btn-small" type="button" id="p-disp-ninguno">Limpiar todo</button>
+          <form id="form-perfil">
+            <p class="form-msg" id="perfil-msg"></p>
+            <div class="form-grid">
+              <div class="field">
+                <label for="p-telefono">Teléfono / WhatsApp</label>
+                <input type="tel" id="p-telefono" required>
+              </div>
+              <div class="field">
+                <label for="p-edad">Edad</label>
+                <input type="number" id="p-edad" min="5" max="99" required>
+              </div>
+              <div class="field field-full">
+                <label for="p-nivel">Nivel</label>
+                <select id="p-nivel">
+                  <option>Inicial</option>
+                  <option>Inicial-Intermedio</option>
+                  <option>Intermedio</option>
+                </select>
+              </div>
             </div>
-          </div>
-          <p class="field-hint">Toca los bloques en los que normalmente podrías tomar clase.</p>
-          <div class="availability-grid" id="p-disponibilidad"></div>
-        </form>
+            <div class="disp-grid-head">
+              <h3 style="margin:0;">Mi disponibilidad habitual</h3>
+              <div class="disp-grid-actions">
+                <button class="btn btn-outline btn-small" type="button" id="p-disp-todo">Marcar todo</button>
+                <button class="btn btn-outline btn-small" type="button" id="p-disp-ninguno">Limpiar todo</button>
+              </div>
+            </div>
+            <p class="field-hint">Toca los bloques en los que normalmente podrías tomar clase.</p>
+            <div class="availability-grid" id="p-disponibilidad"></div>
+          </form>
+        </div>
       </div>
     </div>
   </section>
@@ -169,6 +186,7 @@
 </footer>
 
 <script src="assets/js/main.js?v=13"></script>
+<script type="module" src="assets/js/portal-tabs.js?v=1"></script>
 <script type="module" src="assets/js/alumno-portal.js?v=13"></script>
 </body>
 </html>

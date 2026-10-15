@@ -1256,6 +1256,34 @@ h1 .hl {
 .auth-panel { display: none; }
 .auth-panel.active { display: block; }
 
+/* Pestañas de profesor.html / alumno.html: agrupan las tarjetas del panel
+   en un flujo por tarea en vez de un solo scroll largo. */
+.portal-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+  border-bottom: 1.5px solid var(--border);
+  margin: 20px 0 26px;
+}
+.portal-tab {
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+  padding: 10px 14px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.portal-tab:hover { color: var(--ink); }
+.portal-tab.activo { color: var(--ink); border-bottom-color: var(--court); }
+
 .portal-card {
   background: var(--surface);
   border: 1px solid var(--border);

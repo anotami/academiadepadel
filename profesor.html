@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=38">
+<link rel="stylesheet" href="assets/css/style.css?v=39">
 </head>
 <body>
 
@@ -38,170 +38,191 @@
         <button class="btn btn-outline btn-small" id="btn-logout" type="button">Cerrar sesión</button>
       </div>
 
-      <!-- Métricas -->
-      <div class="portal-card">
-        <h2>Resumen</h2>
-        <div class="cards grid-4" id="metricas"><p class="empty-state">Cargando...</p></div>
-        <h3 style="margin-top:22px;">Rentabilidad (paquetes ya pagados)</h3>
-        <p class="field-hint">Usa el costo de cancha que cargaste en cada pista y tu costo por hora en "Mis datos". Carga esos dos datos para que esto sea exacto.</p>
-        <div class="cards grid-4" id="rentabilidad"></div>
-        <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn btn-outline btn-small" type="button" id="btn-exportar-reservas">Exportar reservas a CSV</button>
-          <button class="btn btn-outline btn-small" type="button" id="btn-exportar-paquetes">Exportar paquetes a CSV</button>
+      <nav class="portal-tabs" role="tablist" aria-label="Secciones del panel">
+        <button class="portal-tab" type="button" role="tab" data-tab="hoy">Hoy</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="clases">Mis clases</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="alumnos">Alumnos y pagos</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="grupos">Grupos nuevos</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="datos">Mis datos</button>
+      </nav>
+
+      <!-- HOY: lo accionable primero -->
+      <div data-tabpanel="hoy">
+        <!-- Métricas -->
+        <div class="portal-card">
+          <h2>Resumen</h2>
+          <div class="cards grid-4" id="metricas"><p class="empty-state">Cargando...</p></div>
+          <h3 style="margin-top:22px;">Rentabilidad (paquetes ya pagados)</h3>
+          <p class="field-hint">Usa el costo de cancha que cargaste en cada pista y tu costo por hora en "Mis datos". Carga esos dos datos para que esto sea exacto.</p>
+          <div class="cards grid-4" id="rentabilidad"></div>
+          <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-outline btn-small" type="button" id="btn-exportar-reservas">Exportar reservas a CSV</button>
+            <button class="btn btn-outline btn-small" type="button" id="btn-exportar-paquetes">Exportar paquetes a CSV</button>
+          </div>
+        </div>
+
+        <!-- Solicitudes pendientes -->
+        <div class="portal-card">
+          <h2>Solicitudes de clase</h2>
+          <p class="field-hint">Confirma según la disponibilidad real de la pista — ya se avisa si otra clase ya está confirmada en el mismo horario.</p>
+          <div id="lista-pendientes"><p class="empty-state">Cargando...</p></div>
+        </div>
+
+        <!-- Clases por registrar (ya pasaron, falta marcar asistencia y feedback) -->
+        <div class="portal-card">
+          <h2>Clases por registrar</h2>
+          <p class="field-hint">Marca si el alumno asistió y deja una nota corta de la sesión — el alumno la ve en su panel.</p>
+          <div id="lista-por-registrar"><p class="empty-state">Cargando...</p></div>
         </div>
       </div>
 
-      <!-- Seguimiento: riesgo de abandono, renovaciones, cobros -->
-      <div class="portal-card">
-        <h2>Seguimiento</h2>
-        <h3>Alumnos sin actividad reciente</h3>
-        <div id="lista-riesgo" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
-        <h3>Paquetes por renovar</h3>
-        <div id="lista-renovar" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
-        <h3>Cobros pendientes</h3>
-        <div id="lista-cobros" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
-        <h3>Leads de la jornada gratis</h3>
-        <div id="lista-leads"><p class="empty-state">Cargando...</p></div>
+      <!-- MIS CLASES: agenda -->
+      <div data-tabpanel="clases" hidden>
+        <!-- Próximas clases confirmadas -->
+        <div class="portal-card">
+          <h2>Próximas clases confirmadas</h2>
+          <div id="lista-confirmadas"><p class="empty-state">Cargando...</p></div>
+        </div>
+
+        <!-- Lista de espera -->
+        <div class="portal-card">
+          <h2>Lista de espera</h2>
+          <p class="field-hint">Alumnos que querían un horario ya ocupado. Avísales por WhatsApp si se libera.</p>
+          <div id="lista-esperas"><p class="empty-state">Cargando...</p></div>
+        </div>
       </div>
 
-      <!-- Solicitudes pendientes -->
-      <div class="portal-card">
-        <h2>Solicitudes de clase</h2>
-        <p class="field-hint">Confirma según la disponibilidad real de la pista — ya se avisa si otra clase ya está confirmada en el mismo horario.</p>
-        <div id="lista-pendientes"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Clases por registrar (ya pasaron, falta marcar asistencia y feedback) -->
-      <div class="portal-card">
-        <h2>Clases por registrar</h2>
-        <p class="field-hint">Marca si el alumno asistió y deja una nota corta de la sesión — el alumno la ve en su panel.</p>
-        <div id="lista-por-registrar"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Próximas clases confirmadas -->
-      <div class="portal-card">
-        <h2>Próximas clases confirmadas</h2>
-        <div id="lista-confirmadas"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Paquetes de clases -->
-      <div class="portal-card">
-        <h2>Paquetes de clases</h2>
-        <p class="field-hint">Actívalo cuando el alumno pague (coordinado por WhatsApp, como el resto del sitio). Solo los programas Junior/Adultos descuentan clases del paquete — las clínicas y ofertas se cobran aparte.</p>
-        <form id="form-paquete">
-          <div class="form-grid">
-            <div class="field">
-              <label for="pq-alumno">Alumno</label>
-              <select id="pq-alumno" required></select>
+      <!-- ALUMNOS Y PAGOS -->
+      <div data-tabpanel="alumnos" hidden>
+        <!-- Paquetes de clases -->
+        <div class="portal-card">
+          <h2>Paquetes de clases</h2>
+          <p class="field-hint">Actívalo cuando el alumno pague (coordinado por WhatsApp, como el resto del sitio). Solo los programas Junior/Adultos descuentan clases del paquete — las clínicas y ofertas se cobran aparte.</p>
+          <form id="form-paquete">
+            <div class="form-grid">
+              <div class="field">
+                <label for="pq-alumno">Alumno</label>
+                <select id="pq-alumno" required></select>
+              </div>
+              <div class="field">
+                <label for="pq-tipo">Paquete</label>
+                <select id="pq-tipo"></select>
+              </div>
+              <div class="field">
+                <label for="pq-monto">Monto (S/)</label>
+                <input type="number" id="pq-monto" min="0" step="1" required>
+              </div>
+              <div class="field" style="justify-content:flex-end;">
+                <label class="avail-slot" style="display:inline-flex;">
+                  <input type="checkbox" id="pq-pagado" checked> Ya pagó
+                </label>
+              </div>
             </div>
+            <button class="btn btn-primary btn-small" type="submit" style="margin-top:14px;">Activar paquete</button>
+            <p class="form-msg" id="paquete-msg"></p>
+          </form>
+          <div id="lista-paquetes" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
+        </div>
+
+        <!-- Seguimiento: riesgo de abandono, renovaciones, cobros -->
+        <div class="portal-card">
+          <h2>Seguimiento</h2>
+          <h3>Alumnos sin actividad reciente</h3>
+          <div id="lista-riesgo" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
+          <h3>Paquetes por renovar</h3>
+          <div id="lista-renovar" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
+          <h3>Cobros pendientes</h3>
+          <div id="lista-cobros" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
+          <h3>Leads de la jornada gratis</h3>
+          <div id="lista-leads"><p class="empty-state">Cargando...</p></div>
+        </div>
+
+        <!-- Disponibilidad de alumnos -->
+        <div class="portal-card">
+          <h2>Disponibilidad de tus alumnos</h2>
+          <p class="field-hint">Lo que cada alumno marcó como su horario habitual — útil para proponer horario si rechazas una solicitud.</p>
+          <div id="lista-alumnos"><p class="empty-state">Cargando...</p></div>
+        </div>
+      </div>
+
+      <!-- GRUPOS NUEVOS -->
+      <div data-tabpanel="grupos" hidden>
+        <div class="portal-card">
+          <h2>Grupos e interesados</h2>
+          <p class="field-hint">Turnos que ves en "¿Eres nuevo en el pádel?" de la web, y quién se anotó en cada uno. Abre o cierra turnos según la demanda real.</p>
+
+          <h3 style="margin-top:4px;">Turnos</h3>
+          <form id="form-turno" class="form-grid">
             <div class="field">
-              <label for="pq-tipo">Paquete</label>
-              <select id="pq-tipo"></select>
-            </div>
-            <div class="field">
-              <label for="pq-monto">Monto (S/)</label>
-              <input type="number" id="pq-monto" min="0" step="1" required>
-            </div>
-            <div class="field" style="justify-content:flex-end;">
-              <label class="avail-slot" style="display:inline-flex;">
-                <input type="checkbox" id="pq-pagado" checked> Ya pagó
-              </label>
-            </div>
-          </div>
-          <button class="btn btn-primary btn-small" type="submit" style="margin-top:14px;">Activar paquete</button>
-          <p class="form-msg" id="paquete-msg"></p>
-        </form>
-        <div id="lista-paquetes" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Lista de espera -->
-      <div class="portal-card">
-        <h2>Lista de espera</h2>
-        <p class="field-hint">Alumnos que querían un horario ya ocupado. Avísales por WhatsApp si se libera.</p>
-        <div id="lista-esperas"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Grupos e interesados (widget público "¿Eres nuevo en el pádel?") -->
-      <div class="portal-card">
-        <h2>Grupos e interesados</h2>
-        <p class="field-hint">Turnos que ves en "¿Eres nuevo en el pádel?" de la web, y quién se anotó en cada uno. Abre o cierra turnos según la demanda real.</p>
-
-        <h3 style="margin-top:4px;">Turnos</h3>
-        <form id="form-turno" class="form-grid">
-          <div class="field">
-            <label for="tg-nombre">Nombre del turno</label>
-            <input type="text" id="tg-nombre" required maxlength="60" placeholder="Ej: Mañanas entre semana">
-          </div>
-          <div class="field">
-            <label for="tg-horario">Horario (texto libre)</label>
-            <input type="text" id="tg-horario" required maxlength="100" placeholder="Ej: Lunes a viernes, 7:00 - 8:30 am">
-          </div>
-          <div class="field">
-            <label for="tg-fecha">Fecha puntual (opcional)</label>
-            <input type="date" id="tg-fecha">
-          </div>
-          <div class="field">
-            <label for="tg-cupo">Cupos</label>
-            <input type="number" id="tg-cupo" min="1" required value="4">
-          </div>
-          <div class="field">
-            <label for="tg-tipo">Tipo</label>
-            <select id="tg-tipo">
-              <option value="regular">Turno regular</option>
-              <option value="clinica-gratuita">Clínica gratuita mensual</option>
-            </select>
-          </div>
-          <button class="btn btn-outline" type="submit">Agregar turno</button>
-          <p class="field-hint">Deja la fecha vacía en turnos recurrentes (Mañanas, Tardes, Fin de Semana). Ponle fecha solo a eventos puntuales como la clínica — cada mes crea un turno nuevo con la fecha que toque.</p>
-          <p class="form-msg" id="turno-msg"></p>
-        </form>
-        <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
-
-        <h3 style="margin-top:26px;">Interesados</h3>
-        <div id="lista-interesados"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Disponibilidad de alumnos -->
-      <div class="portal-card">
-        <h2>Disponibilidad de tus alumnos</h2>
-        <p class="field-hint">Lo que cada alumno marcó como su horario habitual — útil para proponer horario si rechazas una solicitud.</p>
-        <div id="lista-alumnos"><p class="empty-state">Cargando...</p></div>
-      </div>
-
-      <!-- Mis datos -->
-      <div class="portal-card">
-        <h2>Mis datos</h2>
-        <form id="form-perfil">
-          <div class="form-grid">
-            <div class="field">
-              <label for="p-telefono">Teléfono / WhatsApp</label>
-              <input type="tel" id="p-telefono" required>
+              <label for="tg-nombre">Nombre del turno</label>
+              <input type="text" id="tg-nombre" required maxlength="60" placeholder="Ej: Mañanas entre semana">
             </div>
             <div class="field">
-              <label for="p-especialidad">Especialidad</label>
-              <input type="text" id="p-especialidad" required>
+              <label for="tg-horario">Horario (texto libre)</label>
+              <input type="text" id="tg-horario" required maxlength="100" placeholder="Ej: Lunes a viernes, 7:00 - 8:30 am">
             </div>
             <div class="field">
-              <label for="p-costo-hora">Tu costo por hora de clase (S/, para calcular rentabilidad)</label>
-              <input type="number" id="p-costo-hora" min="0" step="1">
+              <label for="tg-fecha">Fecha puntual (opcional)</label>
+              <input type="date" id="tg-fecha">
             </div>
-            <div class="field field-full">
-              <label for="p-bio">Bio corta</label>
-              <input type="text" id="p-bio">
+            <div class="field">
+              <label for="tg-cupo">Cupos</label>
+              <input type="number" id="tg-cupo" min="1" required value="4">
             </div>
-          </div>
-          <div class="disp-grid-head">
-            <h3 style="margin:0;">Mi disponibilidad habitual</h3>
-            <div class="disp-grid-actions">
-              <button class="btn btn-outline btn-small" type="button" id="p-disp-todo">Marcar todo</button>
-              <button class="btn btn-outline btn-small" type="button" id="p-disp-ninguno">Limpiar todo</button>
+            <div class="field">
+              <label for="tg-tipo">Tipo</label>
+              <select id="tg-tipo">
+                <option value="regular">Turno regular</option>
+                <option value="clinica-gratuita">Clínica gratuita mensual</option>
+              </select>
             </div>
-          </div>
-          <p class="field-hint">Toca los bloques en los que normalmente podrías dar clase.</p>
-          <div class="availability-grid" id="p-disponibilidad"></div>
-          <button class="btn btn-outline" type="submit" style="margin-top:16px;">Guardar cambios</button>
-          <p class="form-msg" id="perfil-msg"></p>
-        </form>
+            <button class="btn btn-outline" type="submit">Agregar turno</button>
+            <p class="field-hint">Deja la fecha vacía en turnos recurrentes (Mañanas, Tardes, Fin de Semana). Ponle fecha solo a eventos puntuales como la clínica — cada mes crea un turno nuevo con la fecha que toque.</p>
+            <p class="form-msg" id="turno-msg"></p>
+          </form>
+          <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
+
+          <h3 style="margin-top:26px;">Interesados</h3>
+          <div id="lista-interesados"><p class="empty-state">Cargando...</p></div>
+        </div>
+      </div>
+
+      <!-- MIS DATOS -->
+      <div data-tabpanel="datos" hidden>
+        <div class="portal-card">
+          <h2>Mis datos</h2>
+          <form id="form-perfil">
+            <div class="form-grid">
+              <div class="field">
+                <label for="p-telefono">Teléfono / WhatsApp</label>
+                <input type="tel" id="p-telefono" required>
+              </div>
+              <div class="field">
+                <label for="p-especialidad">Especialidad</label>
+                <input type="text" id="p-especialidad" required>
+              </div>
+              <div class="field">
+                <label for="p-costo-hora">Tu costo por hora de clase (S/, para calcular rentabilidad)</label>
+                <input type="number" id="p-costo-hora" min="0" step="1">
+              </div>
+              <div class="field field-full">
+                <label for="p-bio">Bio corta</label>
+                <input type="text" id="p-bio">
+              </div>
+            </div>
+            <div class="disp-grid-head">
+              <h3 style="margin:0;">Mi disponibilidad habitual</h3>
+              <div class="disp-grid-actions">
+                <button class="btn btn-outline btn-small" type="button" id="p-disp-todo">Marcar todo</button>
+                <button class="btn btn-outline btn-small" type="button" id="p-disp-ninguno">Limpiar todo</button>
+              </div>
+            </div>
+            <p class="field-hint">Toca los bloques en los que normalmente podrías dar clase.</p>
+            <div class="availability-grid" id="p-disponibilidad"></div>
+            <button class="btn btn-outline" type="submit" style="margin-top:16px;">Guardar cambios</button>
+            <p class="form-msg" id="perfil-msg"></p>
+          </form>
+        </div>
       </div>
     </div>
   </section>
@@ -219,6 +240,7 @@
 </footer>
 
 <script src="assets/js/main.js?v=13"></script>
+<script type="module" src="assets/js/portal-tabs.js?v=1"></script>
 <script type="module" src="assets/js/profesor-portal.js?v=15"></script>
 </body>
 </html>
