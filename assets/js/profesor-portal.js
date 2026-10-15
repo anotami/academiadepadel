@@ -482,12 +482,30 @@ async function cargarAlumnos() {
           </select>
         </div>
         <div class="field field-full"><label>Observaciones</label><textarea data-campo="observaciones" rows="2">${a.observaciones || ""}</textarea></div>
+        <div class="field field-full">
+          <div class="disp-grid-head">
+            <label style="margin:0;">Disponibilidad</label>
+            <div class="disp-grid-actions">
+              <button class="btn btn-outline btn-small" type="button" data-disp-todo>Marcar todo</button>
+              <button class="btn btn-outline btn-small" type="button" data-disp-ninguno>Limpiar todo</button>
+            </div>
+          </div>
+          <div class="availability-grid" data-disp-grid></div>
+        </div>
         <button class="btn btn-primary btn-small" type="button" data-guardar-alumno>Guardar</button>
       </div>
       <p class="form-msg"></p>`;
     const form = card.querySelector("[data-editar-form]");
     const msg = card.querySelector(".form-msg");
-    card.querySelector("[data-toggle-editar]").addEventListener("click", () => { form.hidden = !form.hidden; });
+    let dispGridAlumno = null;
+    card.querySelector("[data-toggle-editar]").addEventListener("click", () => {
+      form.hidden = !form.hidden;
+      if (!form.hidden && !dispGridAlumno) {
+        dispGridAlumno = construirGrillaDisponibilidad(form.querySelector("[data-disp-grid]"), { marcadas: a.disponibilidad || [] });
+        form.querySelector("[data-disp-todo]").addEventListener("click", () => dispGridAlumno.seleccionarTodo(true));
+        form.querySelector("[data-disp-ninguno]").addEventListener("click", () => dispGridAlumno.seleccionarTodo(false));
+      }
+    });
     card.querySelector("[data-guardar-alumno]").addEventListener("click", async () => {
       const nombre = form.querySelector('[data-campo="nombre"]').value.trim();
       const telefono = form.querySelector('[data-campo="telefono"]').value.trim();
@@ -495,9 +513,12 @@ async function cargarAlumnos() {
       const instagram = form.querySelector('[data-campo="instagram"]').value.trim();
       const nivel = form.querySelector('[data-campo="nivel"]').value;
       const observaciones = form.querySelector('[data-campo="observaciones"]').value.trim();
+      const disponibilidad = dispGridAlumno ? dispGridAlumno.obtenerSeleccion() : (a.disponibilidad || []);
       try {
-        await updateDoc(doc(db, "usuarios", a.id), { nombre, telefono, whatsapp, instagram, nivel, observaciones });
-        msg.textContent = "Guardado."; msg.className = "form-msg ok";
+        await updateDoc(doc(db, "usuarios", a.id), { nombre, telefono, whatsapp, instagram, nivel, observaciones, disponibilidad });
+        msg.textContent = "Guardado.";
+        msg.className = "form-msg ok";
+        await cargarAlumnos();
       } catch (err) {
         msg.textContent = "No se pudo guardar: " + err.message; msg.className = "form-msg error";
       }
