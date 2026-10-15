@@ -147,8 +147,9 @@
           <p class="field-hint">Para cargar una clase que ya diste (no pasa por "pendiente de confirmar" — queda directo como dictada).</p>
           <form id="form-clase-dictada" class="form-grid">
             <div class="field field-full">
-              <label for="cd-alumno">Alumno</label>
-              <select id="cd-alumno" required></select>
+              <label for="cd-alumno">Alumno(s)</label>
+              <select id="cd-alumno" required multiple size="4"></select>
+              <p class="field-hint">Si fue clase grupal, selecciona varios (Ctrl/Cmd + clic) — se crea una clase por cada uno y el costo de cancha se reparte entre todos.</p>
             </div>
             <div class="field field-full">
               <label for="cd-tipo">Tipo de clase</label>
@@ -179,8 +180,9 @@
               <input type="number" id="cd-monto" min="0" step="1">
             </div>
             <div class="field">
-              <label for="cd-cancha-pagada">Costo de cancha pagado (S/, opcional)</label>
+              <label for="cd-cancha-pagada">Costo total de cancha pagado (S/, opcional)</label>
               <input type="number" id="cd-cancha-pagada" min="0" step="1" placeholder="Déjalo vacío para usar la tarifa de la pista">
+              <p class="field-hint">El total de la sesión, no por persona — se divide solo entre los alumnos que elegiste arriba.</p>
             </div>
           </form>
           <button class="btn btn-primary btn-small" type="submit" form="form-clase-dictada" style="margin-top:10px;">Registrar clase</button>
@@ -335,6 +337,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=20"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=21"></script>
 </body>
 </html>

@@ -110,7 +110,7 @@ document.getElementById("form-nuevo-alumno").addEventListener("submit", async (e
 document.getElementById("form-clase-dictada").addEventListener("submit", async (e) => {
   e.preventDefault();
   const msg = document.getElementById("clase-dictada-msg");
-  const alumnoId = document.getElementById("cd-alumno").value;
+  const alumnoIds = Array.from(document.getElementById("cd-alumno").selectedOptions).map((o) => o.value);
   const tipoClase = document.getElementById("cd-tipo").value;
   const pistaId = document.getElementById("cd-pista").value;
   const fecha = document.getElementById("cd-fecha").value;
@@ -118,26 +118,34 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
   const modalidad = document.getElementById("cd-modalidad").value;
   const montoCobrado = Number(document.getElementById("cd-monto").value) || 0;
   const costoCanchaPagadoRaw = document.getElementById("cd-cancha-pagada").value;
-  const costoCanchaPagado = costoCanchaPagadoRaw === "" ? null : Number(costoCanchaPagadoRaw);
-  const alumno = alumnosCache.find((a) => a.id === alumnoId);
+  const costoCanchaTotal = costoCanchaPagadoRaw === "" ? null : Number(costoCanchaPagadoRaw);
   const pista = pistasCache.find((p) => p.id === pistaId);
-  if (!alumno || !pista) {
-    msg.textContent = "Elige un alumno y una pista válidos.";
+  const alumnosSeleccionados = alumnoIds.map((id) => alumnosCache.find((a) => a.id === id)).filter(Boolean);
+
+  if (!alumnosSeleccionados.length || !pista) {
+    msg.textContent = "Elige al menos un alumno y una pista válidos.";
     msg.className = "form-msg error";
     return;
   }
+  // El costo de cancha es por sesión, no por persona — se reparte entre
+  // todos los alumnos elegidos para que Rentabilidad no lo cuente varias veces.
+  const costoCanchaPorAlumno = costoCanchaTotal === null ? null : costoCanchaTotal / alumnosSeleccionados.length;
+
   try {
-    await addDoc(collection(db, "reservas"), {
-      alumnoId, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
-      profesorId: currentUid, profesorNombre: currentPerfil.nombre,
-      tipoClase, pistaId, pistaNombre: `${pista.nombre} — ${pista.distrito}`,
-      fecha, hora, estado: "confirmada",
-      modalidad, montoCobrado, costoCanchaPagado,
-      creadoEn: serverTimestamp()
-    });
+    for (const alumno of alumnosSeleccionados) {
+      await addDoc(collection(db, "reservas"), {
+        alumnoId: alumno.id, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
+        profesorId: currentUid, profesorNombre: currentPerfil.nombre,
+        tipoClase, pistaId, pistaNombre: `${pista.nombre} — ${pista.distrito}`,
+        fecha, hora, estado: "confirmada",
+        modalidad, montoCobrado, costoCanchaPagado: costoCanchaPorAlumno,
+        creadoEn: serverTimestamp()
+      });
+    }
     e.target.reset();
     document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA["Particular"];
-    msg.textContent = `Clase de ${alumno.nombre} registrada — ve a "Hoy" → "Clases por registrar" para marcar asistencia y feedback.`;
+    const nombres = alumnosSeleccionados.map((a) => a.nombre).join(", ");
+    msg.textContent = `Clase registrada para ${nombres} — ve a "Hoy" → "Clases por registrar" para marcar asistencia y feedback.`;
     msg.className = "form-msg ok";
   } catch (err) {
     msg.textContent = "No se pudo registrar: " + err.message;
