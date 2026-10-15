@@ -221,6 +221,8 @@ ul { padding: 0; margin: 0; list-style: none; }
   padding: 8px 16px;
 }
 .quick-nav a:hover { border-color: var(--court); color: var(--court); }
+.quick-nav a.quick-nav-principal { background: var(--court); border-color: var(--court); color: #fff; }
+.quick-nav a.quick-nav-principal:hover { background: var(--court-dark); border-color: var(--court-dark); color: #fff; }
 
 .nav-dropdown { position: relative; }
 .nav-dropdown-toggle {
