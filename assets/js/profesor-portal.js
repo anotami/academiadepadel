@@ -83,9 +83,10 @@ document.getElementById("form-nuevo-alumno").addEventListener("submit", async (e
   const edad = Number(document.getElementById("na-edad").value) || null;
   const nivel = document.getElementById("na-nivel").value;
   const programa = document.getElementById("na-programa").value;
+  const observaciones = document.getElementById("na-observaciones").value.trim();
   try {
     await setDoc(doc(collection(db, "usuarios")), {
-      rol: "alumno", nombre, telefono, edad, nivel, programa,
+      rol: "alumno", nombre, telefono, edad, nivel, programa, observaciones,
       disponibilidad: [], creadoEn: serverTimestamp()
     });
     e.target.reset();
@@ -422,31 +423,76 @@ function construirTarjetaRegistro(r) {
 // ---- Disponibilidad de alumnos ----
 async function cargarAlumnos() {
   const wrap = document.getElementById("lista-alumnos");
-  const snap = await getDocs(query(collection(db, "usuarios"), where("rol", "==", "alumno")));
-  alumnosCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const [snapAlumnos, snapReservas] = await Promise.all([
+    getDocs(query(collection(db, "usuarios"), where("rol", "==", "alumno"))),
+    getDocs(query(collection(db, "reservas"), where("profesorId", "==", currentUid)))
+  ]);
+  alumnosCache = snapAlumnos.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  // Qué tipos de clase tomó cada alumno hasta ahora — un alumno no queda
+  // encasillado en un solo programa, cada reserva elige el suyo.
+  const tiposPorAlumno = {};
+  snapReservas.docs.forEach((d) => {
+    const r = d.data();
+    if (!r.alumnoId || !r.tipoClase) return;
+    (tiposPorAlumno[r.alumnoId] ||= new Set()).add(r.tipoClase);
+  });
 
   const opcionesAlumno = alumnosCache.map((a) => `<option value="${a.id}">${a.nombre}</option>`).join("");
   document.getElementById("pq-alumno").innerHTML = opcionesAlumno;
   document.getElementById("cd-alumno").innerHTML = opcionesAlumno;
 
-  if (snap.empty) {
+  if (!alumnosCache.length) {
     wrap.innerHTML = '<p class="empty-state">Todavía no hay alumnos registrados.</p>';
     return;
   }
-  wrap.innerHTML = snap.docs.map((d) => {
-    const a = d.data();
-    const chips = (a.disponibilidad || [])
+  wrap.innerHTML = "";
+  alumnosCache.forEach((a) => {
+    const chipsDisp = (a.disponibilidad || [])
       .map((x) => `<span class="badge badge-confirmada">${x.dia} · ${x.franja}</span>`)
       .join(" ");
-    return `
-      <div class="court-card">
-        <h3>${a.nombre}</h3>
-        <p class="court-meta">${a.telefono || "Sin teléfono"} · Nivel ${a.nivel || "—"}</p>
-        ${a.apoderado ? `<p class="court-meta">👪 Apoderado: ${a.apoderado.nombre} · ${a.apoderado.telefono}</p>` : ""}
-        ${a.referidoPor ? `<p class="court-meta">🤝 Invitado por: ${a.referidoPor}</p>` : ""}
-        <p>${chips || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
-      </div>`;
-  }).join("");
+    const clasesTomadas = Array.from(tiposPorAlumno[a.id] || []);
+    const card = document.createElement("div");
+    card.className = "court-card";
+    card.innerHTML = `
+      <h3>${a.nombre}</h3>
+      <p class="court-meta">${a.telefono || "Sin teléfono"} · Nivel ${a.nivel || "—"}</p>
+      ${a.programa ? `<p class="court-meta">Llegó por: ${a.programa}</p>` : ""}
+      ${clasesTomadas.length ? `<p class="court-meta">Clases tomadas: ${clasesTomadas.join(", ")}</p>` : ""}
+      ${a.apoderado ? `<p class="court-meta">👪 Apoderado: ${a.apoderado.nombre} · ${a.apoderado.telefono}</p>` : ""}
+      ${a.referidoPor ? `<p class="court-meta">🤝 Invitado por: ${a.referidoPor}</p>` : ""}
+      ${a.observaciones ? `<p class="court-meta">📝 ${a.observaciones}</p>` : ""}
+      <p>${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
+      <button class="btn btn-outline btn-small" type="button" data-toggle-editar style="margin-top:8px;">Editar</button>
+      <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
+        <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${a.nombre || ""}"></div>
+        <div class="field"><label>Teléfono</label><input type="tel" data-campo="telefono" value="${a.telefono || ""}"></div>
+        <div class="field"><label>Nivel</label>
+          <select data-campo="nivel">
+            ${["Inicial", "Inicial-Intermedio", "Intermedio"].map((n) => `<option ${n === a.nivel ? "selected" : ""}>${n}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field field-full"><label>Observaciones</label><textarea data-campo="observaciones" rows="2">${a.observaciones || ""}</textarea></div>
+        <button class="btn btn-primary btn-small" type="button" data-guardar-alumno>Guardar</button>
+      </div>
+      <p class="form-msg"></p>`;
+    const form = card.querySelector("[data-editar-form]");
+    const msg = card.querySelector(".form-msg");
+    card.querySelector("[data-toggle-editar]").addEventListener("click", () => { form.hidden = !form.hidden; });
+    card.querySelector("[data-guardar-alumno]").addEventListener("click", async () => {
+      const nombre = form.querySelector('[data-campo="nombre"]').value.trim();
+      const telefono = form.querySelector('[data-campo="telefono"]').value.trim();
+      const nivel = form.querySelector('[data-campo="nivel"]').value;
+      const observaciones = form.querySelector('[data-campo="observaciones"]').value.trim();
+      try {
+        await updateDoc(doc(db, "usuarios", a.id), { nombre, telefono, nivel, observaciones });
+        msg.textContent = "Guardado."; msg.className = "form-msg ok";
+      } catch (err) {
+        msg.textContent = "No se pudo guardar: " + err.message; msg.className = "form-msg error";
+      }
+    });
+    wrap.appendChild(card);
+  });
 }
 
 // ---- Paquetes de clases ----
