@@ -61,9 +61,17 @@ async function cargarTurnos() {
     if (snap.empty) return;
     // Un turno con fecha puntual (ej. la clínica mensual) ya pasada no se
     // ofrece más — evita que alguien se anote a un evento que ya ocurrió.
-    const turnos = snap.docs
+    const sinPasados = snap.docs
       .map((d) => ({ id: d.id, ...d.data() }))
       .filter((t) => !t.fecha || !fechaYaPaso(t.fecha));
+
+    // De las clínicas con fecha, solo se ofrece la más próxima — mostrar
+    // las 6 a la vez satura la elección y promociona meses muy lejanos.
+    const regulares = sinPasados.filter((t) => t.tipo !== "clinica-gratuita");
+    const clinicas = sinPasados
+      .filter((t) => t.tipo === "clinica-gratuita")
+      .sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+    const turnos = clinicas.length ? [...regulares, clinicas[0]] : regulares;
     if (!turnos.length) return;
     renderTurnos(turnos);
     wizard.hidden = false;

@@ -66,6 +66,14 @@ const TURNOS_REGULARES = [
     activo: false
   },
   {
+    nombre: "Viernes 4pm · Nivel Inicial · La Once",
+    horarioTexto: "Viernes, 4:00 – 6:00 pm",
+    fecha: null,
+    cupoTotal: 4,
+    tipo: "regular",
+    activo: true
+  },
+  {
     nombre: "Domingo · Fin de Semana · Todo nivel",
     horarioTexto: "Domingo, 6:00 – 8:00 am",
     fecha: null,
