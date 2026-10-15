@@ -4,10 +4,16 @@
 // disponibilidad real (pestaña "Mis datos" de profesor.html).
 // No se ejecuta como parte del sitio — queda acá solo como registro.
 //
-// Crea 4 turnos regulares (2 activos de entrada, 2 guardados mas no
-// publicados, para abrir según demanda) + 6 clínicas de iniciación
-// gratuitas, una por mes, en el primer sábado de cada uno de los próximos
-// 6 meses.
+// Crea 3 turnos regulares (2 activos de entrada, 1 guardado sin publicar,
+// para abrir según demanda) + 6 clínicas de iniciación gratuitas, una por
+// mes, en el primer sábado de cada uno de los próximos 6 meses.
+//
+// A propósito NO hay un turno "2x por semana": con un solo profesor, cada
+// bloque de la semana solo puede pertenecer a UN turno (no puedes dictar
+// dos grupos a la misma hora). "2 veces por semana" simplemente pasa
+// cuando alguien se anota a Martes Y a Viernes por separado — no necesita
+// ser un turno aparte, y si lo fuera, competiría por el mismo horario que
+// esos dos turnos sueltos.
 //
 // OJO con el choque de horario: el turno regular de fin de semana se puso
 // en DOMINGO 6-8am (no sábado) a propósito, para no competir por el mismo
@@ -23,7 +29,7 @@ const db = getFirestore(app);
 
 const TURNOS_REGULARES = [
   {
-    nombre: "Martes · 1x por semana · Nivel Inicial",
+    nombre: "Martes · Nivel Inicial",
     horarioTexto: "Martes, 6:00 – 8:00 pm",
     fecha: null,
     cupoTotal: 4,
@@ -31,16 +37,8 @@ const TURNOS_REGULARES = [
     activo: true
   },
   {
-    nombre: "Viernes · 1x por semana · Nivel Intermedio",
+    nombre: "Viernes · Nivel Intermedio",
     horarioTexto: "Viernes, 6:00 – 8:00 pm",
-    fecha: null,
-    cupoTotal: 4,
-    tipo: "regular",
-    activo: false
-  },
-  {
-    nombre: "Martes y Viernes · 2x por semana · Inicial a Intermedio",
-    horarioTexto: "Martes y Viernes, 6:00 – 8:00 pm",
     fecha: null,
     cupoTotal: 4,
     tipo: "regular",
