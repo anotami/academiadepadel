@@ -4,9 +4,11 @@
 // disponibilidad real (pestaña "Mis datos" de profesor.html).
 // No se ejecuta como parte del sitio — queda acá solo como registro.
 //
-// Crea 3 turnos regulares (2 activos de entrada, 1 guardado sin publicar,
+// Crea 5 turnos regulares (3 activos de entrada, 2 guardados sin publicar,
 // para abrir según demanda) + 6 clínicas de iniciación gratuitas, una por
-// mes, en el primer sábado de cada uno de los próximos 6 meses.
+// mes, en el primer sábado de cada uno de los próximos 6 meses. Cubre tanto
+// mañana (6-8am, libre todos los días según tu disponibilidad) como noche
+// (6-8pm, libre martes y viernes).
 //
 // A propósito NO hay un turno "2x por semana": con un solo profesor, cada
 // bloque de la semana solo puede pertenecer a UN turno (no puedes dictar
@@ -28,6 +30,22 @@ const app = initializeApp({ credential: cert(require("./clave.json")) });
 const db = getFirestore(app);
 
 const TURNOS_REGULARES = [
+  {
+    nombre: "Lunes · Mañana · Nivel Inicial",
+    horarioTexto: "Lunes, 6:00 – 8:00 am",
+    fecha: null,
+    cupoTotal: 4,
+    tipo: "regular",
+    activo: true
+  },
+  {
+    nombre: "Miércoles · Mañana · Nivel Intermedio",
+    horarioTexto: "Miércoles, 6:00 – 8:00 am",
+    fecha: null,
+    cupoTotal: 4,
+    tipo: "regular",
+    activo: false
+  },
   {
     nombre: "Martes · Nivel Inicial",
     horarioTexto: "Martes, 6:00 – 8:00 pm",
