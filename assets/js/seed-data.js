@@ -3,7 +3,7 @@
 // del sitio); confirma precios y disponibilidad real con cada club antes de coordinar una
 // clase ahí, y actualiza aquí si algo cambia.
 
-import { DIAS, FRANJAS } from "./portal-common.js?v=16";
+import { DIAS, FRANJAS } from "./portal-common.js?v=17";
 
 // Rangos [horaInicio, horaFin) de cada franja de portal-common.js, derivados
 // de sus propias etiquetas ("6:00–8:00" -> [6, 8]) para que nunca se

@@ -5,9 +5,9 @@ import {
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=16";
 import {
-  DIAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
+  DIAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
-} from "./portal-common.js?v=16";
+} from "./portal-common.js?v=17";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -73,7 +73,13 @@ function poblarSelectsClase() {
     .join("");
 
   document.getElementById("cd-hora").innerHTML = HORAS_RESERVA.map((h) => `<option value="${h}">${h}</option>`).join("");
+
+  document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA["Particular"];
 }
+
+document.getElementById("cd-modalidad").addEventListener("change", (e) => {
+  document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA[e.target.value] ?? "";
+});
 
 document.getElementById("form-nuevo-alumno").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -109,6 +115,10 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
   const pistaId = document.getElementById("cd-pista").value;
   const fecha = document.getElementById("cd-fecha").value;
   const hora = document.getElementById("cd-hora").value;
+  const modalidad = document.getElementById("cd-modalidad").value;
+  const montoCobrado = Number(document.getElementById("cd-monto").value) || 0;
+  const costoCanchaPagadoRaw = document.getElementById("cd-cancha-pagada").value;
+  const costoCanchaPagado = costoCanchaPagadoRaw === "" ? null : Number(costoCanchaPagadoRaw);
   const alumno = alumnosCache.find((a) => a.id === alumnoId);
   const pista = pistasCache.find((p) => p.id === pistaId);
   if (!alumno || !pista) {
@@ -121,9 +131,12 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
       alumnoId, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
       profesorId: currentUid, profesorNombre: currentPerfil.nombre,
       tipoClase, pistaId, pistaNombre: `${pista.nombre} — ${pista.distrito}`,
-      fecha, hora, estado: "confirmada", creadoEn: serverTimestamp()
+      fecha, hora, estado: "confirmada",
+      modalidad, montoCobrado, costoCanchaPagado,
+      creadoEn: serverTimestamp()
     });
     e.target.reset();
+    document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA["Particular"];
     msg.textContent = `Clase de ${alumno.nombre} registrada — ve a "Hoy" → "Clases por registrar" para marcar asistencia y feedback.`;
     msg.className = "form-msg ok";
   } catch (err) {
@@ -698,13 +711,17 @@ async function calcularRentabilidad(wrap, reservas) {
   const paquetesSnap = await getDocs(collection(db, "paquetes"));
   const paquetesPagados = paquetesSnap.docs.map((d) => d.data()).filter((p) => p.pagado);
 
-  if (paquetesPagados.length === 0) {
-    wrap.innerHTML = '<p class="empty-state">Todavía no hay paquetes pagados para calcular rentabilidad.</p>';
+  // Clases sueltas registradas con su propio monto (ej. "Registrar clase ya
+  // dictada"), que no pertenecen a ningún paquete — cuentan aparte.
+  const reservasSueltas = reservas.filter((r) => !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0);
+
+  if (paquetesPagados.length === 0 && reservasSueltas.length === 0) {
+    wrap.innerHTML = '<p class="empty-state">Todavía no hay paquetes pagados ni clases sueltas con monto cargado para calcular rentabilidad.</p>';
     return;
   }
 
   const costoPromedioPistas = pistasCache.length
-    ? pistasCache.reduce((sum, p) => sum + (p.costoHora || 0), 0) / pistasCache.length
+    ? pistasCache.reduce((sum, p) => sum + (p.costoHoraSinLuz || 0), 0) / pistasCache.length
     : 0;
   const costoProfesorHora = currentPerfil.costoHora || 0;
 
@@ -717,23 +734,33 @@ async function calcularRentabilidad(wrap, reservas) {
       .map((r) => pistasCache.find((p) => p.id === r.pistaId))
       .filter(Boolean);
     const costoCanchaHora = pistasUsadas.length
-      ? pistasUsadas.reduce((sum, p) => sum + (p.costoHora || 0), 0) / pistasUsadas.length
+      ? pistasUsadas.reduce((sum, p) => sum + (p.costoHoraSinLuz || 0), 0) / pistasUsadas.length
       : costoPromedioPistas;
 
     ingresoTotal += paquete.monto || 0;
     costoTotal += paquete.clasesTotales * (costoCanchaHora + costoProfesorHora);
   });
 
+  reservasSueltas.forEach((r) => {
+    const pista = pistasCache.find((p) => p.id === r.pistaId);
+    const costoCancha = typeof r.costoCanchaPagado === "number"
+      ? r.costoCanchaPagado
+      : (pista ? pista.costoHoraSinLuz || 0 : costoPromedioPistas);
+
+    ingresoTotal += r.montoCobrado;
+    costoTotal += costoCancha + costoProfesorHora;
+  });
+
   const margenTotal = ingresoTotal - costoTotal;
   const margenPct = ingresoTotal ? Math.round((margenTotal / ingresoTotal) * 100) : 0;
-  const sinDatos = costoPromedioPistas === 0 && costoProfesorHora === 0;
+  const sinDatos = costoPromedioPistas === 0 && costoProfesorHora === 0 && !reservasSueltas.some((r) => typeof r.costoCanchaPagado === "number");
 
   wrap.innerHTML = `
-    <div class="card"><div class="card-icon">💵</div><h3>S/ ${ingresoTotal.toFixed(0)}</h3><p>Ingreso (paquetes pagados)</p></div>
+    <div class="card"><div class="card-icon">💵</div><h3>S/ ${ingresoTotal.toFixed(0)}</h3><p>Ingreso (paquetes pagados + clases sueltas)</p></div>
     <div class="card"><div class="card-icon">🧾</div><h3>S/ ${costoTotal.toFixed(0)}</h3><p>Costo estimado (cancha + tu hora)</p></div>
     <div class="card"><div class="card-icon">${margenTotal >= 0 ? "📈" : "📉"}</div><h3>S/ ${margenTotal.toFixed(0)}</h3><p>Margen neto</p></div>
     <div class="card"><div class="card-icon">%</div><h3>${margenPct}%</h3><p>Margen sobre ingreso</p></div>
-    ${sinDatos ? '<p class="empty-state" style="grid-column:1/-1;">⚠ No cargaste costo de cancha ni tu costo por hora todavía, así que el costo estimado es S/0 y no refleja la realidad. Cárgalos en pistas.html y en "Mis datos".</p>' : ""}
+    ${sinDatos ? '<p class="empty-state" style="grid-column:1/-1;">⚠ No cargaste costo de cancha ni tu costo por hora todavía, así que el costo estimado es S/0 y no refleja la realidad. Cárgalos en pistas.html y en "Mis datos" (o el costo de cancha específico al registrar cada clase suelta).</p>' : ""}
   `;
 }
 

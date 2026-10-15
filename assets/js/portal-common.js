@@ -49,6 +49,14 @@ export const TIPOS_CLASE = [
   }
 ];
 
+// Precios de "Clase suelta" (sin paquete), tal como están en index.html
+// #precios — el monto es por persona. Si cambian ahí, actualizar acá también.
+export const PRECIOS_CLASE_SUELTA = {
+  "Particular": 150,
+  "Dúo (2 personas)": 90,
+  "Grupal (3-4 personas)": 45
+};
+
 // Día de la semana (en español, como en DIAS) a partir de una fecha "YYYY-MM-DD".
 export function diaDeSemana(fechaStr) {
   const [y, m, d] = fechaStr.split("-").map(Number);
