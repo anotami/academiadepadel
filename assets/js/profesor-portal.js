@@ -1092,7 +1092,7 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
   const msg = document.getElementById("interesado-manual-msg");
   const nombre = document.getElementById("im-nombre").value.trim();
   const whatsapp = document.getElementById("im-whatsapp").value.trim();
-  const nivel = document.getElementById("im-nivel").value.trim() || "No especificado";
+  const nivel = document.getElementById("im-nivel").value;
   const turnoId = document.getElementById("im-turno").value;
   const turno = turnosGrupalesCache.find((t) => t.id === turnoId);
   if (!turno) {
