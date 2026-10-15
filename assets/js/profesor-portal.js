@@ -2,8 +2,8 @@ import {
   auth, db,
   onAuthStateChanged, signOut,
   doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
-  collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
-} from "./firebase-app.js?v=16";
+  collection, query, where, orderBy, limit, onSnapshot, getDocs, serverTimestamp, increment
+} from "./firebase-app.js?v=17";
 import {
   DIAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
@@ -51,6 +51,7 @@ onAuthStateChanged(auth, async (user) => {
   cargarEsperas();
   cargarTurnosGrupales();
   cargarInteresadosGrupo();
+  cargarHistorialClases(user.uid);
 });
 
 function poblarSelectPaquete() {
@@ -443,6 +444,100 @@ function construirTarjetaRegistro(r) {
   return card;
 }
 
+// ---- Historial de clases registradas (ver + corregir monto/cancha) ----
+function cargarHistorialClases(uid) {
+  const wrap = document.getElementById("lista-historial");
+  const q = query(
+    collection(db, "reservas"),
+    where("profesorId", "==", uid),
+    orderBy("fecha", "desc"),
+    limit(150)
+  );
+  onSnapshot(q, (snap) => {
+    const reservas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    wrap.innerHTML = "";
+    if (reservas.length === 0) {
+      wrap.innerHTML = '<p class="empty-state">Aún no registraste ninguna clase.</p>';
+      return;
+    }
+    reservas.forEach((r) => wrap.appendChild(construirTarjetaHistorial(r)));
+  }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+function construirTarjetaHistorial(r) {
+  const card = document.createElement("div");
+  card.className = "request-card";
+  const estadoLabel = { confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado;
+  card.innerHTML = `
+    <div class="request-info" style="flex:1 1 100%;">
+      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+      <p>${r.pistaNombre || ""} · ${formatearFecha(r.fecha)} · ${r.hora} hrs
+        ${r.modalidad ? "· " + r.modalidad : ""}
+        ${typeof r.montoCobrado === "number" ? `· cobrado S/ ${r.montoCobrado}` : ""}
+        ${typeof r.costoCanchaPagado === "number" ? `· cancha S/ ${r.costoCanchaPagado.toFixed(2)}` : ""}
+      </p>
+      <div class="form-grid" data-editar-form hidden style="margin-top:8px;">
+        <div class="field">
+          <label>Modalidad</label>
+          <select data-campo="modalidad">
+            <option value="Particular" ${r.modalidad === "Particular" ? "selected" : ""}>Particular</option>
+            <option value="Dúo (2 personas)" ${r.modalidad === "Dúo (2 personas)" ? "selected" : ""}>Dúo (2 personas)</option>
+            <option value="Grupal (3-4 personas)" ${r.modalidad === "Grupal (3-4 personas)" ? "selected" : ""}>Grupal (3-4 personas)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Monto cobrado (S/)</label>
+          <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}">
+        </div>
+        <div class="field">
+          <label>Costo de cancha de ESTA clase (S/)</label>
+          <input type="number" min="0" step="0.01" data-campo="costoCanchaPagado" value="${typeof r.costoCanchaPagado === "number" ? r.costoCanchaPagado.toFixed(2) : ""}">
+          <p class="field-hint">Si fue grupal, pon aquí la parte que le toca a este alumno (el total de la cancha dividido entre todos), no el total de la sesión.</p>
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select data-campo="estado">
+            <option value="confirmada" ${r.estado === "confirmada" ? "selected" : ""}>Confirmada</option>
+            <option value="cancelada" ${r.estado === "cancelada" ? "selected" : ""}>Cancelada</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-small" type="button" data-guardar-historial>Guardar</button>
+      </div>
+      <p class="form-msg"></p>
+    </div>
+    <div class="request-actions">
+      <span class="badge ${r.estado === "confirmada" ? "badge-confirmada" : "badge-pendiente"}">${estadoLabel}</span>
+      <button class="btn btn-outline btn-small" type="button" data-toggle-editar-historial>Editar</button>
+    </div>`;
+
+  const form = card.querySelector("[data-editar-form]");
+  card.querySelector("[data-toggle-editar-historial]").addEventListener("click", () => {
+    form.hidden = !form.hidden;
+  });
+  const msg = card.querySelector(".form-msg");
+  card.querySelector("[data-guardar-historial]").addEventListener("click", async () => {
+    const modalidad = form.querySelector('[data-campo="modalidad"]').value;
+    const montoCobrado = Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0;
+    const costoCanchaRaw = form.querySelector('[data-campo="costoCanchaPagado"]').value;
+    const estado = form.querySelector('[data-campo="estado"]').value;
+    try {
+      await updateDoc(doc(db, "reservas", r.id), {
+        modalidad,
+        montoCobrado,
+        costoCanchaPagado: costoCanchaRaw === "" ? null : Number(costoCanchaRaw),
+        estado
+      });
+      msg.textContent = "Actualizado.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo guardar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
+
+  return card;
+}
+
 // ---- Disponibilidad de alumnos ----
 async function cargarAlumnos() {
   const wrap = document.getElementById("lista-alumnos");
@@ -721,7 +816,7 @@ async function calcularRentabilidad(wrap, reservas) {
 
   // Clases sueltas registradas con su propio monto (ej. "Registrar clase ya
   // dictada"), que no pertenecen a ningún paquete — cuentan aparte.
-  const reservasSueltas = reservas.filter((r) => !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0);
+  const reservasSueltas = reservas.filter((r) => r.estado === "confirmada" && !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0);
 
   if (paquetesPagados.length === 0 && reservasSueltas.length === 0) {
     wrap.innerHTML = '<p class="empty-state">Todavía no hay paquetes pagados ni clases sueltas con monto cargado para calcular rentabilidad.</p>';
@@ -979,8 +1074,54 @@ function cargarTurnosGrupales() {
     turnosGrupalesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
       .sort((a, b) => fechaDeOrden(a).localeCompare(fechaDeOrden(b)));
     renderTurnos();
+    poblarSelectTurnoManual();
   }, (err) => mostrarErrorConsulta(document.getElementById("lista-turnos"), err));
 }
+
+function poblarSelectTurnoManual() {
+  const select = document.getElementById("im-turno");
+  const valorPrevio = select.value;
+  select.innerHTML = turnosGrupalesCache
+    .map((t) => `<option value="${t.id}">${t.nombre} — ${t.fecha ? formatearFechaLarga(t.fecha) + ", " : ""}${t.horarioTexto}</option>`)
+    .join("");
+  if (turnosGrupalesCache.some((t) => t.id === valorPrevio)) select.value = valorPrevio;
+}
+
+document.getElementById("form-interesado-manual").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("interesado-manual-msg");
+  const nombre = document.getElementById("im-nombre").value.trim();
+  const whatsapp = document.getElementById("im-whatsapp").value.trim();
+  const nivel = document.getElementById("im-nivel").value.trim() || "No especificado";
+  const turnoId = document.getElementById("im-turno").value;
+  const turno = turnosGrupalesCache.find((t) => t.id === turnoId);
+  if (!turno) {
+    msg.textContent = "Crea al menos un turno primero.";
+    msg.className = "form-msg error";
+    return;
+  }
+  try {
+    await addDoc(collection(db, "interesados_grupo"), {
+      nombre, whatsapp, email: "",
+      nivel,
+      turnoId: turno.id,
+      turnoNombre: turno.nombre,
+      estado: "nuevo",
+      creadoEn: serverTimestamp()
+    });
+    try {
+      await updateDoc(doc(db, "turnos_grupales", turno.id), { cupoUsado: increment(1) });
+    } catch {
+      // No bloquea si el contador público no se pudo actualizar.
+    }
+    e.target.reset();
+    msg.textContent = `Agregado a "${turno.nombre}".`;
+    msg.className = "form-msg ok";
+  } catch (err) {
+    msg.textContent = "No se pudo agregar: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
 
 function renderTurnos() {
   const wrap = document.getElementById("lista-turnos");

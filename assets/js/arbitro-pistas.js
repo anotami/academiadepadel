@@ -85,7 +85,7 @@ function renderRanking(docs) {
 
 // La carga de datos sí depende de Firebase; si el CDN falla (sin internet,
 // bloqueado), mostramos un aviso en vez de dejar la grilla vacía sin explicar.
-import("./firebase-app.js?v=16")
+import("./firebase-app.js?v=17")
   .then(({ db, collection, query, where, onSnapshot }) => {
     const enCurso = new Map();
     const interrumpidos = new Map();

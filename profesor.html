@@ -90,6 +90,13 @@
           <p class="field-hint">Alumnos que querían un horario ya ocupado. Avísales por WhatsApp si se libera.</p>
           <div id="lista-esperas"><p class="empty-state">Cargando...</p></div>
         </div>
+
+        <!-- Historial de clases registradas -->
+        <div class="portal-card">
+          <h2>Clases registradas</h2>
+          <p class="field-hint">Todas tus clases, más reciente primero. Toca "Editar" para corregir el monto cobrado, el costo de cancha o la modalidad — por ejemplo si cargaste una clase grupal con el costo total de cancha repetido en vez de dividido.</p>
+          <div id="lista-historial"><p class="empty-state">Cargando...</p></div>
+        </div>
       </div>
 
       <!-- ALUMNOS Y PAGOS -->
@@ -279,6 +286,27 @@
           <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
 
           <h3 style="margin-top:26px;">Interesados</h3>
+          <p class="field-hint">Se llenan solos cuando alguien se anota desde "¿Eres nuevo en el pádel?" en la web. Si alguien te escribió directo por WhatsApp o en persona, agrégalo acá para no perderle el rastro.</p>
+          <form id="form-interesado-manual" class="form-grid" style="margin-bottom:14px;">
+            <div class="field">
+              <label for="im-nombre">Nombre</label>
+              <input type="text" id="im-nombre" required maxlength="60">
+            </div>
+            <div class="field">
+              <label for="im-whatsapp">WhatsApp</label>
+              <input type="text" id="im-whatsapp" required placeholder="+51 999 111 222">
+            </div>
+            <div class="field">
+              <label for="im-nivel">Nivel</label>
+              <input type="text" id="im-nivel" placeholder="Ej: principiante con base">
+            </div>
+            <div class="field">
+              <label for="im-turno">Turno</label>
+              <select id="im-turno" required></select>
+            </div>
+            <button class="btn btn-outline btn-small" type="submit">Agregar interesado</button>
+            <p class="form-msg" id="interesado-manual-msg"></p>
+          </form>
           <div id="lista-interesados"><p class="empty-state">Cargando...</p></div>
         </div>
       </div>
@@ -337,6 +365,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=21"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=22"></script>
 </body>
 </html>
