@@ -66,16 +66,14 @@ function ordenarPistas(pistas) {
   return pistas.slice().sort((a, b) => prioridad(a) - prioridad(b) || (a.nombre || "").localeCompare(b.nombre || "", "es"));
 }
 
-function tarifaEnPista(pista, dia, franja) {
-  const match = (pista.disponibilidad || []).find((d) => d.dia === dia && d.franja === franja);
-  return match ? match.tarifa || "sin-luz" : null;
+// Solo nos dice si la pista tiene ese bloque abierto o no — el costo de
+// cancha (sin luz / con luz) es un dato interno de Gabriel y nunca se le
+// muestra al alumno: él paga por la clase, no por la cancha.
+function disponibleEnPista(pista, dia, franja) {
+  return (pista.disponibilidad || []).some((d) => d.dia === dia && d.franja === franja);
 }
 
-function precioDe(pista, tarifa) {
-  return tarifa === "con-luz" ? pista.costoHoraConLuz : pista.costoHoraSinLuz;
-}
-
-let seleccion = null; // { pista, dia, franja, tarifa }
+let seleccion = null; // { pista, dia, franja }
 
 function montarWidget(pistas, disponibilidadProfesor) {
   tabsWrap.innerHTML = "";
@@ -117,15 +115,15 @@ function renderGrid(pista, disponibilidadProfesor) {
     row.className = "disp-row";
     row.innerHTML = `<span class="disp-cell disp-cell-label">${franja}</span>`;
     DIAS.forEach((dia) => {
-      const tarifa = estaDisponible(disponibilidadProfesor, dia, franja) ? tarifaEnPista(pista, dia, franja) : null;
-      const cell = document.createElement(tarifa ? "button" : "span");
+      const disponible = estaDisponible(disponibilidadProfesor, dia, franja) && disponibleEnPista(pista, dia, franja);
+      const cell = document.createElement(disponible ? "button" : "span");
       cell.dataset.dia = dia;
       cell.dataset.franja = franja;
-      if (tarifa) {
+      if (disponible) {
         cell.type = "button";
-        cell.className = `disp-cell disp-toggle tarifa-${tarifa} agenda-slot`;
-        cell.setAttribute("aria-label", `${dia}, ${franja}: disponible, S/ ${precioDe(pista, tarifa)}/hora`);
-        cell.addEventListener("click", () => elegirSlot(cell, pista, dia, franja, tarifa));
+        cell.className = "disp-cell disp-toggle agenda-disponible agenda-slot";
+        cell.setAttribute("aria-label", `${dia}, ${franja}: disponible`);
+        cell.addEventListener("click", () => elegirSlot(cell, pista, dia, franja));
       } else {
         cell.className = "disp-cell disp-toggle disp-off";
         cell.setAttribute("aria-label", `${dia}, ${franja}: no disponible`);
@@ -136,14 +134,12 @@ function renderGrid(pista, disponibilidadProfesor) {
   });
 }
 
-function elegirSlot(cell, pista, dia, franja, tarifa) {
+function elegirSlot(cell, pista, dia, franja) {
   gridHost.querySelectorAll(".agenda-slot.seleccionada").forEach((el) => el.classList.remove("seleccionada"));
   cell.classList.add("seleccionada");
-  seleccion = { pista, dia, franja, tarifa };
+  seleccion = { pista, dia, franja };
 
-  const precio = precioDe(pista, tarifa);
-  const etiquetaTarifa = tarifa === "con-luz" ? "con luz" : "sin luz";
-  resumenEl.textContent = `${pista.nombre} · ${dia} · ${franja} · S/ ${precio}/hora (${etiquetaTarifa})`;
+  resumenEl.textContent = `${pista.nombre} · ${dia} · ${franja}`;
   confirmWrap.hidden = false;
   confirmWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -162,17 +158,14 @@ if (enviarBtn) {
       return;
     }
 
-    const { pista, dia, franja, tarifa } = seleccion;
-    const precio = precioDe(pista, tarifa);
-    const etiquetaTarifa = tarifa === "con-luz" ? `Con luz — S/ ${precio}/hora` : `Sin luz — S/ ${precio}/hora`;
+    const { pista, dia, franja } = seleccion;
 
     const mensaje = "Hola, quiero agendar una clase.\n" +
       "Nombre: " + nombre + "\n" +
       "Programa: " + programa + "\n" +
       "Cancha: " + pista.nombre + "\n" +
       "Día: " + dia + "\n" +
-      "Horario: " + franja + "\n" +
-      "Tarifa: " + etiquetaTarifa;
+      "Horario: " + franja;
 
     if (typeof gtag === "function") {
       gtag("event", "agenda_solicitud", { programa, cancha: pista.nombre, via: "calendario" });

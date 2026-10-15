@@ -1407,6 +1407,13 @@ span.disp-toggle.on { background: var(--court); }
 .disp-legend-swatch.tarifa-sin-luz { background: var(--accent); }
 .disp-legend-swatch.tarifa-con-luz { background: var(--court); margin-left: 10px; }
 
+/* Calendario público (#agenda): un solo estado "disponible", sin distinguir
+   tarifa de cancha — eso es un dato interno de Gabriel, el alumno paga por
+   la clase, no por la cancha. */
+.disp-toggle.agenda-disponible { background: var(--accent); }
+.disp-toggle.agenda-disponible:hover { background: var(--accent-dark); }
+.disp-legend-swatch.agenda-disponible { background: var(--accent); }
+
 /* Calendario público "Agenda tu clase" (index.html#agenda) */
 .agenda-grid-wrap { margin: 18px 0 26px; }
 .agenda-cancha-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }

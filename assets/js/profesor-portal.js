@@ -5,7 +5,7 @@ import {
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=16";
 import {
-  NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
+  DIAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
 } from "./portal-common.js?v=15";
 
@@ -767,10 +767,30 @@ document.getElementById("form-turno").addEventListener("submit", async (e) => {
   }
 });
 
+// Próxima fecha (desde hoy) en que cae un día de la semana dado, para poder
+// ordenar cronológicamente turnos recurrentes (sin fecha propia, ej.
+// "Lunes, 6:00 – 8:00 am") junto con turnos puntuales (con fecha, ej. la
+// clínica mensual) en una sola lista por "qué sigue primero".
+function proximaFechaDia(diaNombre) {
+  const idx = DIAS.indexOf(diaNombre);
+  if (idx === -1) return null;
+  const hoy = new Date();
+  const hoyIdx = (hoy.getDay() + 6) % 7; // 0=Lunes...6=Domingo, mismo orden que DIAS
+  const delta = (idx - hoyIdx + 7) % 7;
+  const resultado = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + delta);
+  return resultado.toISOString().slice(0, 10);
+}
+
+function fechaDeOrden(t) {
+  if (t.fecha) return t.fecha;
+  const dia = (t.horarioTexto || "").split(",")[0].trim();
+  return proximaFechaDia(dia) || "9999-99-99";
+}
+
 function cargarTurnosGrupales() {
   onSnapshot(collection(db, "turnos_grupales"), (snap) => {
     turnosGrupalesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.creadoEn?.seconds || 0) - (b.creadoEn?.seconds || 0));
+      .sort((a, b) => fechaDeOrden(a).localeCompare(fechaDeOrden(b)));
     renderTurnos();
   }, (err) => mostrarErrorConsulta(document.getElementById("lista-turnos"), err));
 }
