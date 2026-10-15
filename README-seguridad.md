@@ -51,7 +51,7 @@ Se mantuvo la lectura pública (como está hoy) y se aplicó la parte de escritu
 
 Mismo patrón: el pedido quería "cada usuario lee y escribe solo su propio documento". El portal necesita que un profesor pueda **leer** la lista de alumnos (para reservas, activar paquetes, el autocompletar del árbitro) y que un alumno vea qué profesores existen (selector al reservar). Restringir la lectura a uno mismo rompe esas pantallas.
 
-Se mantuvo lectura abierta a cualquier usuario logueado (como hoy) y la escritura restringida a uno mismo (como pedías, y como ya estaba). Si de verdad quieres privacidad estricta ahí, hay que rediseñar esas pantallas primero (por ejemplo, separando los datos públicos del alumno — nombre, nivel — de los privados — teléfono, email — en documentos distintos); es un cambio de arquitectura, no una línea de regla.
+Se mantuvo lectura abierta a cualquier usuario logueado (como hoy) y la escritura restringida a uno mismo (como pedías, y como ya estaba) — **más una excepción para el admin** (tu custom claim), que también puede escribir el documento de cualquier alumno. Esto es lo que permite dar de alta un alumno nuevo directo desde "Alumnos y pagos" en tu panel, sin que esa persona tenga que crear su propia cuenta primero (útil para cargar clases que ya dictaste a alguien que nunca se registró). Si de verdad quieres privacidad estricta ahí, hay que rediseñar esas pantallas primero (por ejemplo, separando los datos públicos del alumno — nombre, nivel — de los privados — teléfono, email — en documentos distintos); es un cambio de arquitectura, no una línea de regla.
 
 ## 3. Activar App Check (reCAPTCHA v3)
 

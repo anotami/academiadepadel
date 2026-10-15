@@ -1,7 +1,7 @@
 import {
   auth, db,
   onAuthStateChanged, signOut,
-  doc, getDoc, updateDoc, addDoc, deleteDoc,
+  doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
   collection, query, where, orderBy, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=16";
 import {
@@ -45,6 +45,7 @@ onAuthStateChanged(auth, async (user) => {
   await cargarAlumnos();
   cargarPaquetes();
   poblarSelectPaquete();
+  poblarSelectsClase();
   cargarMetricas(user.uid);
   cargarSeguimiento(user.uid);
   cargarEsperas();
@@ -55,6 +56,78 @@ onAuthStateChanged(auth, async (user) => {
 function poblarSelectPaquete() {
   document.getElementById("pq-tipo").innerHTML = TIPOS_PAQUETE.map((t) => `<option>${t}</option>`).join("");
 }
+
+// ---- Nuevo alumno + registrar clase ya dictada ----
+function poblarSelectsClase() {
+  const opcionesTipo = TIPOS_CLASE.map((grupo) => `
+    <optgroup label="${grupo.grupo}">
+      ${grupo.opciones.map((op) => `<option value="${op}">${op}</option>`).join("")}
+    </optgroup>
+  `).join("");
+  document.getElementById("na-programa").innerHTML = opcionesTipo;
+  document.getElementById("cd-tipo").innerHTML = opcionesTipo;
+
+  document.getElementById("cd-pista").innerHTML = pistasCache
+    .filter((p) => p.estadoPista !== "Bloqueada")
+    .map((p) => `<option value="${p.id}">${p.nombre} — ${p.distrito}</option>`)
+    .join("");
+
+  document.getElementById("cd-hora").innerHTML = HORAS_RESERVA.map((h) => `<option value="${h}">${h}</option>`).join("");
+}
+
+document.getElementById("form-nuevo-alumno").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("nuevo-alumno-msg");
+  const nombre = document.getElementById("na-nombre").value.trim();
+  const telefono = document.getElementById("na-telefono").value.trim();
+  const edad = Number(document.getElementById("na-edad").value) || null;
+  const nivel = document.getElementById("na-nivel").value;
+  const programa = document.getElementById("na-programa").value;
+  try {
+    await setDoc(doc(collection(db, "usuarios")), {
+      rol: "alumno", nombre, telefono, edad, nivel, programa,
+      disponibilidad: [], creadoEn: serverTimestamp()
+    });
+    e.target.reset();
+    msg.textContent = `Alumno "${nombre}" creado — ya aparece en los selectores de abajo.`;
+    msg.className = "form-msg ok";
+    await cargarAlumnos();
+  } catch (err) {
+    msg.textContent = "No se pudo crear: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
+
+document.getElementById("form-clase-dictada").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("clase-dictada-msg");
+  const alumnoId = document.getElementById("cd-alumno").value;
+  const tipoClase = document.getElementById("cd-tipo").value;
+  const pistaId = document.getElementById("cd-pista").value;
+  const fecha = document.getElementById("cd-fecha").value;
+  const hora = document.getElementById("cd-hora").value;
+  const alumno = alumnosCache.find((a) => a.id === alumnoId);
+  const pista = pistasCache.find((p) => p.id === pistaId);
+  if (!alumno || !pista) {
+    msg.textContent = "Elige un alumno y una pista válidos.";
+    msg.className = "form-msg error";
+    return;
+  }
+  try {
+    await addDoc(collection(db, "reservas"), {
+      alumnoId, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
+      profesorId: currentUid, profesorNombre: currentPerfil.nombre,
+      tipoClase, pistaId, pistaNombre: `${pista.nombre} — ${pista.distrito}`,
+      fecha, hora, estado: "confirmada", creadoEn: serverTimestamp()
+    });
+    e.target.reset();
+    msg.textContent = `Clase de ${alumno.nombre} registrada — ve a "Hoy" → "Clases por registrar" para marcar asistencia y feedback.`;
+    msg.className = "form-msg ok";
+  } catch (err) {
+    msg.textContent = "No se pudo registrar: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
 
 async function cargarPistasCache() {
   const snap = await getDocs(collection(db, "pistas"));
@@ -352,8 +425,9 @@ async function cargarAlumnos() {
   const snap = await getDocs(query(collection(db, "usuarios"), where("rol", "==", "alumno")));
   alumnosCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  const selectAlumno = document.getElementById("pq-alumno");
-  selectAlumno.innerHTML = alumnosCache.map((a) => `<option value="${a.id}">${a.nombre}</option>`).join("");
+  const opcionesAlumno = alumnosCache.map((a) => `<option value="${a.id}">${a.nombre}</option>`).join("");
+  document.getElementById("pq-alumno").innerHTML = opcionesAlumno;
+  document.getElementById("cd-alumno").innerHTML = opcionesAlumno;
 
   if (snap.empty) {
     wrap.innerHTML = '<p class="empty-state">Todavía no hay alumnos registrados.</p>';

@@ -94,6 +94,71 @@
 
       <!-- ALUMNOS Y PAGOS -->
       <div data-tabpanel="alumnos" hidden>
+        <!-- Nuevo alumno -->
+        <div class="portal-card">
+          <h2>Nuevo alumno</h2>
+          <p class="field-hint">Para alguien que ya tomó clase contigo pero nunca se registró en la web — crea su perfil acá y después puedes cargar su clase y su paquete.</p>
+          <form id="form-nuevo-alumno" class="form-grid">
+            <div class="field">
+              <label for="na-nombre">Nombre y apellido</label>
+              <input type="text" id="na-nombre" required maxlength="60">
+            </div>
+            <div class="field">
+              <label for="na-telefono">Teléfono / WhatsApp</label>
+              <input type="tel" id="na-telefono" required>
+            </div>
+            <div class="field">
+              <label for="na-edad">Edad</label>
+              <input type="number" id="na-edad" min="5" max="99">
+            </div>
+            <div class="field">
+              <label for="na-nivel">Nivel</label>
+              <select id="na-nivel">
+                <option>Inicial</option>
+                <option>Inicial-Intermedio</option>
+                <option>Intermedio</option>
+              </select>
+            </div>
+            <div class="field field-full">
+              <label for="na-programa">Programa</label>
+              <select id="na-programa"></select>
+            </div>
+            <button class="btn btn-primary btn-small" type="submit">Crear alumno</button>
+            <p class="form-msg" id="nuevo-alumno-msg"></p>
+          </form>
+        </div>
+
+        <!-- Registrar clase ya dictada -->
+        <div class="portal-card">
+          <h2>Registrar clase ya dictada</h2>
+          <p class="field-hint">Para cargar una clase que ya diste (no pasa por "pendiente de confirmar" — queda directo como dictada).</p>
+          <form id="form-clase-dictada" class="form-grid">
+            <div class="field field-full">
+              <label for="cd-alumno">Alumno</label>
+              <select id="cd-alumno" required></select>
+            </div>
+            <div class="field field-full">
+              <label for="cd-tipo">Tipo de clase</label>
+              <select id="cd-tipo" required></select>
+            </div>
+            <div class="field field-full">
+              <label for="cd-pista">Pista</label>
+              <select id="cd-pista" required></select>
+            </div>
+            <div class="field">
+              <label for="cd-fecha">Fecha</label>
+              <input type="date" id="cd-fecha" required>
+            </div>
+            <div class="field">
+              <label for="cd-hora">Hora</label>
+              <select id="cd-hora" required></select>
+            </div>
+          </form>
+          <button class="btn btn-primary btn-small" type="submit" form="form-clase-dictada" style="margin-top:10px;">Registrar clase</button>
+          <p class="field-hint">Queda como clase confirmada — ve a "Hoy" → "Clases por registrar" para marcar asistencia y dejar feedback.</p>
+          <p class="form-msg" id="clase-dictada-msg"></p>
+        </div>
+
         <!-- Paquetes de clases -->
         <div class="portal-card">
           <h2>Paquetes de clases</h2>
@@ -241,6 +306,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=15"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=16"></script>
 </body>
 </html>

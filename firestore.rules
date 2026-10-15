@@ -23,7 +23,11 @@ service cloud.firestore {
       // estaba). Si de verdad quieres lectura 100% privada, avísame y
       // ajustamos esas pantallas antes de aplicar la regla estricta.
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == uid;
+      // El admin (tu custom claim) también puede escribir el documento de
+      // cualquier alumno — necesario para dar de alta un alumno nuevo
+      // directo desde el panel, sin que él tenga que crear cuenta primero.
+      allow write: if request.auth != null
+        && (request.auth.uid == uid || request.auth.token.admin == true);
     }
 
     match /pistas/{id} {
