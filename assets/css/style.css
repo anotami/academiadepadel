@@ -197,6 +197,31 @@ ul { padding: 0; margin: 0; list-style: none; }
 }
 .main-nav a:hover { color: var(--court); }
 
+/* Barra de acceso rápido (index.html, justo debajo del hero): para el
+   prospect que no quiere leer todo, un atajo directo a lo que más decide
+   (programas, precio, horario, agendar, preguntas). */
+.quick-nav { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.quick-nav-inner {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 0;
+}
+.quick-nav a {
+  flex: 0 0 auto;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.86rem;
+  white-space: nowrap;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 16px;
+}
+.quick-nav a:hover { border-color: var(--court); color: var(--court); }
+
 .nav-dropdown { position: relative; }
 .nav-dropdown-toggle {
   background: none;
