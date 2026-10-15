@@ -80,13 +80,15 @@ document.getElementById("form-nuevo-alumno").addEventListener("submit", async (e
   const msg = document.getElementById("nuevo-alumno-msg");
   const nombre = document.getElementById("na-nombre").value.trim();
   const telefono = document.getElementById("na-telefono").value.trim();
+  const whatsapp = document.getElementById("na-whatsapp").value.trim();
+  const instagram = document.getElementById("na-instagram").value.trim();
   const edad = Number(document.getElementById("na-edad").value) || null;
   const nivel = document.getElementById("na-nivel").value;
   const programa = document.getElementById("na-programa").value;
   const observaciones = document.getElementById("na-observaciones").value.trim();
   try {
     await setDoc(doc(collection(db, "usuarios")), {
-      rol: "alumno", nombre, telefono, edad, nivel, programa, observaciones,
+      rol: "alumno", nombre, telefono, whatsapp, instagram, edad, nivel, programa, observaciones,
       disponibilidad: [], creadoEn: serverTimestamp()
     });
     e.target.reset();
@@ -454,9 +456,14 @@ async function cargarAlumnos() {
     const clasesTomadas = Array.from(tiposPorAlumno[a.id] || []);
     const card = document.createElement("div");
     card.className = "court-card";
+    const instagramLink = a.instagram
+      ? `<a href="https://instagram.com/${a.instagram.replace(/^@/, "")}" target="_blank" rel="noopener">@${a.instagram.replace(/^@/, "")}</a>`
+      : "";
     card.innerHTML = `
       <h3>${a.nombre}</h3>
       <p class="court-meta">${a.telefono || "Sin teléfono"} · Nivel ${a.nivel || "—"}</p>
+      ${a.whatsapp ? `<p class="court-meta">WhatsApp: ${a.whatsapp}</p>` : ""}
+      ${instagramLink ? `<p class="court-meta">Instagram: ${instagramLink}</p>` : ""}
       ${a.programa ? `<p class="court-meta">Llegó por: ${a.programa}</p>` : ""}
       ${clasesTomadas.length ? `<p class="court-meta">Clases tomadas: ${clasesTomadas.join(", ")}</p>` : ""}
       ${a.apoderado ? `<p class="court-meta">👪 Apoderado: ${a.apoderado.nombre} · ${a.apoderado.telefono}</p>` : ""}
@@ -467,6 +474,8 @@ async function cargarAlumnos() {
       <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
         <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${a.nombre || ""}"></div>
         <div class="field"><label>Teléfono</label><input type="tel" data-campo="telefono" value="${a.telefono || ""}"></div>
+        <div class="field"><label>Usuario de WhatsApp</label><input type="text" data-campo="whatsapp" value="${a.whatsapp || ""}"></div>
+        <div class="field"><label>Usuario de Instagram</label><input type="text" data-campo="instagram" value="${a.instagram || ""}"></div>
         <div class="field"><label>Nivel</label>
           <select data-campo="nivel">
             ${["Inicial", "Inicial-Intermedio", "Intermedio"].map((n) => `<option ${n === a.nivel ? "selected" : ""}>${n}</option>`).join("")}
@@ -482,10 +491,12 @@ async function cargarAlumnos() {
     card.querySelector("[data-guardar-alumno]").addEventListener("click", async () => {
       const nombre = form.querySelector('[data-campo="nombre"]').value.trim();
       const telefono = form.querySelector('[data-campo="telefono"]').value.trim();
+      const whatsapp = form.querySelector('[data-campo="whatsapp"]').value.trim();
+      const instagram = form.querySelector('[data-campo="instagram"]').value.trim();
       const nivel = form.querySelector('[data-campo="nivel"]').value;
       const observaciones = form.querySelector('[data-campo="observaciones"]').value.trim();
       try {
-        await updateDoc(doc(db, "usuarios", a.id), { nombre, telefono, nivel, observaciones });
+        await updateDoc(doc(db, "usuarios", a.id), { nombre, telefono, whatsapp, instagram, nivel, observaciones });
         msg.textContent = "Guardado."; msg.className = "form-msg ok";
       } catch (err) {
         msg.textContent = "No se pudo guardar: " + err.message; msg.className = "form-msg error";
