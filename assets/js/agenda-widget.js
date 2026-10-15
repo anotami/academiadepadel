@@ -13,7 +13,6 @@ import { DIAS, DIAS_CORTO, FRANJAS, estaDisponible } from "./portal-common.js?v=
 const WHATSAPP_NUMBER = "51957085531";
 
 const gridWrap = document.getElementById("agendaGridWrap");
-const tabsWrap = document.getElementById("agendaCanchaTabs");
 const gridHost = document.getElementById("agendaGrid");
 const confirmWrap = document.getElementById("agendaConfirm");
 const resumenEl = document.getElementById("agendaConfirmResumen");
@@ -75,40 +74,33 @@ function disponibleEnPista(pista, dia, franja) {
 
 let seleccion = null; // { pista, dia, franja }
 
+// Las canchas se muestran una al lado de la otra (en vez de pestañas) para
+// que el visitante compare horarios entre sedes de un vistazo.
 function montarWidget(pistas, disponibilidadProfesor) {
-  tabsWrap.innerHTML = "";
-  pistas.forEach((pista, i) => {
-    const tab = document.createElement("button");
-    tab.type = "button";
-    tab.className = "agenda-cancha-tab" + (i === 0 ? " activa" : "");
-    tab.textContent = pista.nombre;
-    tab.setAttribute("role", "tab");
-    tab.setAttribute("aria-selected", i === 0 ? "true" : "false");
-    tab.addEventListener("click", () => {
-      tabsWrap.querySelectorAll(".agenda-cancha-tab").forEach((t) => {
-        t.classList.remove("activa");
-        t.setAttribute("aria-selected", "false");
-      });
-      tab.classList.add("activa");
-      tab.setAttribute("aria-selected", "true");
-      renderGrid(pista, disponibilidadProfesor);
-    });
-    tabsWrap.appendChild(tab);
-  });
-  renderGrid(pistas[0], disponibilidadProfesor);
-}
-
-function renderGrid(pista, disponibilidadProfesor) {
   seleccion = null;
   confirmWrap.hidden = true;
   gridHost.innerHTML = "";
-  gridHost.classList.add("disp-grid");
+  pistas.forEach((pista) => {
+    const col = document.createElement("div");
+    col.className = "agenda-cancha-col";
+    col.innerHTML = `<h3 class="agenda-cancha-nombre">${pista.nombre}</h3>`;
+    const grid = document.createElement("div");
+    grid.className = "availability-grid";
+    const inner = document.createElement("div");
+    inner.className = "disp-grid";
+    grid.appendChild(inner);
+    col.appendChild(grid);
+    gridHost.appendChild(col);
+    renderGrid(inner, pista, disponibilidadProfesor);
+  });
+}
 
+function renderGrid(inner, pista, disponibilidadProfesor) {
   const headRow = document.createElement("div");
   headRow.className = "disp-row disp-row-head";
   headRow.innerHTML = `<span class="disp-cell disp-cell-corner"></span>` +
     DIAS.map((dia, i) => `<span class="disp-cell disp-cell-head" title="${dia}">${DIAS_CORTO[i]}</span>`).join("");
-  gridHost.appendChild(headRow);
+  inner.appendChild(headRow);
 
   FRANJAS.forEach((franja) => {
     const row = document.createElement("div");
@@ -122,15 +114,15 @@ function renderGrid(pista, disponibilidadProfesor) {
       if (disponible) {
         cell.type = "button";
         cell.className = "disp-cell disp-toggle agenda-disponible agenda-slot";
-        cell.setAttribute("aria-label", `${dia}, ${franja}: disponible`);
+        cell.setAttribute("aria-label", `${pista.nombre}, ${dia}, ${franja}: disponible`);
         cell.addEventListener("click", () => elegirSlot(cell, pista, dia, franja));
       } else {
         cell.className = "disp-cell disp-toggle disp-off";
-        cell.setAttribute("aria-label", `${dia}, ${franja}: no disponible`);
+        cell.setAttribute("aria-label", `${pista.nombre}, ${dia}, ${franja}: no disponible`);
       }
       row.appendChild(cell);
     });
-    gridHost.appendChild(row);
+    inner.appendChild(row);
   });
 }
 

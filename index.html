@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=43">
+<link rel="stylesheet" href="assets/css/style.css?v=44">
 
 <!-- Open Graph -->
 <meta property="og:title" content="academiadepadel.pe">
@@ -372,8 +372,21 @@
       <p class="fine-print">*La jornada gratuita se dicta una vez al mes (de preferencia la primera semana), una vez confirmado el grupo de 4 cupos. El Cupo Fundador aplica a los primeros 10 alumnos inscritos en un paquete grupal de 4 u 8 clases — no aplica a paquetes particulares (1 a 1).</p>
     </div>
   </section>
-  <section class="section section-alt" id="grupo-nuevo">
+  <section class="section section-flow" id="empezar-pasos">
     <div class="container">
+      <p class="pasos-eyebrow">Así empiezas</p>
+      <div class="pasos-ribbon">
+        <div class="paso-chip"><span class="paso-num">1</span> Cuéntanos tu nivel</div>
+        <div class="paso-flecha" aria-hidden="true">→</div>
+        <div class="paso-chip"><span class="paso-num">2</span> Elige cancha y horario</div>
+        <div class="paso-flecha" aria-hidden="true">→</div>
+        <div class="paso-chip"><span class="paso-num">3</span> Confirmas por WhatsApp</div>
+      </div>
+    </div>
+  </section>
+  <section class="section section-flow" id="grupo-nuevo">
+    <div class="container">
+      <span class="paso-num paso-num-grande">1</span>
       <p class="eyebrow eyebrow-center">¿Recién empiezas?</p>
       <h2 class="section-title">¿Quieres empezar a jugar pero no tienes con quién?</h2>
       <p class="section-sub">Te agrupamos con jugadores de tu mismo nivel. Tú solo eliges tu horario y nosotros armamos el grupo.</p>
@@ -438,14 +451,14 @@
       </p>
     </div>
   </section>
-  <section class="section" id="agenda">
+  <section class="section section-flow" id="agenda">
     <div class="container">
+      <span class="paso-num paso-num-grande">2</span>
       <h2 class="section-title">Agenda tu clase</h2>
       <p class="section-sub">Elige un horario libre en el calendario y te escribimos por WhatsApp para confirmarlo. Así ves de una vez mi disponibilidad real como profe y la de cada cancha.</p>
 
       <div class="agenda-grid-wrap" id="agendaGridWrap" hidden>
-        <div class="agenda-cancha-tabs" id="agendaCanchaTabs" role="tablist" aria-label="Elige una cancha"></div>
-        <div class="availability-grid" id="agendaGrid"></div>
+        <div class="agenda-canchas-row" id="agendaGrid"></div>
         <div class="disp-legend">
           <span class="disp-legend-swatch agenda-disponible"></span> Horario disponible
         </div>
@@ -904,7 +917,7 @@
 <script src="assets/js/main.js?v=13"></script>
 <script src="assets/js/promo-bar.js?v=1"></script>
 <script src="assets/js/agenda-form.js?v=1"></script>
-<script type="module" src="assets/js/agenda-widget.js?v=1"></script>
+<script type="module" src="assets/js/agenda-widget.js?v=2"></script>
 <script type="module" src="assets/js/grupo-widget.js?v=2"></script>
 <script src="assets/js/cookie-banner.js?v=1"></script>
 </body>

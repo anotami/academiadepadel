@@ -374,6 +374,27 @@ h1 .hl {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
+.section-flow {
+  background: linear-gradient(180deg, rgba(200, 233, 76, 0.14), rgba(200, 233, 76, 0.03));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.section-flow + .section-flow { border-top: none; }
+.section-flow:has(+ .section-flow) { border-bottom: none; }
+#empezar-pasos.section-flow { padding: 40px 0 16px; }
+
+.pasos-eyebrow { text-align: center; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; color: var(--court); margin: 0 0 14px; }
+.pasos-ribbon { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 6px; }
+.paso-chip { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 8px 16px 8px 8px; font-weight: 700; font-size: 0.88rem; color: var(--ink); }
+.paso-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--court); color: #fff; font-size: 0.78rem; font-weight: 800; flex: none; }
+.paso-num-grande { display: flex; margin: 0 auto 14px; width: 46px; height: 46px; font-size: 1.3rem; }
+.paso-flecha { color: var(--ink-soft); font-size: 1.1rem; }
+@media (max-width: 720px) {
+  .paso-flecha { display: none; }
+  .pasos-ribbon { flex-direction: column; align-items: stretch; }
+  .paso-chip { justify-content: center; }
+}
+
 .eyebrow-center { text-align: center; margin-bottom: 8px; }
 .section-title { font-size: clamp(1.6rem, 3vw, 2.1rem); text-align: center; }
 .section-sub {
@@ -1442,20 +1463,12 @@ span.disp-toggle.on { background: var(--court); }
 .disp-toggle.agenda-disponible:hover { background: var(--accent-dark); }
 .disp-legend-swatch.agenda-disponible { background: var(--accent); }
 
-/* Calendario público "Agenda tu clase" (index.html#agenda) */
+/* Calendario público "Agenda tu clase" (index.html#agenda): las canchas se
+   muestran una al lado de la otra para comparar horarios de un vistazo. */
 .agenda-grid-wrap { margin: 18px 0 26px; }
-.agenda-cancha-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-.agenda-cancha-tab {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--ink);
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-.agenda-cancha-tab.activa { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.agenda-canchas-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+.agenda-cancha-col { flex: 1 1 320px; min-width: 280px; }
+.agenda-cancha-nombre { margin: 0 0 10px; font-size: 1rem; font-weight: 800; color: var(--court); }
 .agenda-slot.seleccionada { outline: 3px solid var(--ink); outline-offset: -3px; }
 .agenda-confirm {
   margin-top: 18px;
@@ -1479,14 +1492,16 @@ span.disp-toggle.on { background: var(--court); }
   flex-direction: column;
   gap: 6px;
   text-align: left;
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 18px;
   background: var(--surface);
+  box-shadow: 0 6px 16px rgba(15, 30, 46, 0.06);
   cursor: pointer;
 }
-.nivel-card strong { font-size: 0.95rem; }
-.nivel-card span { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.35; }
+.nivel-card:hover { border-color: var(--court); }
+.nivel-card strong { font-size: 1.05rem; }
+.nivel-card span { font-size: 0.84rem; color: var(--ink-soft); line-height: 1.4; }
 .nivel-card.seleccionada { border-color: var(--ink); outline: 2px solid var(--ink); outline-offset: -2px; }
 
 .turnos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
