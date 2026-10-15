@@ -6,9 +6,12 @@
 //
 // Crea 5 turnos regulares (3 activos de entrada, 2 guardados sin publicar,
 // para abrir según demanda) + 6 clínicas de iniciación gratuitas, una por
-// mes, en el primer sábado de cada uno de los próximos 6 meses. Cubre tanto
-// mañana (6-8am, libre todos los días según tu disponibilidad) como noche
-// (6-8pm, libre martes y viernes).
+// mes, en el primer sábado de cada uno de los próximos 6 meses.
+//
+// Los turnos de mañana se pusieron en Lunes y Jueves (ambos home office,
+// sin presión de traslado) y no en Miércoles, porque Gabriel va a oficina
+// martes y miércoles de 9 a 18 y viernes de 9 a 13 — un bloque de 6-8am
+// esos días deja poco margen para llegar a la oficina a tiempo.
 //
 // A propósito NO hay un turno "2x por semana": con un solo profesor, cada
 // bloque de la semana solo puede pertenecer a UN turno (no puedes dictar
@@ -39,8 +42,8 @@ const TURNOS_REGULARES = [
     activo: true
   },
   {
-    nombre: "Miércoles · Mañana · Nivel Intermedio",
-    horarioTexto: "Miércoles, 6:00 – 8:00 am",
+    nombre: "Jueves · Mañana · Nivel Intermedio",
+    horarioTexto: "Jueves, 6:00 – 8:00 am",
     fecha: null,
     cupoTotal: 4,
     tipo: "regular",
