@@ -1,5 +1,5 @@
 import { auth, db, onAuthStateChanged, signInAnonymously, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=16";
-import { construirGrillaTarifaPista } from "./portal-common.js?v=14";
+import { construirGrillaTarifaPista } from "./portal-common.js?v=15";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];
 const BADGE_POR_ESTADO = { Habilitada: "badge-confirmada", Reservada: "badge-pendiente", Bloqueada: "badge-rechazada" };

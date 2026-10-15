@@ -6,8 +6,8 @@ import {
 } from "./firebase-app.js?v=16";
 import {
   NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, HORAS_RESERVA, esProgramaRegular, soloDigitos,
-  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
-} from "./portal-common.js?v=14";
+  formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
+} from "./portal-common.js?v=15";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -752,11 +752,12 @@ document.getElementById("form-turno").addEventListener("submit", async (e) => {
   const msg = document.getElementById("turno-msg");
   const nombre = document.getElementById("tg-nombre").value.trim();
   const horarioTexto = document.getElementById("tg-horario").value.trim();
+  const fecha = document.getElementById("tg-fecha").value || null;
   const cupoTotal = Number(document.getElementById("tg-cupo").value) || 1;
   const tipo = document.getElementById("tg-tipo").value;
   try {
     await addDoc(collection(db, "turnos_grupales"), {
-      nombre, horarioTexto, cupoTotal, tipo, activo: true, cupoUsado: 0, creadoEn: serverTimestamp()
+      nombre, horarioTexto, fecha, cupoTotal, tipo, activo: true, cupoUsado: 0, creadoEn: serverTimestamp()
     });
     e.target.reset();
     document.getElementById("tg-cupo").value = 4;
@@ -784,10 +785,12 @@ function renderTurnos() {
   turnosGrupalesCache.forEach((t) => {
     const interesados = interesadosGrupoCache.filter((i) => i.turnoId === t.id && i.estado !== "descartado");
     const lleno = interesados.length >= t.cupoTotal;
+    const fechaPasada = t.fecha && fechaYaPaso(t.fecha);
     const card = document.createElement("div");
     card.className = "court-card";
     card.innerHTML = `
       <h3>${t.nombre} ${t.tipo === "clinica-gratuita" ? '<span class="badge badge-pendiente">Clínica gratuita</span>' : ""}</h3>
+      ${t.fecha ? `<p class="court-meta"><strong>${formatearFechaLarga(t.fecha)}</strong>${fechaPasada ? ' <span class="badge badge-rechazada">Fecha pasada</span>' : ""}</p>` : ""}
       <p class="court-meta">${t.horarioTexto}</p>
       <p>
         <span class="badge ${lleno ? "badge-pendiente" : "badge-confirmada"}">${interesados.length}/${t.cupoTotal} interesados</span>
@@ -801,6 +804,7 @@ function renderTurnos() {
       <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
         <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${t.nombre}"></div>
         <div class="field"><label>Horario</label><input type="text" data-campo="horarioTexto" value="${t.horarioTexto}"></div>
+        <div class="field"><label>Fecha puntual (opcional)</label><input type="date" data-campo="fecha" value="${t.fecha || ""}"></div>
         <div class="field"><label>Cupos</label><input type="number" min="1" data-campo="cupoTotal" value="${t.cupoTotal}"></div>
         <button class="btn btn-primary btn-small" type="button" data-guardar-turno>Guardar</button>
       </div>
@@ -815,9 +819,10 @@ function renderTurnos() {
     card.querySelector("[data-guardar-turno]").addEventListener("click", async () => {
       const nombre = form.querySelector('[data-campo="nombre"]').value.trim();
       const horarioTexto = form.querySelector('[data-campo="horarioTexto"]').value.trim();
+      const fecha = form.querySelector('[data-campo="fecha"]').value || null;
       const cupoTotal = Number(form.querySelector('[data-campo="cupoTotal"]').value) || 1;
       try {
-        await updateDoc(doc(db, "turnos_grupales", t.id), { nombre, horarioTexto, cupoTotal });
+        await updateDoc(doc(db, "turnos_grupales", t.id), { nombre, horarioTexto, fecha, cupoTotal });
         msg.textContent = "Guardado."; msg.className = "form-msg ok";
       } catch (err) { msg.textContent = "No se pudo guardar: " + err.message; msg.className = "form-msg error"; }
     });

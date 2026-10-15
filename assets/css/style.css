@@ -1441,6 +1441,7 @@ span.disp-toggle.on { background: var(--court); }
   cursor: pointer;
 }
 .turno-card span:not(.badge) { font-size: 0.84rem; color: var(--ink-soft); }
+.turno-card .turno-fecha { font-weight: 700; color: var(--ink); text-transform: capitalize; }
 .turno-card.seleccionada { border-color: var(--ink); outline: 2px solid var(--ink); outline-offset: -2px; }
 .turno-card-gratis { border-color: var(--accent); }
 

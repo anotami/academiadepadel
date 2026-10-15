@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=37">
+<link rel="stylesheet" href="assets/css/style.css?v=38">
 </head>
 <body>
 
@@ -137,6 +137,10 @@
             <input type="text" id="tg-horario" required maxlength="100" placeholder="Ej: Lunes a viernes, 7:00 - 8:30 am">
           </div>
           <div class="field">
+            <label for="tg-fecha">Fecha puntual (opcional)</label>
+            <input type="date" id="tg-fecha">
+          </div>
+          <div class="field">
             <label for="tg-cupo">Cupos</label>
             <input type="number" id="tg-cupo" min="1" required value="4">
           </div>
@@ -148,6 +152,7 @@
             </select>
           </div>
           <button class="btn btn-outline" type="submit">Agregar turno</button>
+          <p class="field-hint">Deja la fecha vacía en turnos recurrentes (Mañanas, Tardes, Fin de Semana). Ponle fecha solo a eventos puntuales como la clínica — cada mes crea un turno nuevo con la fecha que toque.</p>
           <p class="form-msg" id="turno-msg"></p>
         </form>
         <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>

@@ -56,6 +56,16 @@ export function diaDeSemana(fechaStr) {
   return DIAS[(jsDay + 6) % 7]; // reordena para que 0 = Lunes ... 6 = Domingo
 }
 
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+// "2026-11-07" -> "sábado 7 de noviembre" — para eventos puntuales con fecha
+// concreta (ej. la clínica gratuita mensual), a diferencia de un turno
+// recurrente semanal que solo tiene un horario en texto libre.
+export function formatearFechaLarga(fechaStr) {
+  const [, m, d] = fechaStr.split("-").map(Number);
+  return `${diaDeSemana(fechaStr).toLowerCase()} ${d} de ${MESES[m - 1]}`;
+}
+
 // Convierte una hora suelta ("06:00".."21:00") en su franja de disponibilidad.
 export function horaAFranja(hora) {
   const h = Number(hora.split(":")[0]);

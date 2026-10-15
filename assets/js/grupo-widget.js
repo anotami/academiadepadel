@@ -12,6 +12,7 @@ import {
   auth, db, onAuthStateChanged, signInAnonymously,
   collection, query, where, getDocs, addDoc, updateDoc, doc, increment, serverTimestamp
 } from "./firebase-app.js?v=16";
+import { formatearFechaLarga, fechaYaPaso } from "./portal-common.js?v=15";
 
 const WHATSAPP_NUMBER = "51957085531";
 
@@ -58,7 +59,13 @@ async function cargarTurnos() {
   try {
     const snap = await getDocs(query(collection(db, "turnos_grupales"), where("activo", "==", true)));
     if (snap.empty) return;
-    renderTurnos(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    // Un turno con fecha puntual (ej. la clínica mensual) ya pasada no se
+    // ofrece más — evita que alguien se anote a un evento que ya ocurrió.
+    const turnos = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .filter((t) => !t.fecha || !fechaYaPaso(t.fecha));
+    if (!turnos.length) return;
+    renderTurnos(turnos);
     wizard.hidden = false;
     if (fallback) fallback.hidden = true;
   } catch {
@@ -77,6 +84,7 @@ function renderTurnos(turnos) {
     card.className = "turno-card" + (t.tipo === "clinica-gratuita" ? " turno-card-gratis" : "");
     card.innerHTML = `
       <strong>${t.nombre}</strong>
+      ${t.fecha ? `<span class="turno-fecha">${formatearFechaLarga(t.fecha)}</span>` : ""}
       <span>${t.horarioTexto}</span>
       <span class="badge ${lleno ? "badge-pendiente" : "badge-confirmada"}">${lleno ? "Casi lleno — anótate igual" : `Quedan ${Math.max(t.cupoTotal - cupoUsado, 0)} cupos`}</span>
     `;
@@ -84,7 +92,8 @@ function renderTurnos(turnos) {
       turnosGrid.querySelectorAll(".turno-card").forEach((c) => c.classList.remove("seleccionada"));
       card.classList.add("seleccionada");
       turnoSeleccionado = t;
-      resumenEl.textContent = `Nivel: ${nivelSeleccionado} — Turno: ${t.nombre} (${t.horarioTexto})`;
+      const cuando = t.fecha ? `${formatearFechaLarga(t.fecha)}, ${t.horarioTexto}` : t.horarioTexto;
+      resumenEl.textContent = `Nivel: ${nivelSeleccionado} — Turno: ${t.nombre} (${cuando})`;
       paso3.hidden = false;
       paso3.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
@@ -121,10 +130,13 @@ if (confirmarBtn) {
       if (typeof gtag === "function") {
         gtag("event", "grupo_interes", { nivel: nivelSeleccionado, turno: turnoSeleccionado.nombre });
       }
+      const cuando = turnoSeleccionado.fecha
+        ? `${formatearFechaLarga(turnoSeleccionado.fecha)}, ${turnoSeleccionado.horarioTexto}`
+        : turnoSeleccionado.horarioTexto;
       const mensaje = "Hola, quiero empezar a jugar pádel y armar grupo.\n" +
         "Nombre: " + nombre + "\n" +
         "Nivel: " + nivelSeleccionado + "\n" +
-        "Turno: " + turnoSeleccionado.nombre + " (" + turnoSeleccionado.horarioTexto + ")";
+        "Turno: " + turnoSeleccionado.nombre + " (" + cuando + ")";
       window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(mensaje), "_blank", "noopener");
       estadoMsg.textContent = "¡Listo! Te escribimos por WhatsApp para confirmar tu cupo.";
     } catch (err) {

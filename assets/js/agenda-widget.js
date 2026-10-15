@@ -8,7 +8,7 @@
 // formulario manual (#agendaForm) se queda visible tal como estaba, sin
 // avisar ningún error al visitante.
 import { auth, db, onAuthStateChanged, signInAnonymously, collection, query, where, getDocs } from "./firebase-app.js?v=16";
-import { DIAS, DIAS_CORTO, FRANJAS, estaDisponible } from "./portal-common.js?v=14";
+import { DIAS, DIAS_CORTO, FRANJAS, estaDisponible } from "./portal-common.js?v=15";
 
 const WHATSAPP_NUMBER = "51957085531";
 
