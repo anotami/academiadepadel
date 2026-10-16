@@ -101,7 +101,8 @@ service cloud.firestore {
         && request.resource.data.email.size() <= 120
         && request.resource.data.nivel in [
           'Nunca jugué pádel ni un deporte de raqueta',
-          'Jugué tenis, frontón o peloteos casuales, pero no domino el rebote en pared',
+          'Ya jugué pádel algunas veces, pero recién estoy empezando',
+          'Jugué tenis, frontón u otro deporte de raqueta, pero nunca pádel',
           'Mantengo peloteo con control básico y rebote simple, busco regularidad y táctica'
         ]
         && request.resource.data.turnoId is string
