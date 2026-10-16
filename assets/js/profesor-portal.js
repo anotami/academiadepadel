@@ -844,14 +844,27 @@ async function calcularRentabilidad(wrap, reservas) {
     costoTotal += paquete.clasesTotales * (costoCanchaHora + costoProfesorHora);
   });
 
+  // Una clase grupal son N reservas (una por alumno) con el mismo
+  // pista+fecha+hora. El costo de cancha ya viene dividido entre todos al
+  // guardarse, así que sumarlo por reserva es correcto — pero tu hora de
+  // profesor es UNA sola por sesión, sin importar cuántos alumnos había, así
+  // que debe contarse una sola vez por sesión y no una vez por alumno.
+  const sesiones = new Map();
   reservasSueltas.forEach((r) => {
-    const pista = pistasCache.find((p) => p.id === r.pistaId);
-    const costoCancha = typeof r.costoCanchaPagado === "number"
-      ? r.costoCanchaPagado
-      : (pista ? pista.costoHoraSinLuz || 0 : costoPromedioPistas);
-
-    ingresoTotal += r.montoCobrado;
-    costoTotal += costoCancha + costoProfesorHora;
+    const clave = `${r.pistaId}|${r.fecha}|${r.hora}`;
+    if (!sesiones.has(clave)) sesiones.set(clave, []);
+    sesiones.get(clave).push(r);
+  });
+  sesiones.forEach((reservasDeLaSesion) => {
+    reservasDeLaSesion.forEach((r) => {
+      const pista = pistasCache.find((p) => p.id === r.pistaId);
+      const costoCancha = typeof r.costoCanchaPagado === "number"
+        ? r.costoCanchaPagado
+        : (pista ? pista.costoHoraSinLuz || 0 : costoPromedioPistas);
+      ingresoTotal += r.montoCobrado;
+      costoTotal += costoCancha;
+    });
+    costoTotal += costoProfesorHora;
   });
 
   const margenTotal = ingresoTotal - costoTotal;
