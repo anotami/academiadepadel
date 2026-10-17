@@ -147,7 +147,7 @@ function construirFormularioNuevaPista() {
     <p class="field-hint">Toca cada bloque para rotar: libre → sin luz → con luz → libre.</p>
     <p class="disp-legend"><span class="disp-legend-swatch tarifa-sin-luz"></span> Sin luz <span class="disp-legend-swatch tarifa-con-luz"></span> Con luz</p>
     <div class="availability-grid" data-campo="disponibilidad"></div>
-    <button class="btn btn-primary btn-small" type="button" style="margin-top:14px;">Crear pista</button>
+    <button class="btn btn-primary btn-small" type="button" data-accion="crear-pista" style="margin-top:14px;">Crear pista</button>
     <p class="form-msg"></p>
   `;
 
@@ -158,7 +158,7 @@ function construirFormularioNuevaPista() {
   card.querySelector('[data-accion="limpiar-todo"]').addEventListener("click", () => grid.marcarTodoComo(null));
 
   const msg = card.querySelector(".form-msg");
-  card.querySelector("button").addEventListener("click", async () => {
+  card.querySelector('[data-accion="crear-pista"]').addEventListener("click", async () => {
     const campo = (nombre) => card.querySelector(`[data-campo="${nombre}"]`).value.trim();
     const nombre = campo("nombre");
     const direccion = campo("direccion");
