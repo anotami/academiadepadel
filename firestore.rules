@@ -43,8 +43,20 @@ service cloud.firestore {
 
     match /reservas/{id} {
       allow read: if request.auth != null;
+      // Un alumno solo puede crear SU PROPIA reserva, y solo como "pendiente"
+      // sin monto/registro — así queda igual que hoy hace alumno-portal.js,
+      // pero evita que alguien llame a Firestore directo (sin pasar por la
+      // web) para auto-confirmarse una clase o inventarse un monto cobrado.
+      // El profesor, en cambio, puede crear cualquier reserva con cualquier
+      // campo (lo necesita "Registrar clase ya dictada").
       allow create: if request.auth != null && (
-        request.resource.data.alumnoId == request.auth.uid ||
+        (
+          request.resource.data.alumnoId == request.auth.uid &&
+          request.resource.data.estado == 'pendiente' &&
+          !('montoCobrado' in request.resource.data) &&
+          !('costoCanchaPagado' in request.resource.data) &&
+          !('registrada' in request.resource.data)
+        ) ||
         get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor'
       );
       allow update: if request.auth != null;
