@@ -33,7 +33,7 @@ body {
   background: var(--bg);
   line-height: 1.55;
 }
-h1, h2, h3 { font-family: "Sora", "Manrope", sans-serif; line-height: 1.15; margin: 0 0 0.5em; }
+h1, h2, h3 { font-family: "Sora", "Manrope", sans-serif; line-height: 1.15; margin: 0 0 0.5em; letter-spacing: -0.01em; font-optical-sizing: auto; }
 p { margin: 0 0 1em; color: var(--ink-soft); }
 a { color: inherit; }
 img { max-width: 100%; display: block; }
@@ -72,6 +72,7 @@ ul { padding: 0; margin: 0; list-style: none; }
   white-space: nowrap;
 }
 .btn:hover { transform: translateY(-2px); }
+.btn:active { transform: scale(0.97); transition: transform 100ms ease-out; }
 .btn .icon { width: 18px; height: 18px; fill: currentColor; }
 
 .btn-primary { background: var(--court); color: #fff; }
@@ -313,6 +314,7 @@ ul { padding: 0; margin: 0; list-style: none; }
 h1 {
   font-size: clamp(2.1rem, 4vw, 3rem);
   margin-bottom: 18px;
+  letter-spacing: -0.02em;
 }
 h1 .hl {
   background: linear-gradient(180deg, transparent 55%, var(--accent) 55%);
