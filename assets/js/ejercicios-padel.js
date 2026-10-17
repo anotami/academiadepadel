@@ -2,7 +2,7 @@
 // bloques por nivel y las tarjetas de ejercicio, con un diagrama de cancha
 // en SVG generado a partir de una plantilla liviana (sin coordenadas a mano
 // por ejercicio). 100% local, basado en ejercicios-padel-data.js.
-import { MODALIDADES, NIVELES, PLANES, EJERCICIOS, CONSEJOS } from "./ejercicios-padel-data.js?v=1";
+import { MODALIDADES, NIVELES, PLANES, EJERCICIOS, CONSEJOS } from "./ejercicios-padel-data.js?v=2";
 
 function $(id) { return document.getElementById(id); }
 
@@ -164,6 +164,7 @@ function renderPlan(modalidadId) {
 
 function renderEjercicioCard(item) {
   const pasos = item.pasos.map((p) => `<li>${p}</li>`).join("");
+  const alumnos = item.modalidad === "individual" ? "1 alumno" : "Hasta 4 alumnos";
   return `<article class="ejercicio-card">
     <div class="ejercicio-media">
       <img class="ejercicio-foto" src="${item.foto.src}" alt="${item.foto.alt}" loading="lazy" width="300" height="225">
@@ -173,10 +174,24 @@ function renderEjercicioCard(item) {
       <div class="ejercicio-meta">
         <span class="ejercicio-tema">${item.tema}</span>
         <span class="ejercicio-duracion">⏱️ ${item.duracion}</span>
+        <span class="ejercicio-alumnos">👥 ${alumnos}</span>
       </div>
       <h4>${item.titulo}</h4>
       <p class="ejercicio-objetivo">${item.objetivo}</p>
       <ol class="ejercicio-pasos">${pasos}</ol>
+      <p class="ejercicio-material">🎒 <strong>Material:</strong> ${item.material}</p>
+      <details class="ejercicio-extra">
+        <summary>Variantes, error frecuente y cierre</summary>
+        <div class="ejercicio-variante"><strong>Más fácil:</strong> ${item.varianteFacil}</div>
+        <div class="ejercicio-variante"><strong>Más difícil:</strong> ${item.varianteDificil}</div>
+        <div class="ejercicio-error">
+          <strong>Error frecuente</strong>
+          ${item.errorFrecuente}
+          <strong>Corrección</strong>
+          ${item.correccion}
+        </div>
+        <p class="ejercicio-pregunta">💬 Pregúntale al cerrar: "${item.preguntaCierre}"</p>
+      </details>
     </div>
   </article>`;
 }

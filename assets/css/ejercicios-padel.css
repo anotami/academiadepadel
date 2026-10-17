@@ -94,7 +94,7 @@
 }
 .ejercicio-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
 .ejercicio-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-.ejercicio-tema, .ejercicio-duracion {
+.ejercicio-tema, .ejercicio-duracion, .ejercicio-alumnos {
   font-size: 0.74rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -103,7 +103,7 @@
   border-radius: 999px;
 }
 .ejercicio-tema { background: var(--callout-bg, #f2f6ec); color: var(--court-dark); }
-.ejercicio-duracion { background: var(--bg); color: var(--ink-soft); border: 1px solid var(--border); }
+.ejercicio-duracion, .ejercicio-alumnos { background: var(--bg); color: var(--ink-soft); border: 1px solid var(--border); }
 .ejercicio-card h4 { font-size: 1.05rem; margin-bottom: 6px; }
 .ejercicio-objetivo { font-size: 0.88rem; margin-bottom: 12px; }
 .ejercicio-pasos { list-style: none; margin: 0 0 12px; padding: 0; counter-reset: paso-ej; }
@@ -130,6 +130,34 @@
   align-items: center;
   justify-content: center;
 }
+
+.ejercicio-material { font-size: 0.82rem; color: var(--ink-soft); margin: 0 0 4px; }
+
+.ejercicio-extra { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+.ejercicio-extra summary {
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--court);
+  list-style: none;
+}
+.ejercicio-extra summary::-webkit-details-marker { display: none; }
+.ejercicio-extra summary::after { content: " +"; }
+.ejercicio-extra[open] summary::after { content: " –"; }
+.ejercicio-variante { font-size: 0.84rem; color: var(--ink-soft); margin: 10px 0 0; }
+.ejercicio-variante strong { color: var(--ink); }
+.ejercicio-error {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(200, 233, 76, 0.14);
+  border-left: 3px solid var(--accent-dark);
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+}
+.ejercicio-error strong { display: block; color: var(--ink); margin-top: 6px; }
+.ejercicio-error strong:first-child { margin-top: 0; }
+.ejercicio-pregunta { margin: 10px 0 0; font-size: 0.84rem; font-style: italic; color: var(--court-dark); }
 
 @media (max-width: 760px) {
   .ejercicios-grid { grid-template-columns: 1fr; }
