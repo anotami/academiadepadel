@@ -8,6 +8,7 @@ import {
   DIAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
 } from "./portal-common.js?v=18";
+import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -218,9 +219,9 @@ function cargarPendientes(uid) {
       card.className = "request-card";
       card.innerHTML = `
         <div class="request-info">
-          <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+          <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)}</p>
           <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
-          ${r.nota ? `<p>"${r.nota}"</p>` : ""}
+          ${r.nota ? `<p>"${escapeHtml(r.nota)}"</p>` : ""}
           ${badgesDisponibilidad(r)}
         </div>
         <div class="request-actions">
@@ -332,7 +333,7 @@ function construirTarjetaFutura(r) {
   card.className = "request-card";
   card.innerHTML = `
     <div class="request-info">
-      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)}</p>
       <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
       <div class="field-full" data-reprogramar-form hidden style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
         <div class="field"><label>Nueva fecha</label><input type="date" data-campo="fecha" value="${r.fecha}"></div>
@@ -398,7 +399,7 @@ function construirTarjetaRegistro(r) {
   card.className = "request-card";
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)}</p>
       <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs</p>
       <label class="avail-slot" style="display:inline-flex; margin:8px 0;">
         <input type="checkbox" checked data-campo="asistio"> Asistió a la clase
@@ -470,7 +471,7 @@ function construirTarjetaHistorial(r) {
   const estadoLabel = { confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado;
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${r.alumnoNombre}</p>
+      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)}</p>
       <p>${r.pistaNombre || ""} · ${formatearFecha(r.fecha)} · ${r.hora} hrs
         ${r.modalidad ? "· " + r.modalidad : ""}
         ${typeof r.montoCobrado === "number" ? `· cobrado S/ ${r.montoCobrado}` : ""}
@@ -572,19 +573,20 @@ async function cargarAlumnos() {
     const clasesTomadas = Array.from(tiposPorAlumno[a.id] || []);
     const card = document.createElement("div");
     card.className = "court-card";
+    const instagramHandle = escapeHtml((a.instagram || "").replace(/^@/, ""));
     const instagramLink = a.instagram
-      ? `<a href="https://instagram.com/${a.instagram.replace(/^@/, "")}" target="_blank" rel="noopener">@${a.instagram.replace(/^@/, "")}</a>`
+      ? `<a href="https://instagram.com/${instagramHandle}" target="_blank" rel="noopener">@${instagramHandle}</a>`
       : "";
     card.innerHTML = `
-      <h3>${a.nombre}</h3>
-      <p class="court-meta">${a.telefono || "Sin teléfono"} · Nivel ${a.nivel || "—"}</p>
-      ${a.whatsapp ? `<p class="court-meta">WhatsApp: ${a.whatsapp}</p>` : ""}
+      <h3>${escapeHtml(a.nombre)}</h3>
+      <p class="court-meta">${escapeHtml(a.telefono) || "Sin teléfono"} · Nivel ${escapeHtml(a.nivel) || "—"}</p>
+      ${a.whatsapp ? `<p class="court-meta">WhatsApp: ${escapeHtml(a.whatsapp)}</p>` : ""}
       ${instagramLink ? `<p class="court-meta">Instagram: ${instagramLink}</p>` : ""}
-      ${a.programa ? `<p class="court-meta">Llegó por: ${a.programa}</p>` : ""}
-      ${clasesTomadas.length ? `<p class="court-meta">Clases tomadas: ${clasesTomadas.join(", ")}</p>` : ""}
-      ${a.apoderado ? `<p class="court-meta">👪 Apoderado: ${a.apoderado.nombre} · ${a.apoderado.telefono}</p>` : ""}
-      ${a.referidoPor ? `<p class="court-meta">🤝 Invitado por: ${a.referidoPor}</p>` : ""}
-      ${a.observaciones ? `<p class="court-meta">📝 ${a.observaciones}</p>` : ""}
+      ${a.programa ? `<p class="court-meta">Llegó por: ${escapeHtml(a.programa)}</p>` : ""}
+      ${clasesTomadas.length ? `<p class="court-meta">Clases tomadas: ${escapeHtml(clasesTomadas.join(", "))}</p>` : ""}
+      ${a.apoderado ? `<p class="court-meta">👪 Apoderado: ${escapeHtml(a.apoderado.nombre)} · ${escapeHtml(a.apoderado.telefono)}</p>` : ""}
+      ${a.referidoPor ? `<p class="court-meta">🤝 Invitado por: ${escapeHtml(a.referidoPor)}</p>` : ""}
+      ${a.observaciones ? `<p class="court-meta">📝 ${escapeHtml(a.observaciones)}</p>` : ""}
       <p>${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
       <button class="btn btn-outline btn-small" type="button" data-toggle-editar style="margin-top:8px;">Editar</button>
       <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
@@ -697,7 +699,7 @@ function cargarPaquetes() {
       paquetes.sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0));
       const card = document.createElement("div");
       card.className = "court-card";
-      card.innerHTML = `<h3>${paquetes[0].alumnoNombre}</h3>`;
+      card.innerHTML = `<h3>${escapeHtml(paquetes[0].alumnoNombre)}</h3>`;
       paquetes.forEach((p) => card.appendChild(construirFilaPaquete(p)));
       wrap.appendChild(card);
     });
@@ -929,7 +931,7 @@ function renderLeadsJornadaGratis(wrap, reservas, paquetes) {
     return `
       <div class="request-card">
         <div class="request-info">
-          <p class="request-title">${r.alumnoNombre}</p>
+          <p class="request-title">${escapeHtml(r.alumnoNombre)}</p>
           <p>Jornada: ${formatearFecha(r.fecha)}</p>
         </div>
         <span class="badge ${convirtio ? "badge-confirmada" : "badge-pendiente"}">${convirtio ? "✓ Convirtió" : "Sin paquete aún"}</span>
@@ -961,7 +963,7 @@ function renderRiesgoAbandono(wrap, reservas) {
     return `
       <div class="request-card">
         <div class="request-info">
-          <p class="request-title">${alumno.nombre}</p>
+          <p class="request-title">${escapeHtml(alumno.nombre)}</p>
           <p>${ultimaFecha ? `Última clase: ${formatearFecha(ultimaFecha)} (${diasSinClase} días)` : "Nunca tuvo una clase confirmada"}</p>
         </div>
         ${link}
@@ -984,7 +986,7 @@ function renderPorRenovar(wrap, paquetes) {
     return `
       <div class="request-card">
         <div class="request-info">
-          <p class="request-title">${p.alumnoNombre} — ${p.tipo}</p>
+          <p class="request-title">${escapeHtml(p.alumnoNombre)} — ${p.tipo}</p>
           <p>${restantes <= 0 ? "Agotado" : `${restantes} clase restante`}</p>
         </div>
         ${link}
@@ -1006,7 +1008,7 @@ function renderCobrosPendientes(wrap, paquetes) {
     return `
       <div class="request-card">
         <div class="request-info">
-          <p class="request-title">${p.alumnoNombre} — ${p.tipo}</p>
+          <p class="request-title">${escapeHtml(p.alumnoNombre)} — ${p.tipo}</p>
           <p>S/ ${p.monto}</p>
         </div>
         ${link}
@@ -1031,7 +1033,7 @@ function cargarEsperas() {
       return `
         <div class="request-card">
           <div class="request-info">
-            <p class="request-title">${e.alumnoNombre}${e.tipoClase ? " — " + e.tipoClase : ""}</p>
+            <p class="request-title">${escapeHtml(e.alumnoNombre)}${e.tipoClase ? " — " + e.tipoClase : ""}</p>
             <p>${e.pistaNombre} · ${formatearFecha(e.fecha)} · ${e.hora} hrs</p>
           </div>
           ${link}
@@ -1095,7 +1097,7 @@ function poblarSelectTurnoManual() {
   const select = document.getElementById("im-turno");
   const valorPrevio = select.value;
   select.innerHTML = turnosGrupalesCache
-    .map((t) => `<option value="${t.id}">${t.nombre} — ${t.fecha ? formatearFechaLarga(t.fecha) + ", " : ""}${t.horarioTexto}</option>`)
+    .map((t) => `<option value="${t.id}">${escapeHtml(t.nombre)} — ${t.fecha ? formatearFechaLarga(t.fecha) + ", " : ""}${escapeHtml(t.horarioTexto)}</option>`)
     .join("");
   if (turnosGrupalesCache.some((t) => t.id === valorPrevio)) select.value = valorPrevio;
 }
@@ -1150,9 +1152,9 @@ function renderTurnos() {
     const card = document.createElement("div");
     card.className = "court-card";
     card.innerHTML = `
-      <h3>${t.nombre} ${t.tipo === "clinica-gratuita" ? '<span class="badge badge-pendiente">Clínica gratuita</span>' : ""}</h3>
+      <h3>${escapeHtml(t.nombre)} ${t.tipo === "clinica-gratuita" ? '<span class="badge badge-pendiente">Clínica gratuita</span>' : ""}</h3>
       ${t.fecha ? `<p class="court-meta"><strong>${formatearFechaLarga(t.fecha)}</strong>${fechaPasada ? ' <span class="badge badge-rechazada">Fecha pasada</span>' : ""}</p>` : ""}
-      <p class="court-meta">${t.horarioTexto}</p>
+      <p class="court-meta">${escapeHtml(t.horarioTexto)}</p>
       <p>
         <span class="badge ${lleno ? "badge-pendiente" : "badge-confirmada"}">${interesados.length}/${t.cupoTotal} interesados</span>
         <span class="badge ${t.activo ? "badge-confirmada" : "badge-rechazada"}">${t.activo ? "Abierto en la web" : "Cerrado"}</span>
@@ -1163,8 +1165,8 @@ function renderTurnos() {
         <button class="btn btn-outline btn-small" type="button" data-borrar>Borrar</button>
       </div>
       <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
-        <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${t.nombre}"></div>
-        <div class="field"><label>Horario</label><input type="text" data-campo="horarioTexto" value="${t.horarioTexto}"></div>
+        <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${escapeHtml(t.nombre)}"></div>
+        <div class="field"><label>Horario</label><input type="text" data-campo="horarioTexto" value="${escapeHtml(t.horarioTexto)}"></div>
         <div class="field"><label>Fecha puntual (opcional)</label><input type="date" data-campo="fecha" value="${t.fecha || ""}"></div>
         <div class="field"><label>Cupos</label><input type="number" min="1" data-campo="cupoTotal" value="${t.cupoTotal}"></div>
         <button class="btn btn-primary btn-small" type="button" data-guardar-turno>Guardar</button>
@@ -1223,9 +1225,9 @@ function renderInteresados() {
     card.className = "request-card";
     card.innerHTML = `
       <div class="request-info">
-        <p class="request-title">${i.nombre} <span class="badge ${BADGE_POR_ESTADO_INTERESADO[i.estado] || "badge-pendiente"}">${i.estado}</span></p>
-        <p>${i.turnoNombre} · ${i.nivel}</p>
-        <p class="court-meta">${i.whatsapp}${i.email ? " · " + i.email : ""}</p>
+        <p class="request-title">${escapeHtml(i.nombre)} <span class="badge ${BADGE_POR_ESTADO_INTERESADO[i.estado] || "badge-pendiente"}">${i.estado}</span></p>
+        <p>${escapeHtml(i.turnoNombre)} · ${escapeHtml(i.nivel)}</p>
+        <p class="court-meta">${escapeHtml(i.whatsapp)}${i.email ? " · " + escapeHtml(i.email) : ""}</p>
         <select data-estado style="margin-top:6px;">
           ${ESTADOS_INTERESADO.map((e) => `<option value="${e}" ${e === i.estado ? "selected" : ""}>${e}</option>`).join("")}
         </select>

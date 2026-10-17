@@ -8,6 +8,7 @@ import {
   HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad
 } from "./portal-common.js?v=18";
+import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -86,8 +87,8 @@ function cargarJugar() {
       return `
         <div class="request-card">
           <div class="request-info">
-            <p class="request-title">${p.alumnoNombre}${p.nivel ? " · Nivel " + p.nivel : ""}</p>
-            <p>${formatearFecha(p.fecha)}${p.nota ? " · " + p.nota : ""}</p>
+            <p class="request-title">${escapeHtml(p.alumnoNombre)}${p.nivel ? " · Nivel " + escapeHtml(p.nivel) : ""}</p>
+            <p>${formatearFecha(p.fecha)}${p.nota ? " · " + escapeHtml(p.nota) : ""}</p>
           </div>
           ${link}
         </div>`;
