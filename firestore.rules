@@ -28,6 +28,13 @@ service cloud.firestore {
       // directo desde el panel, sin que él tenga que crear cuenta primero.
       allow write: if request.auth != null
         && (request.auth.uid == uid || request.auth.token.admin == true);
+      // Excepción angosta (mismo patrón que turnos_grupales.cupoUsado): el
+      // link "actualiza tu disponibilidad" que le mandas a un alumno no
+      // inicia sesión como él, entra anónimo. Esta regla SOLO deja tocar el
+      // campo disponibilidad — nada más del perfil del alumno.
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['disponibilidad'])
+        && request.resource.data.disponibilidad is list;
     }
 
     match /pistas/{id} {

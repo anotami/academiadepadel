@@ -37,26 +37,29 @@
   <section class="section portal-section">
     <div class="container portal-shell">
       <div class="portal-card" id="dispFormCard" style="max-width:720px; margin:0 auto;">
-        <p class="eyebrow">Arma tu grupo</p>
-        <h1 style="margin-bottom:10px;">¿Cuándo puedes jugar?</h1>
-        <p class="field-hint" style="font-size:0.92rem; margin-bottom:18px;">
+        <p class="eyebrow" id="dp-eyebrow">Arma tu grupo</p>
+        <h1 style="margin-bottom:10px;" id="dp-heading">¿Cuándo puedes jugar?</h1>
+        <p class="field-hint" style="font-size:0.92rem; margin-bottom:18px;" id="dp-sub">
           Cuéntanos tus horarios libres — los cruzamos con los de más interesados y con la disponibilidad real de la cancha, así te confirmamos un grupo más rápido.
         </p>
+        <p class="form-msg error" id="dp-error" hidden></p>
 
         <form id="form-disponibilidad" class="form-grid">
-          <div class="field">
-            <label for="dp-nombre">Nombre y apellido</label>
-            <input type="text" id="dp-nombre" required maxlength="60">
-          </div>
-          <div class="field">
-            <label for="dp-whatsapp">WhatsApp / teléfono</label>
-            <input type="tel" id="dp-whatsapp" required placeholder="+51 999 111 222">
-          </div>
-          <div class="field field-full">
-            <label for="dp-cancha">Cancha de tu preferencia</label>
-            <select id="dp-cancha">
-              <option value="">No tengo preferencia</option>
-            </select>
+          <div id="dp-campos-interesado">
+            <div class="field">
+              <label for="dp-nombre">Nombre y apellido</label>
+              <input type="text" id="dp-nombre" maxlength="60">
+            </div>
+            <div class="field">
+              <label for="dp-whatsapp">WhatsApp / teléfono</label>
+              <input type="tel" id="dp-whatsapp" placeholder="+51 999 111 222">
+            </div>
+            <div class="field field-full">
+              <label for="dp-cancha">Cancha de tu preferencia</label>
+              <select id="dp-cancha">
+                <option value="">No tengo preferencia</option>
+              </select>
+            </div>
           </div>
           <div class="field field-full">
             <div class="disp-grid-head">
@@ -76,7 +79,7 @@
 
       <div class="portal-card" id="dispOkCard" hidden style="max-width:720px; margin:24px auto 0; text-align:center;">
         <h2>¡Listo, gracias!</h2>
-        <p>Ya tenemos tu disponibilidad — te escribimos por WhatsApp apenas crucemos un grupo que calce contigo.</p>
+        <p id="dp-ok-texto">Ya tenemos tu disponibilidad — te escribimos por WhatsApp apenas crucemos un grupo que calce contigo.</p>
       </div>
     </div>
   </section>
@@ -95,6 +98,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script src="assets/js/cookie-banner.js?v=1"></script>
-<script type="module" src="assets/js/disponibilidad-page.js?v=1"></script>
+<script type="module" src="assets/js/disponibilidad-page.js?v=2"></script>
 </body>
 </html>

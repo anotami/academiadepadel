@@ -578,6 +578,10 @@ async function cargarAlumnos() {
     const instagramLink = a.instagram
       ? `<a href="https://instagram.com/${instagramHandle}" target="_blank" rel="noopener">@${instagramHandle}</a>`
       : "";
+    const telAlumno = soloDigitos(a.whatsapp || a.telefono);
+    const linkPedirDisponibilidad = telAlumno
+      ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:8px; margin-left:8px;" href="https://wa.me/${telAlumno}?text=${encodeURIComponent(`Hola ${a.nombre}, ¿me actualizas tu disponibilidad acá? https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`)}">Pedir disponibilidad</a>`
+      : "";
     card.innerHTML = `
       <h3>${escapeHtml(a.nombre)}</h3>
       <p class="court-meta">${escapeHtml(a.telefono) || "Sin teléfono"} · Nivel ${escapeHtml(a.nivel) || "—"}</p>
@@ -590,6 +594,7 @@ async function cargarAlumnos() {
       ${a.observaciones ? `<p class="court-meta">📝 ${escapeHtml(a.observaciones)}</p>` : ""}
       <p>${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
       <button class="btn btn-outline btn-small" type="button" data-toggle-editar style="margin-top:8px;">Editar</button>
+      ${linkPedirDisponibilidad}
       <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
         <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${a.nombre || ""}"></div>
         <div class="field"><label>Teléfono</label><input type="tel" data-campo="telefono" value="${a.telefono || ""}"></div>
