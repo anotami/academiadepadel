@@ -1453,10 +1453,19 @@ span.disp-toggle.on { background: var(--court); }
 .disp-toggle.tarifa-con-luz { background: var(--court); }
 .disp-toggle.tarifa-con-luz:hover { background: var(--court-dark); }
 
-.disp-legend { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--ink-soft); margin: 6px 0; }
+.disp-legend { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--ink-soft); margin: 6px 0; flex-wrap: wrap; }
 .disp-legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; }
 .disp-legend-swatch.tarifa-sin-luz { background: var(--accent); }
 .disp-legend-swatch.tarifa-con-luz { background: var(--court); margin-left: 10px; }
+
+/* Cruce de disponibilidad: cuenta cuántos de los marcados coinciden. */
+.cruce-personas { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.disp-toggle.cruce-total { background: var(--accent); color: var(--court-dark); font-weight: 800; }
+.disp-toggle.cruce-total:hover { background: var(--accent-dark); }
+.disp-toggle.cruce-parcial { background: rgba(200, 233, 76, 0.35); color: var(--ink); font-weight: 700; }
+.disp-toggle.cruce-parcial:hover { background: rgba(200, 233, 76, 0.5); }
+.disp-legend-swatch.cruce-total { background: var(--accent); }
+.disp-legend-swatch.cruce-parcial { background: rgba(200, 233, 76, 0.35); }
 
 /* Calendario público (#agenda): un solo estado "disponible", sin distinguir
    tarifa de cancha — eso es un dato interno de Gabriel, el alumno paga por

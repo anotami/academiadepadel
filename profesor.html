@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=47">
+<link rel="stylesheet" href="assets/css/style.css?v=48">
 </head>
 <body>
 
@@ -308,10 +308,44 @@
               <label for="im-turno">Turno</label>
               <select id="im-turno" required></select>
             </div>
+            <div class="field field-full">
+              <div class="disp-grid-head">
+                <label style="margin:0;">Disponibilidad que te dio (opcional)</label>
+                <div class="disp-grid-actions">
+                  <button class="btn btn-outline btn-small" type="button" id="im-disp-todo">Marcar todo</button>
+                  <button class="btn btn-outline btn-small" type="button" id="im-disp-ninguno">Limpiar todo</button>
+                </div>
+              </div>
+              <p class="field-hint">Si te escribió por WhatsApp con sus horarios libres, márcalos acá para cruzarlos en "Cruce de disponibilidad" más abajo.</p>
+              <div class="availability-grid" id="im-disponibilidad"></div>
+            </div>
             <button class="btn btn-outline btn-small" type="submit">Agregar interesado</button>
             <p class="form-msg" id="interesado-manual-msg"></p>
           </form>
           <div id="lista-interesados"><p class="empty-state">Cargando...</p></div>
+        </div>
+
+        <!-- Cruce de disponibilidad -->
+        <div class="portal-card">
+          <h2>Cruce de disponibilidad</h2>
+          <p class="field-hint">Tu disponibilidad (en "Mis datos") siempre cuenta. Marca qué alumnos e interesados quieres cruzar y en qué pista — la grilla muestra en qué día y horario coinciden todos y además hay cancha libre.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="cr-pista">Pista</label>
+              <select id="cr-pista"><option value="">Todas las pistas</option></select>
+            </div>
+          </div>
+          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Alumnos</h3>
+          <div id="cr-alumnos" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
+          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Interesados</h3>
+          <div id="cr-interesados" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
+          <div class="disp-legend" style="margin-top:16px;">
+            <span class="disp-legend-swatch cruce-total"></span> Coinciden todos los que marcaste + cancha libre
+            <span class="disp-legend-swatch cruce-parcial" style="margin-left:14px;"></span> Coinciden algunos
+            <span class="disp-legend-swatch disp-off" style="margin-left:14px;"></span> Tú no estás libre o no hay cancha
+          </div>
+          <div class="availability-grid" id="cr-grid" style="margin-top:8px;"></div>
+          <p class="field-hint" id="cr-detalle" style="margin-top:10px;">Toca un bloque de la grilla para ver quién calza y quién no.</p>
         </div>
       </div>
 
@@ -369,6 +403,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=24"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=25"></script>
 </body>
 </html>

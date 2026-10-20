@@ -102,7 +102,11 @@ service cloud.firestore {
       // pero solo tú (admin) puedes leer la lista, cambiar el estado o borrar.
       allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
       allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly(['nombre', 'whatsapp', 'email', 'nivel', 'turnoId', 'turnoNombre', 'estado', 'creadoEn'])
+        && request.resource.data.keys().hasOnly(['nombre', 'whatsapp', 'email', 'nivel', 'turnoId', 'turnoNombre', 'estado', 'creadoEn', 'disponibilidad'])
+        // disponibilidad es opcional: solo la usa el alta manual (admin), cuando
+        // un interesado te escribió directo por WhatsApp con sus horarios libres.
+        // El widget público (sin login) nunca la manda.
+        && (!('disponibilidad' in request.resource.data) || request.resource.data.disponibilidad is list)
         && request.resource.data.nombre is string
         && request.resource.data.nombre.size() >= 1
         && request.resource.data.nombre.size() <= 60

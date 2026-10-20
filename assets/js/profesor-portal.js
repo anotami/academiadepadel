@@ -5,7 +5,7 @@ import {
   collection, query, where, orderBy, limit, onSnapshot, getDocs, serverTimestamp, increment
 } from "./firebase-app.js?v=17";
 import {
-  DIAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
+  DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
 } from "./portal-common.js?v=18";
 import { escapeHtml } from "./utils.js?v=1";
@@ -158,6 +158,7 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
 async function cargarPistasCache() {
   const snap = await getDocs(collection(db, "pistas"));
   pistasCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  poblarSelectCrucePista();
 }
 
 // ---- Disponibilidad grid ----
@@ -643,6 +644,7 @@ async function cargarAlumnos() {
     });
     wrap.appendChild(card);
   });
+  renderCrucePersonas();
 }
 
 // ---- Paquetes de clases ----
@@ -1102,6 +1104,10 @@ function poblarSelectTurnoManual() {
   if (turnosGrupalesCache.some((t) => t.id === valorPrevio)) select.value = valorPrevio;
 }
 
+let dispGridInteresadoManual = construirGrillaDisponibilidad(document.getElementById("im-disponibilidad"));
+document.getElementById("im-disp-todo").addEventListener("click", () => dispGridInteresadoManual.seleccionarTodo(true));
+document.getElementById("im-disp-ninguno").addEventListener("click", () => dispGridInteresadoManual.seleccionarTodo(false));
+
 document.getElementById("form-interesado-manual").addEventListener("submit", async (e) => {
   e.preventDefault();
   const msg = document.getElementById("interesado-manual-msg");
@@ -1109,6 +1115,7 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
   const whatsapp = document.getElementById("im-whatsapp").value.trim();
   const nivel = document.getElementById("im-nivel").value;
   const turnoId = document.getElementById("im-turno").value;
+  const disponibilidad = dispGridInteresadoManual.obtenerSeleccion();
   const turno = turnosGrupalesCache.find((t) => t.id === turnoId);
   if (!turno) {
     msg.textContent = "Crea al menos un turno primero.";
@@ -1122,6 +1129,7 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
       turnoId: turno.id,
       turnoNombre: turno.nombre,
       estado: "nuevo",
+      disponibilidad,
       creadoEn: serverTimestamp()
     });
     try {
@@ -1130,6 +1138,7 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
       // No bloquea si el contador público no se pudo actualizar.
     }
     e.target.reset();
+    dispGridInteresadoManual = construirGrillaDisponibilidad(document.getElementById("im-disponibilidad"));
     msg.textContent = `Agregado a "${turno.nombre}".`;
     msg.className = "form-msg ok";
   } catch (err) {
@@ -1214,6 +1223,7 @@ function renderInteresados() {
   const wrap = document.getElementById("lista-interesados");
   if (!interesadosGrupoCache.length) {
     wrap.innerHTML = '<p class="empty-state">Todavía nadie se anotó en "¿Eres nuevo en el pádel?".</p>';
+    renderCrucePersonas();
     return;
   }
   wrap.innerHTML = "";
@@ -1221,6 +1231,9 @@ function renderInteresados() {
     const telefono = soloDigitos(i.whatsapp);
     const texto = `Hola ${i.nombre}, soy Gabriel de Academia de Pádel GP. Vi que te interesó el turno "${i.turnoNombre}" — ¿coordinamos tu primera clase?`;
     const waLink = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Escribirle</a>` : "";
+    const chipsDisp = (i.disponibilidad || [])
+      .map((x) => `<span class="badge badge-confirmada">${escapeHtml(x.dia)} · ${escapeHtml(x.franja)}</span>`)
+      .join(" ");
     const card = document.createElement("div");
     card.className = "request-card";
     card.innerHTML = `
@@ -1231,13 +1244,165 @@ function renderInteresados() {
         <select data-estado style="margin-top:6px;">
           ${ESTADOS_INTERESADO.map((e) => `<option value="${e}" ${e === i.estado ? "selected" : ""}>${e}</option>`).join("")}
         </select>
+        <p style="margin-top:8px;">${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
+        <button class="btn btn-outline btn-small" type="button" data-toggle-disp style="margin-top:4px;">Editar disponibilidad</button>
+        <div class="availability-grid" data-disp-grid hidden style="margin-top:8px;"></div>
+        <p class="form-msg" data-disp-msg></p>
       </div>
       ${waLink}`;
     card.querySelector("[data-estado]").addEventListener("change", async (e) => {
       try { await updateDoc(doc(db, "interesados_grupo", i.id), { estado: e.target.value }); }
       catch (err) { alert("No se pudo cambiar el estado: " + err.message); }
     });
+    const dispGridWrap = card.querySelector("[data-disp-grid]");
+    const dispMsg = card.querySelector("[data-disp-msg]");
+    let dispGridInteresado = null;
+    card.querySelector("[data-toggle-disp]").addEventListener("click", async () => {
+      const abrir = dispGridWrap.hidden;
+      dispGridWrap.hidden = !abrir;
+      if (abrir && !dispGridInteresado) {
+        dispGridInteresado = construirGrillaDisponibilidad(dispGridWrap, { marcadas: i.disponibilidad || [] });
+        const btnGuardar = document.createElement("button");
+        btnGuardar.type = "button";
+        btnGuardar.className = "btn btn-primary btn-small";
+        btnGuardar.style.marginTop = "8px";
+        btnGuardar.textContent = "Guardar disponibilidad";
+        btnGuardar.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "interesados_grupo", i.id), { disponibilidad: dispGridInteresado.obtenerSeleccion() });
+            dispMsg.textContent = "Guardado."; dispMsg.className = "form-msg ok";
+          } catch (err) {
+            dispMsg.textContent = "No se pudo guardar: " + err.message; dispMsg.className = "form-msg error";
+          }
+        });
+        dispGridWrap.after(btnGuardar);
+      }
+    });
     wrap.appendChild(card);
+  });
+  renderCrucePersonas();
+}
+
+// ---- Cruce de disponibilidad (tú + alumnos/interesados que elijas + pista) ----
+const cruceAlumnosSeleccionados = new Set();
+const cruceInteresadosSeleccionados = new Set();
+
+function poblarSelectCrucePista() {
+  const select = document.getElementById("cr-pista");
+  const valorPrevio = select.value;
+  select.innerHTML = '<option value="">Todas las pistas</option>' +
+    pistasCache.map((p) => `<option value="${p.id}">${escapeHtml(p.nombre)} — ${escapeHtml(p.distrito || "")}</option>`).join("");
+  if (pistasCache.some((p) => p.id === valorPrevio)) select.value = valorPrevio;
+  renderCruceGrid();
+}
+document.getElementById("cr-pista").addEventListener("change", renderCruceGrid);
+
+function filaCrucePersona(id, nombre, disponibilidad, seleccionados, atributo) {
+  const marcado = seleccionados.has(id);
+  return `<label class="avail-slot${marcado ? " checked" : ""}">
+    <input type="checkbox" ${atributo}="${id}" ${marcado ? "checked" : ""}>
+    ${escapeHtml(nombre)}${(disponibilidad || []).length ? "" : ' <span class="court-meta">(sin disponibilidad cargada)</span>'}
+  </label>`;
+}
+
+function renderCrucePersonas() {
+  const wrapAlumnos = document.getElementById("cr-alumnos");
+  wrapAlumnos.innerHTML = alumnosCache.length
+    ? alumnosCache.map((a) => filaCrucePersona(a.id, a.nombre, a.disponibilidad, cruceAlumnosSeleccionados, "data-cruce-alumno")).join("")
+    : '<p class="empty-state">Todavía no hay alumnos registrados.</p>';
+  wrapAlumnos.querySelectorAll("[data-cruce-alumno]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const id = input.dataset.cruceAlumno;
+      if (input.checked) cruceAlumnosSeleccionados.add(id); else cruceAlumnosSeleccionados.delete(id);
+      input.closest(".avail-slot").classList.toggle("checked", input.checked);
+      renderCruceGrid();
+    });
+  });
+
+  const wrapInteresados = document.getElementById("cr-interesados");
+  const interesadosActivos = interesadosGrupoCache.filter((i) => i.estado !== "descartado");
+  wrapInteresados.innerHTML = interesadosActivos.length
+    ? interesadosActivos.map((i) => filaCrucePersona(i.id, i.nombre, i.disponibilidad, cruceInteresadosSeleccionados, "data-cruce-interesado")).join("")
+    : '<p class="empty-state">Todavía no hay interesados activos.</p>';
+  wrapInteresados.querySelectorAll("[data-cruce-interesado]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const id = input.dataset.cruceInteresado;
+      if (input.checked) cruceInteresadosSeleccionados.add(id); else cruceInteresadosSeleccionados.delete(id);
+      input.closest(".avail-slot").classList.toggle("checked", input.checked);
+      renderCruceGrid();
+    });
+  });
+
+  renderCruceGrid();
+}
+
+function renderCruceGrid() {
+  const wrap = document.getElementById("cr-grid");
+  const detalle = document.getElementById("cr-detalle");
+  if (!currentPerfil) return;
+  const pistaId = document.getElementById("cr-pista").value;
+  const pistaFiltrada = pistaId ? pistasCache.find((p) => p.id === pistaId) : null;
+
+  const personas = [
+    ...alumnosCache.filter((a) => cruceAlumnosSeleccionados.has(a.id)).map((a) => ({ nombre: a.nombre, disponibilidad: a.disponibilidad || [] })),
+    ...interesadosGrupoCache.filter((i) => cruceInteresadosSeleccionados.has(i.id)).map((i) => ({ nombre: i.nombre, disponibilidad: i.disponibilidad || [] }))
+  ];
+
+  wrap.classList.add("disp-grid");
+  wrap.innerHTML = "";
+  const headRow = document.createElement("div");
+  headRow.className = "disp-row";
+  headRow.innerHTML = `<span class="disp-cell disp-cell-corner"></span>` +
+    DIAS.map((dia) => `<span class="disp-cell disp-cell-head" title="${dia}">${dia.slice(0, 3)}</span>`).join("");
+  wrap.appendChild(headRow);
+
+  FRANJAS.forEach((franja) => {
+    const row = document.createElement("div");
+    row.className = "disp-row";
+    row.innerHTML = `<span class="disp-cell disp-cell-label">${franja}</span>`;
+    DIAS.forEach((dia) => {
+      const profesorOk = estaDisponible(currentPerfil.disponibilidad, dia, franja);
+      const pistaOk = pistaFiltrada
+        ? estaDisponible(pistaFiltrada.disponibilidad, dia, franja)
+        : pistasCache.some((p) => estaDisponible(p.disponibilidad, dia, franja));
+      const disponibles = personas.filter((p) => estaDisponible(p.disponibilidad, dia, franja));
+      const total = personas.length;
+
+      let claseExtra = "";
+      let texto = "";
+      if (!profesorOk || !pistaOk) {
+        claseExtra = "disp-off";
+      } else if (total === 0) {
+        claseExtra = "on";
+      } else if (disponibles.length === total) {
+        claseExtra = "cruce-total";
+        texto = `${disponibles.length}/${total}`;
+      } else if (disponibles.length > 0) {
+        claseExtra = "cruce-parcial";
+        texto = `${disponibles.length}/${total}`;
+      } else {
+        texto = `0/${total}`;
+      }
+
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.className = `disp-cell disp-toggle ${claseExtra}`;
+      cell.textContent = texto;
+      cell.addEventListener("click", () => {
+        const faltan = personas.filter((p) => !estaDisponible(p.disponibilidad, dia, franja)).map((p) => p.nombre);
+        const partes = [`${dia}, ${franja}:`, profesorOk ? "tú estás libre" : "tú NO estás libre"];
+        partes.push(pistaFiltrada
+          ? (pistaOk ? `cancha libre en ${pistaFiltrada.nombre}` : `sin cancha libre en ${pistaFiltrada.nombre}`)
+          : (pistaOk ? "hay al menos una cancha libre" : "ninguna cancha libre"));
+        if (total > 0) {
+          partes.push(disponibles.length ? `calzan: ${disponibles.map((p) => p.nombre).join(", ")}` : "nadie de los marcados calza");
+          if (faltan.length) partes.push(`no calzan: ${faltan.join(", ")}`);
+        }
+        detalle.textContent = partes.join(" · ");
+      });
+      row.appendChild(cell);
+    });
+    wrap.appendChild(row);
   });
 }
 
