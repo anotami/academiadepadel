@@ -101,30 +101,39 @@ service cloud.firestore {
       // Cualquiera puede CREAR su propio registro (es el formulario público),
       // pero solo tú (admin) puedes leer la lista, cambiar el estado o borrar.
       allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
+      // Dos formularios públicos escriben acá con forma distinta:
+      // - grupo-widget.js (home, "¿Eres nuevo en el pádel?"): siempre manda
+      //   nivel + turnoId/turnoNombre (eligió un turno publicado).
+      // - disponibilidad-page.js (link que mandas tú por WhatsApp a quien
+      //   te escribió directo): sin turno, manda disponibilidad en grilla +
+      //   cancha de preferencia en su lugar.
+      // nombre/whatsapp/estado/creadoEn son obligatorios siempre; el resto
+      // se valida solo si vino en la petición.
       allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly(['nombre', 'whatsapp', 'email', 'nivel', 'turnoId', 'turnoNombre', 'estado', 'creadoEn', 'disponibilidad'])
-        // disponibilidad es opcional: solo la usa el alta manual (admin), cuando
-        // un interesado te escribió directo por WhatsApp con sus horarios libres.
-        // El widget público (sin login) nunca la manda.
-        && (!('disponibilidad' in request.resource.data) || request.resource.data.disponibilidad is list)
+        && request.resource.data.keys().hasOnly([
+          'nombre', 'whatsapp', 'email', 'nivel', 'turnoId', 'turnoNombre',
+          'estado', 'creadoEn', 'disponibilidad', 'canchaInteresada', 'canchaInteresadaId', 'origen'
+        ])
         && request.resource.data.nombre is string
         && request.resource.data.nombre.size() >= 1
         && request.resource.data.nombre.size() <= 60
         && request.resource.data.whatsapp is string
         && request.resource.data.whatsapp.size() >= 6
         && request.resource.data.whatsapp.size() <= 20
-        && request.resource.data.email is string
-        && request.resource.data.email.size() <= 120
-        && request.resource.data.nivel in [
+        && (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 120))
+        && (!('nivel' in request.resource.data) || request.resource.data.nivel in [
+          '',
           'Nunca jugué pádel ni un deporte de raqueta',
           'Ya jugué pádel algunas veces, pero recién estoy empezando',
           'Jugué tenis, frontón u otro deporte de raqueta, pero nunca pádel',
           'Mantengo peloteo con control básico y rebote simple, busco regularidad y táctica'
-        ]
-        && request.resource.data.turnoId is string
-        && request.resource.data.turnoId.size() > 0
-        && request.resource.data.turnoNombre is string
-        && request.resource.data.turnoNombre.size() <= 100
+        ])
+        && (!('turnoId' in request.resource.data) || (request.resource.data.turnoId is string && request.resource.data.turnoId.size() <= 80))
+        && (!('turnoNombre' in request.resource.data) || (request.resource.data.turnoNombre is string && request.resource.data.turnoNombre.size() <= 100))
+        && (!('disponibilidad' in request.resource.data) || request.resource.data.disponibilidad is list)
+        && (!('canchaInteresada' in request.resource.data) || (request.resource.data.canchaInteresada is string && request.resource.data.canchaInteresada.size() <= 100))
+        && (!('canchaInteresadaId' in request.resource.data) || request.resource.data.canchaInteresadaId is string)
+        && (!('origen' in request.resource.data) || request.resource.data.origen in ['widget', 'manual', 'link_directo'])
         && request.resource.data.estado == 'nuevo'
         && request.resource.data.creadoEn == request.time;
     }

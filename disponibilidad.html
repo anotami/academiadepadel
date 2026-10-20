@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.gstatic.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-C2DJ9V0L4Z"></script>
+<script src="assets/js/gtag-init.js?v=2"></script>
+
+<title>Cuéntanos tu disponibilidad | academiadepadel.pe</title>
+<meta name="description" content="Cuéntanos tu nombre, WhatsApp, cancha de preferencia y tus horarios libres — lo usamos para armar tu grupo de pádel con alumnos que calcen contigo.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=48">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>Academia de Pádel GP</span>
+    </a>
+    <a href="index.html" class="test-back-link">← Volver al sitio</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section portal-section">
+    <div class="container portal-shell">
+      <div class="portal-card" id="dispFormCard" style="max-width:720px; margin:0 auto;">
+        <p class="eyebrow">Arma tu grupo</p>
+        <h1 style="margin-bottom:10px;">¿Cuándo puedes jugar?</h1>
+        <p class="field-hint" style="font-size:0.92rem; margin-bottom:18px;">
+          Cuéntanos tus horarios libres — los cruzamos con los de más interesados y con la disponibilidad real de la cancha, así te confirmamos un grupo más rápido.
+        </p>
+
+        <form id="form-disponibilidad" class="form-grid">
+          <div class="field">
+            <label for="dp-nombre">Nombre y apellido</label>
+            <input type="text" id="dp-nombre" required maxlength="60">
+          </div>
+          <div class="field">
+            <label for="dp-whatsapp">WhatsApp / teléfono</label>
+            <input type="tel" id="dp-whatsapp" required placeholder="+51 999 111 222">
+          </div>
+          <div class="field field-full">
+            <label for="dp-cancha">Cancha de tu preferencia</label>
+            <select id="dp-cancha">
+              <option value="">No tengo preferencia</option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <div class="disp-grid-head">
+              <label style="margin:0;">Tu disponibilidad</label>
+              <div class="disp-grid-actions">
+                <button class="btn btn-outline btn-small" type="button" id="dp-disp-todo">Marcar todo</button>
+                <button class="btn btn-outline btn-small" type="button" id="dp-disp-ninguno">Limpiar todo</button>
+              </div>
+            </div>
+            <p class="field-hint">Toca todos los bloques en los que normalmente podrías jugar — mientras más marques, más fácil armamos tu grupo.</p>
+            <div class="availability-grid" id="dp-disponibilidad"></div>
+          </div>
+          <button class="btn btn-primary" type="submit" id="dp-submit">Enviar mi disponibilidad</button>
+          <p class="form-msg" id="dp-msg"></p>
+        </form>
+      </div>
+
+      <div class="portal-card" id="dispOkCard" hidden style="max-width:720px; margin:24px auto 0; text-align:center;">
+        <h2>¡Listo, gracias!</h2>
+        <p>Ya tenemos tu disponibilidad — te escribimos por WhatsApp apenas crucemos un grupo que calce contigo.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="brand footer-brand">
+      <img src="assets/img/logo.svg" alt="" width="28" height="28">
+      <span>Academia de Pádel GP</span>
+    </div>
+    <p>Lima, Perú · <a href="https://wa.me/51957085531" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://www.instagram.com/academiapadelgp/" target="_blank" rel="noopener">Instagram</a></p>
+    <p class="footer-copy">© <span id="year"></span> academiadepadel.pe. Todos los derechos reservados. · <a href="privacidad.html">Privacidad</a></p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js?v=13"></script>
+<script src="assets/js/cookie-banner.js?v=1"></script>
+<script type="module" src="assets/js/disponibilidad-page.js?v=1"></script>
+</body>
+</html>

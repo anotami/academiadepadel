@@ -1104,6 +1104,19 @@ function poblarSelectTurnoManual() {
   if (turnosGrupalesCache.some((t) => t.id === valorPrevio)) select.value = valorPrevio;
 }
 
+document.getElementById("btn-copiar-link-disp").addEventListener("click", async () => {
+  const msg = document.getElementById("copiar-link-disp-msg");
+  const texto = "Hola! Para armar tu clase cuéntame tu disponibilidad acá: https://academiadepadel.pe/disponibilidad.html — así cruzo mejor los horarios.";
+  try {
+    await navigator.clipboard.writeText(texto);
+    msg.textContent = "Copiado — pégalo en WhatsApp.";
+    msg.className = "form-msg ok";
+  } catch {
+    msg.textContent = texto;
+    msg.className = "form-msg";
+  }
+});
+
 let dispGridInteresadoManual = construirGrillaDisponibilidad(document.getElementById("im-disponibilidad"));
 document.getElementById("im-disp-todo").addEventListener("click", () => dispGridInteresadoManual.seleccionarTodo(true));
 document.getElementById("im-disp-ninguno").addEventListener("click", () => dispGridInteresadoManual.seleccionarTodo(false));
@@ -1229,17 +1242,20 @@ function renderInteresados() {
   wrap.innerHTML = "";
   interesadosGrupoCache.forEach((i) => {
     const telefono = soloDigitos(i.whatsapp);
-    const texto = `Hola ${i.nombre}, soy Gabriel de Academia de Pádel GP. Vi que te interesó el turno "${i.turnoNombre}" — ¿coordinamos tu primera clase?`;
+    const origenTexto = i.turnoNombre ? `el turno "${i.turnoNombre}"` : (i.canchaInteresada ? `jugar en ${i.canchaInteresada}` : "armar grupo");
+    const texto = `Hola ${i.nombre}, soy Gabriel de Academia de Pádel GP. Vi que te interesó ${origenTexto} — ¿coordinamos tu primera clase?`;
     const waLink = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Escribirle</a>` : "";
     const chipsDisp = (i.disponibilidad || [])
       .map((x) => `<span class="badge badge-confirmada">${escapeHtml(x.dia)} · ${escapeHtml(x.franja)}</span>`)
       .join(" ");
+    const linea2 = [i.turnoNombre, i.nivel].filter(Boolean).map(escapeHtml).join(" · ") || '<span class="court-meta">Completó el link de disponibilidad directo.</span>';
     const card = document.createElement("div");
     card.className = "request-card";
     card.innerHTML = `
       <div class="request-info">
-        <p class="request-title">${escapeHtml(i.nombre)} <span class="badge ${BADGE_POR_ESTADO_INTERESADO[i.estado] || "badge-pendiente"}">${i.estado}</span></p>
-        <p>${escapeHtml(i.turnoNombre)} · ${escapeHtml(i.nivel)}</p>
+        <p class="request-title">${escapeHtml(i.nombre)} <span class="badge ${BADGE_POR_ESTADO_INTERESADO[i.estado] || "badge-pendiente"}">${i.estado}</span>${i.origen === "link_directo" ? ' <span class="badge badge-confirmada">Vía link directo</span>' : ""}</p>
+        <p>${linea2}</p>
+        ${i.canchaInteresada ? `<p class="court-meta">Cancha de preferencia: ${escapeHtml(i.canchaInteresada)}</p>` : ""}
         <p class="court-meta">${escapeHtml(i.whatsapp)}${i.email ? " · " + escapeHtml(i.email) : ""}</p>
         <select data-estado style="margin-top:6px;">
           ${ESTADOS_INTERESADO.map((e) => `<option value="${e}" ${e === i.estado ? "selected" : ""}>${e}</option>`).join("")}
