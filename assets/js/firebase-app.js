@@ -27,7 +27,9 @@ import {
   onSnapshot,
   getDocs,
   serverTimestamp,
-  increment
+  increment,
+  arrayUnion,
+  arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js?v=12";
 
@@ -59,5 +61,7 @@ export {
   onSnapshot,
   getDocs,
   serverTimestamp,
-  increment
+  increment,
+  arrayUnion,
+  arrayRemove
 };

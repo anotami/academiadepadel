@@ -78,6 +78,48 @@
 
       <!-- MIS CLASES: agenda -->
       <div data-tabpanel="clases" hidden>
+        <!-- Grupos fijos (clase recurrente con roster) -->
+        <div class="portal-card">
+          <h2>Mis grupos</h2>
+          <p class="field-hint">Un grupo es una clase fija semanal (mismo día, hora y pista) con un roster de alumnos. Cada vez que entras acá, se completan solas las próximas clases confirmadas de cada grupo activo — sin tener que registrarlas una por una.</p>
+          <div class="form-msg" id="grupos-gen-msg"></div>
+
+          <h3 style="margin-top:4px;">Nuevo grupo</h3>
+          <form id="form-grupo" class="form-grid">
+            <div class="field">
+              <label for="gr-nombre">Nombre del grupo</label>
+              <input type="text" id="gr-nombre" required maxlength="60" placeholder="Ej: Lunes 6pm — X3">
+            </div>
+            <div class="field">
+              <label for="gr-tipo">Tipo de clase</label>
+              <select id="gr-tipo" required></select>
+            </div>
+            <div class="field">
+              <label for="gr-pista">Pista</label>
+              <select id="gr-pista" required></select>
+            </div>
+            <div class="field">
+              <label for="gr-dia">Día</label>
+              <select id="gr-dia" required></select>
+            </div>
+            <div class="field">
+              <label for="gr-hora">Hora</label>
+              <select id="gr-hora" required></select>
+            </div>
+            <div class="field">
+              <label for="gr-monto">Monto por persona (S/)</label>
+              <input type="number" id="gr-monto" min="0" step="1" required>
+            </div>
+            <div class="field">
+              <label for="gr-cupo">Cupo máximo</label>
+              <input type="number" id="gr-cupo" min="1" required value="4">
+            </div>
+            <button class="btn btn-outline" type="submit">Crear grupo</button>
+            <p class="form-msg" id="grupo-msg"></p>
+          </form>
+          <div id="lista-grupos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
+        </div>
+
         <!-- Próximas clases confirmadas -->
         <div class="portal-card">
           <h2>Próximas clases confirmadas</h2>
@@ -405,6 +447,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=28"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=29"></script>
 </body>
 </html>

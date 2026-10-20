@@ -192,7 +192,7 @@ function tarjeta(c) {
     msg.textContent = "Publicando...";
     msg.className = "form-msg resena-msg";
     try {
-      if (!fb) fb = await import("./firebase-app.js?v=17");
+      if (!fb) fb = await import("./firebase-app.js?v=18");
       if (fb.CONFIG_IS_PLACEHOLDER) throw new Error("placeholder");
       if (!fb.auth.currentUser) await fb.signInAnonymously(fb.auth);
       const nombre = form.querySelector(".resena-nombre").value.trim() || "Anónimo";
@@ -325,7 +325,7 @@ render();
 // paginar) y vuelve a pintar las estrellas de cada tarjeta ya visible.
 (async () => {
   try {
-    const mod = await import("./firebase-app.js?v=17");
+    const mod = await import("./firebase-app.js?v=18");
     fb = mod;
     if (fb.CONFIG_IS_PLACEHOLDER) return;
     const snap = await fb.getDocs(fb.collection(fb.db, "resenas_canchas"));

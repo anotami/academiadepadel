@@ -84,6 +84,18 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
+    // ---------- Grupos fijos (clase recurrente con roster) ----------
+
+    match /grupos/{id} {
+      // Mismo nivel de acceso que paquetes/esperas/partidos: cualquier
+      // usuario logueado (en la práctica, solo tú entras con cuenta real)
+      // puede leer y escribir. No se exige el custom claim de admin como
+      // en pistas/turnos_grupales para no repetir el mismo candado que
+      // bloquea todo mientras no lo configures.
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
     // ---------- Grupo nuevo (widget público "¿Eres nuevo en el pádel?") ----------
 
     match /turnos_grupales/{id} {

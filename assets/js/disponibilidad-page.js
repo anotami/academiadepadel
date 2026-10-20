@@ -15,7 +15,7 @@ import {
   auth, db, onAuthStateChanged, signInAnonymously,
   doc, getDoc, updateDoc,
   collection, getDocs, addDoc, serverTimestamp
-} from "./firebase-app.js?v=17";
+} from "./firebase-app.js?v=18";
 import { construirGrillaDisponibilidad } from "./portal-common.js?v=18";
 
 const WHATSAPP_NUMBER = "51957085531";

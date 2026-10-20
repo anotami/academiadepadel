@@ -22,7 +22,7 @@ function nomEqHtml(team) { return escapeHtml(nombreEquipo(state.config, team)); 
 let fb = null;
 async function cargarFirebase() {
   try {
-    fb = await import("./firebase-app.js?v=17");
+    fb = await import("./firebase-app.js?v=18");
   } catch (e) {
     fb = null;
   }

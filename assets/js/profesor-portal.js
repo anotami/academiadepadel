@@ -2,8 +2,9 @@ import {
   auth, db,
   onAuthStateChanged, signOut,
   doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
-  collection, query, where, orderBy, limit, onSnapshot, getDocs, serverTimestamp, increment
-} from "./firebase-app.js?v=17";
+  collection, query, where, orderBy, limit, onSnapshot, getDocs, serverTimestamp, increment,
+  arrayUnion, arrayRemove
+} from "./firebase-app.js?v=18";
 import {
   DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
@@ -16,6 +17,7 @@ let alumnosCache = [];
 let pistasCache = [];
 let turnosGrupalesCache = [];
 let interesadosGrupoCache = [];
+let gruposCache = [];
 
 function mostrarErrorConsulta(wrap, err) {
   const match = err.message && err.message.match(/https:\/\/\S+/);
@@ -41,6 +43,8 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("who-nombre").textContent = currentPerfil.nombre || user.email;
   rellenarPerfil(currentPerfil);
   await cargarPistasCache();
+  await cargarGruposCache();
+  poblarSelectsGrupo();
   cargarPendientes(user.uid);
   cargarConfirmadas(user.uid);
   await cargarAlumnos();
@@ -53,6 +57,8 @@ onAuthStateChanged(auth, async (user) => {
   cargarTurnosGrupales();
   cargarInteresadosGrupo();
   cargarHistorialClases(user.uid);
+  cargarGrupos();
+  generarReservasDeGrupos();
 });
 
 function poblarSelectPaquete() {
@@ -784,6 +790,209 @@ function construirTarjetaHistorialGrupal(grupo) {
   return card;
 }
 
+// ---- Grupos fijos (clase recurrente con roster, como un mini sistema de reservas) ----
+
+async function cargarGruposCache() {
+  const snap = await getDocs(collection(db, "grupos"));
+  gruposCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+function poblarSelectsGrupo() {
+  document.getElementById("gr-tipo").innerHTML = TIPOS_CLASE.map((grupo) => `
+    <optgroup label="${grupo.grupo}">
+      ${grupo.opciones.map((op) => `<option value="${op}">${op}</option>`).join("")}
+    </optgroup>
+  `).join("");
+  document.getElementById("gr-pista").innerHTML = pistasCache
+    .filter((p) => p.estadoPista !== "Bloqueada")
+    .map((p) => `<option value="${p.id}">${p.nombre} — ${p.distrito}</option>`)
+    .join("");
+  document.getElementById("gr-dia").innerHTML = DIAS.map((d) => `<option>${d}</option>`).join("");
+  document.getElementById("gr-hora").innerHTML = HORAS_RESERVA.map((h) => `<option value="${h}">${h}</option>`).join("");
+  document.getElementById("gr-monto").value = PRECIOS_CLASE_SUELTA["Grupal (2-4 personas)"];
+}
+
+document.getElementById("form-grupo").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("grupo-msg");
+  const nombre = document.getElementById("gr-nombre").value.trim();
+  const tipoClase = document.getElementById("gr-tipo").value;
+  const pista = pistasCache.find((p) => p.id === document.getElementById("gr-pista").value);
+  const dia = document.getElementById("gr-dia").value;
+  const hora = document.getElementById("gr-hora").value;
+  const montoCobrado = Number(document.getElementById("gr-monto").value) || 0;
+  const cupoMaximo = Number(document.getElementById("gr-cupo").value) || 1;
+  if (!pista) { msg.textContent = "Elige una pista válida."; msg.className = "form-msg error"; return; }
+  try {
+    await addDoc(collection(db, "grupos"), {
+      nombre, tipoClase, pistaId: pista.id, pistaNombre: `${pista.nombre} — ${pista.distrito}`,
+      dia, hora, montoCobrado, cupoMaximo, miembroIds: [], activo: true, creadoEn: serverTimestamp()
+    });
+    e.target.reset();
+    document.getElementById("gr-cupo").value = 4;
+    document.getElementById("gr-monto").value = PRECIOS_CLASE_SUELTA["Grupal (2-4 personas)"];
+    msg.textContent = "Grupo creado — ahora asígnale alumnos desde \"Tus alumnos\".";
+    msg.className = "form-msg ok";
+  } catch (err) {
+    msg.textContent = "No se pudo crear: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
+
+function cargarGrupos() {
+  onSnapshot(collection(db, "grupos"), (snap) => {
+    gruposCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
+    renderGrupos();
+  }, (err) => mostrarErrorConsulta(document.getElementById("lista-grupos"), err));
+}
+
+function renderGrupos() {
+  const wrap = document.getElementById("lista-grupos");
+  if (!gruposCache.length) {
+    wrap.innerHTML = '<p class="empty-state">Todavía no creaste ningún grupo.</p>';
+    return;
+  }
+  wrap.innerHTML = "";
+  gruposCache.forEach((g) => {
+    const miembros = (g.miembroIds || [])
+      .map((id) => alumnosCache.find((a) => a.id === id))
+      .filter(Boolean);
+    const card = document.createElement("div");
+    card.className = "court-card";
+    card.innerHTML = `
+      <h3>${escapeHtml(g.nombre)} ${g.activo === false ? '<span class="badge badge-rechazada">Pausado</span>' : '<span class="badge badge-confirmada">Activo</span>'}</h3>
+      <p class="court-meta">${escapeHtml(g.dia)} · ${escapeHtml(g.hora)} hrs · ${escapeHtml(g.pistaNombre)}</p>
+      <p class="court-meta">${escapeHtml(g.tipoClase)} · S/ ${g.montoCobrado} por persona</p>
+      <p><span class="badge ${miembros.length >= g.cupoMaximo ? "badge-pendiente" : "badge-confirmada"}">${miembros.length}/${g.cupoMaximo} cupos</span></p>
+      <p>${miembros.length ? miembros.map((a) => `<span class="badge badge-confirmada">${escapeHtml(a.nombre)}</span>`).join(" ") : '<span class="court-meta">Sin alumnos todavía — asígnalos desde "Tus alumnos".</span>'}</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <button class="btn btn-outline btn-small" type="button" data-toggle-activo>${g.activo === false ? "Reactivar" : "Pausar"}</button>
+        <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
+        <button class="btn btn-outline btn-small" type="button" data-borrar>Borrar</button>
+      </div>
+      <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
+        <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${escapeHtml(g.nombre)}"></div>
+        <div class="field"><label>Día</label><select data-campo="dia">${DIAS.map((d) => `<option ${d === g.dia ? "selected" : ""}>${d}</option>`).join("")}</select></div>
+        <div class="field"><label>Hora</label><select data-campo="hora">${HORAS_RESERVA.map((h) => `<option value="${h}" ${h === g.hora ? "selected" : ""}>${h}</option>`).join("")}</select></div>
+        <div class="field"><label>Monto por persona (S/)</label><input type="number" min="0" step="1" data-campo="montoCobrado" value="${g.montoCobrado}"></div>
+        <div class="field"><label>Cupo máximo</label><input type="number" min="1" data-campo="cupoMaximo" value="${g.cupoMaximo}"></div>
+        <button class="btn btn-primary btn-small" type="button" data-guardar>Guardar</button>
+        <p class="field-hint">Cambiar día/hora/pista acá NO mueve las clases que ya se generaron — reprográmalas desde "Mis clases" si hace falta.</p>
+      </div>
+      <p class="form-msg"></p>`;
+    const form = card.querySelector("[data-editar-form]");
+    const msg = card.querySelector(".form-msg");
+    card.querySelector("[data-toggle-activo]").addEventListener("click", async () => {
+      try { await updateDoc(doc(db, "grupos", g.id), { activo: g.activo === false }); }
+      catch (err) { msg.textContent = "No se pudo cambiar: " + err.message; msg.className = "form-msg error"; }
+    });
+    card.querySelector("[data-toggle-editar]").addEventListener("click", () => { form.hidden = !form.hidden; });
+    card.querySelector("[data-guardar]").addEventListener("click", async () => {
+      try {
+        await updateDoc(doc(db, "grupos", g.id), {
+          nombre: form.querySelector('[data-campo="nombre"]').value.trim(),
+          dia: form.querySelector('[data-campo="dia"]').value,
+          hora: form.querySelector('[data-campo="hora"]').value,
+          montoCobrado: Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0,
+          cupoMaximo: Number(form.querySelector('[data-campo="cupoMaximo"]').value) || 1
+        });
+        msg.textContent = "Guardado."; msg.className = "form-msg ok";
+      } catch (err) { msg.textContent = "No se pudo guardar: " + err.message; msg.className = "form-msg error"; }
+    });
+    card.querySelector("[data-borrar]").addEventListener("click", async () => {
+      if (!confirm(`¿Borrar el grupo "${g.nombre}"? Las clases ya generadas no se borran, solo el grupo.`)) return;
+      try { await deleteDoc(doc(db, "grupos", g.id)); }
+      catch (err) { msg.textContent = "No se pudo borrar: " + err.message; msg.className = "form-msg error"; }
+    });
+    wrap.appendChild(card);
+  });
+}
+
+// Próximas `cantidad` fechas (YYYY-MM-DD) en que cae un día de la semana,
+// empezando por la más próxima desde hoy (reusa proximaFechaDia).
+function proximasFechasDia(diaNombre, cantidad) {
+  const primera = proximaFechaDia(diaNombre);
+  if (!primera) return [];
+  const [y, m, d] = primera.split("-").map(Number);
+  const fechas = [];
+  for (let i = 0; i < cantidad; i++) {
+    fechas.push(new Date(y, m - 1, d + i * 7).toISOString().slice(0, 10));
+  }
+  return fechas;
+}
+
+const SEMANAS_A_GENERAR = 4;
+
+// Esto reemplaza un cron/Cloud Function que este sitio no tiene (es
+// estático, sin backend propio): cada vez que abres el panel, revisa los
+// grupos activos y completa las reservas confirmadas que falten para las
+// próximas SEMANAS_A_GENERAR fechas de cada uno. Es idempotente -- no
+// duplica si ya existen -- así que no hay problema en que corra en cada
+// visita. Si no abres el panel por varias semanas, se pone al día apenas
+// vuelvas a entrar.
+async function generarReservasDeGrupos() {
+  const msg = document.getElementById("grupos-gen-msg");
+  const activos = gruposCache.filter((g) => g.activo !== false && (g.miembroIds || []).length > 0);
+  if (!activos.length) { msg.textContent = ""; return; }
+
+  let creadas = 0;
+  const conflictos = [];
+
+  for (const g of activos) {
+    const fechas = proximasFechasDia(g.dia, SEMANAS_A_GENERAR);
+    if (!fechas.length) continue;
+    let existentes;
+    try {
+      const snap = await getDocs(query(
+        collection(db, "reservas"),
+        where("pistaId", "==", g.pistaId),
+        where("hora", "==", g.hora),
+        where("fecha", "in", fechas)
+      ));
+      existentes = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => r.estado !== "cancelada" && r.estado !== "rechazada");
+    } catch (err) {
+      mostrarErrorConsulta(msg, err);
+      return;
+    }
+
+    for (const fecha of fechas) {
+      const enEsaFecha = existentes.filter((r) => r.fecha === fecha);
+      if (enEsaFecha.some((r) => !g.miembroIds.includes(r.alumnoId))) {
+        conflictos.push(`"${g.nombre}" el ${formatearFecha(fecha)}: la pista ya tiene otra clase confirmada — revísalo en "Mis clases".`);
+        continue;
+      }
+      for (const alumnoId of g.miembroIds) {
+        if (enEsaFecha.some((r) => r.alumnoId === alumnoId)) continue;
+        const alumno = alumnosCache.find((a) => a.id === alumnoId);
+        if (!alumno) continue;
+        try {
+          await addDoc(collection(db, "reservas"), {
+            alumnoId: alumno.id, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
+            profesorId: currentUid, profesorNombre: currentPerfil.nombre,
+            tipoClase: g.tipoClase, pistaId: g.pistaId, pistaNombre: g.pistaNombre,
+            fecha, hora: g.hora, estado: "confirmada",
+            modalidad: "Grupal (2-4 personas)", montoCobrado: g.montoCobrado, costoCanchaPagado: null,
+            grupoId: g.id,
+            creadoEn: serverTimestamp()
+          });
+          creadas++;
+        } catch {
+          // Si falla una reserva puntual, sigue con el resto del grupo.
+        }
+      }
+    }
+  }
+
+  const partes = [];
+  if (creadas) partes.push(`Se generaron ${creadas} clase(s) nueva(s) de tus grupos.`);
+  if (conflictos.length) partes.push(conflictos.join(" "));
+  if (partes.length) {
+    msg.textContent = partes.join(" ");
+    msg.className = conflictos.length ? "form-msg error" : "form-msg ok";
+  }
+}
+
 // ---- Disponibilidad de alumnos ----
 async function cargarAlumnos() {
   const wrap = document.getElementById("lista-alumnos");
@@ -836,6 +1045,7 @@ async function cargarAlumnos() {
       ${a.apoderado ? `<p class="court-meta">👪 Apoderado: ${escapeHtml(a.apoderado.nombre)} · ${escapeHtml(a.apoderado.telefono)}</p>` : ""}
       ${a.referidoPor ? `<p class="court-meta">🤝 Invitado por: ${escapeHtml(a.referidoPor)}</p>` : ""}
       ${a.observaciones ? `<p class="court-meta">📝 ${escapeHtml(a.observaciones)}</p>` : ""}
+      ${a.grupoNombre ? `<p class="court-meta">👥 Grupo: ${escapeHtml(a.grupoNombre)}</p>` : ""}
       <p>${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
       <button class="btn btn-outline btn-small" type="button" data-toggle-editar style="margin-top:8px;">Editar</button>
       ${linkPedirDisponibilidad}
@@ -847,6 +1057,12 @@ async function cargarAlumnos() {
         <div class="field"><label>Nivel</label>
           <select data-campo="nivel">
             ${["Inicial", "Inicial-Intermedio", "Intermedio"].map((n) => `<option ${n === a.nivel ? "selected" : ""}>${n}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field"><label>Grupo</label>
+          <select data-campo="grupoId">
+            <option value="">Sin grupo</option>
+            ${gruposCache.map((g) => `<option value="${g.id}" ${g.id === a.grupoId ? "selected" : ""}>${escapeHtml(g.nombre)}</option>`).join("")}
           </select>
         </div>
         <div class="field field-full"><label>Observaciones</label><textarea data-campo="observaciones" rows="2">${a.observaciones || ""}</textarea></div>
@@ -882,8 +1098,18 @@ async function cargarAlumnos() {
       const nivel = form.querySelector('[data-campo="nivel"]').value;
       const observaciones = form.querySelector('[data-campo="observaciones"]').value.trim();
       const disponibilidad = dispGridAlumno ? dispGridAlumno.obtenerSeleccion() : (a.disponibilidad || []);
+      const grupoId = form.querySelector('[data-campo="grupoId"]').value;
+      const grupoNuevo = gruposCache.find((g) => g.id === grupoId) || null;
       try {
-        await updateDoc(doc(db, "usuarios", a.id), { nombre, telefono, whatsapp, instagram, nivel, observaciones, disponibilidad });
+        await updateDoc(doc(db, "usuarios", a.id), {
+          nombre, telefono, whatsapp, instagram, nivel, observaciones, disponibilidad,
+          grupoId: grupoId || null,
+          grupoNombre: grupoNuevo ? grupoNuevo.nombre : null
+        });
+        if (grupoId !== (a.grupoId || "")) {
+          if (a.grupoId) await updateDoc(doc(db, "grupos", a.grupoId), { miembroIds: arrayRemove(a.id) }).catch(() => {});
+          if (grupoId) await updateDoc(doc(db, "grupos", grupoId), { miembroIds: arrayUnion(a.id) }).catch(() => {});
+        }
         msg.textContent = "Guardado.";
         msg.className = "form-msg ok";
         await cargarAlumnos();

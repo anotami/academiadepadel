@@ -38,7 +38,7 @@ document.getElementById("btnBorrarHistorialLocal").addEventListener("click", () 
 renderLocal();
 
 // ---------------- Nube ----------------
-import("./firebase-app.js?v=17")
+import("./firebase-app.js?v=18")
   .then(({ auth, db, onAuthStateChanged, collection, query, where, onSnapshot }) => {
     onAuthStateChanged(auth, (user) => {
       const hint = document.getElementById("nubeHint");
