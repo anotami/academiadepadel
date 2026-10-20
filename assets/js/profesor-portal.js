@@ -289,6 +289,26 @@ async function rechazar(reservaId) {
   await updateDoc(doc(db, "reservas", reservaId), { estado: "rechazada" });
 }
 
+// Agrupa reservas que son la MISMA sesión (misma pista, fecha y hora) --
+// pasa siempre que una clase grupal se registró con "Registrar clase ya
+// dictada": se crea una reserva por alumno, pero es una sola clase en
+// cancha. Las agrupa para mostrarlas juntas en vez de una tarjeta repetida
+// por alumno. Preserva el orden en que aparece cada sesión por primera vez.
+function agruparPorSesion(reservas) {
+  const grupos = [];
+  const indicePorClave = new Map();
+  reservas.forEach((r) => {
+    const clave = `${r.pistaId}|${r.fecha}|${r.hora}`;
+    if (indicePorClave.has(clave)) {
+      grupos[indicePorClave.get(clave)].push(r);
+    } else {
+      indicePorClave.set(clave, grupos.length);
+      grupos.push([r]);
+    }
+  });
+  return grupos;
+}
+
 // ---- Próximas confirmadas + clases por registrar ----
 // Una sola consulta (confirmadas) que se reparte en dos listas según la fecha:
 // pasadas sin registrar (asistencia + feedback) y futuras.
@@ -314,14 +334,18 @@ function cargarConfirmadas(uid) {
     if (porRegistrar.length === 0) {
       wrapPorRegistrar.innerHTML = '<p class="empty-state">No hay clases pendientes de registrar.</p>';
     } else {
-      porRegistrar.forEach((r) => wrapPorRegistrar.appendChild(construirTarjetaRegistro(r)));
+      agruparPorSesion(porRegistrar).forEach((grupo) => wrapPorRegistrar.appendChild(
+        grupo.length > 1 ? construirTarjetaRegistroGrupal(grupo) : construirTarjetaRegistro(grupo[0])
+      ));
     }
 
     wrapFuturas.innerHTML = "";
     if (futuras.length === 0) {
       wrapFuturas.innerHTML = '<p class="empty-state">Aún no tienes clases confirmadas.</p>';
     } else {
-      futuras.forEach((r) => wrapFuturas.appendChild(construirTarjetaFutura(r)));
+      agruparPorSesion(futuras).forEach((grupo) => wrapFuturas.appendChild(
+        grupo.length > 1 ? construirTarjetaFuturaGrupal(grupo) : construirTarjetaFutura(grupo[0])
+      ));
     }
   }, (err) => {
     mostrarErrorConsulta(wrapFuturas, err);
@@ -395,6 +419,82 @@ function construirTarjetaFutura(r) {
   return card;
 }
 
+// Misma sesión grupal (misma pista/fecha/hora, varias reservas una por
+// alumno). Reprogramar mueve a TODOS los alumnos del grupo a la vez;
+// cancelar es por alumno, porque alguien puede bajarse sin que se caiga
+// la clase para el resto.
+function construirTarjetaFuturaGrupal(grupo) {
+  const base = grupo[0];
+  const card = document.createElement("div");
+  card.className = "request-card";
+  card.innerHTML = `
+    <div class="request-info" style="flex:1 1 100%;">
+      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos)</p>
+      <p>${base.pistaNombre} · ${formatearFecha(base.fecha)} · ${base.hora} hrs</p>
+      <div style="margin:10px 0;">
+        ${grupo.map((r) => `
+          <div class="court-meta" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:5px 0;" data-fila="${r.id}">
+            <span>${escapeHtml(r.alumnoNombre)}${r.alumnoTelefono ? " · " + escapeHtml(r.alumnoTelefono) : ""}</span>
+            ${linkRecordatorio(r)}
+            <button class="btn btn-outline btn-small" type="button" data-cancelar-uno="${r.id}">Quitar de esta clase</button>
+          </div>`).join("")}
+      </div>
+      <div class="field-full" data-reprogramar-form hidden style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+        <div class="field"><label>Nueva fecha</label><input type="date" data-campo="fecha" value="${base.fecha}"></div>
+        <div class="field"><label>Nueva hora</label><select data-campo="hora">${HORAS_RESERVA.map((h) => `<option ${h === base.hora ? "selected" : ""}>${h}</option>`).join("")}</select></div>
+        <button class="btn btn-primary btn-small" type="button" data-guardar-reprogramacion>Guardar para todo el grupo</button>
+      </div>
+      <p class="form-msg"></p>
+    </div>
+    <div class="request-actions">
+      <span class="badge badge-confirmada">confirmada</span>
+      <button class="btn btn-outline btn-small" type="button" data-toggle-reprogramar>Reprogramar grupo</button>
+    </div>`;
+
+  const form = card.querySelector("[data-reprogramar-form]");
+  const msg = card.querySelector(".form-msg");
+  card.querySelector("[data-toggle-reprogramar]").addEventListener("click", () => { form.hidden = !form.hidden; });
+
+  card.querySelectorAll("[data-cancelar-uno]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const r = grupo.find((x) => x.id === btn.dataset.cancelarUno);
+      if (!confirm(`¿Quitar a ${r.alumnoNombre} de esta clase grupal?`)) return;
+      try { await updateDoc(doc(db, "reservas", r.id), { estado: "cancelada" }); }
+      catch (err) { msg.textContent = "No se pudo cancelar: " + err.message; msg.className = "form-msg error"; }
+    });
+  });
+
+  card.querySelector("[data-guardar-reprogramacion]").addEventListener("click", async () => {
+    const fecha = form.querySelector('[data-campo="fecha"]').value;
+    const hora = form.querySelector('[data-campo="hora"]').value;
+    const ids = grupo.map((r) => r.id);
+    const choque = await getDocs(
+      query(
+        collection(db, "reservas"),
+        where("pistaId", "==", base.pistaId),
+        where("fecha", "==", fecha),
+        where("hora", "==", hora),
+        where("estado", "==", "confirmada")
+      )
+    );
+    if (choque.docs.some((d) => !ids.includes(d.id))) {
+      msg.textContent = "Esa pista ya tiene otra clase confirmada en ese horario.";
+      msg.className = "form-msg error";
+      return;
+    }
+    try {
+      await Promise.all(grupo.map((r) => updateDoc(doc(db, "reservas", r.id), { fecha, hora })));
+      msg.textContent = "Grupo reprogramado.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo reprogramar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
+
+  return card;
+}
+
 function construirTarjetaRegistro(r) {
   const card = document.createElement("div");
   card.className = "request-card";
@@ -446,6 +546,67 @@ function construirTarjetaRegistro(r) {
   return card;
 }
 
+// Asistencia y feedback son por alumno incluso en una clase grupal -- cada
+// uno guarda su propio registro, pero comparten una sola tarjeta.
+function construirTarjetaRegistroGrupal(grupo) {
+  const base = grupo[0];
+  const card = document.createElement("div");
+  card.className = "request-card";
+  card.innerHTML = `
+    <div class="request-info" style="flex:1 1 100%;">
+      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos)</p>
+      <p>${base.pistaNombre} · ${formatearFecha(base.fecha)} · ${base.hora} hrs</p>
+      ${grupo.map((r) => `
+        <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:12px;" data-fila="${r.id}">
+          <p style="font-weight:700;">${escapeHtml(r.alumnoNombre)}</p>
+          <label class="avail-slot" style="display:inline-flex; margin:6px 0;">
+            <input type="checkbox" checked data-campo="asistio"> Asistió a la clase
+          </label>
+          <div class="form-grid">
+            <div class="field">
+              <label>Nivel trabajado</label>
+              <select data-campo="nivel">${NIVELES.map((n) => `<option>${n}</option>`).join("")}</select>
+            </div>
+            <div class="field">
+              <label>Próximo objetivo</label>
+              <input type="text" data-campo="objetivo" placeholder="Ej: afirmar la volea">
+            </div>
+            <div class="field field-full">
+              <label>Comentario de la sesión</label>
+              <input type="text" data-campo="comentario" placeholder="Qué se trabajó, cómo le fue...">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-small" type="button" data-guardar style="margin-top:10px;">Guardar registro de ${escapeHtml(r.alumnoNombre)}</button>
+          <p class="form-msg"></p>
+        </div>`).join("")}
+    </div>`;
+
+  grupo.forEach((r) => {
+    const fila = card.querySelector(`[data-fila="${r.id}"]`);
+    const msg = fila.querySelector(".form-msg");
+    fila.querySelector("[data-guardar]").addEventListener("click", async () => {
+      const asistio = fila.querySelector('[data-campo="asistio"]').checked;
+      const nivelTrabajado = fila.querySelector('[data-campo="nivel"]').value;
+      const siguienteObjetivo = fila.querySelector('[data-campo="objetivo"]').value.trim();
+      const comentario = fila.querySelector('[data-campo="comentario"]').value.trim();
+      try {
+        await updateDoc(doc(db, "reservas", r.id), {
+          registrada: true,
+          asistio,
+          feedback: { nivelTrabajado, comentario, siguienteObjetivo }
+        });
+        msg.textContent = "Registrado. El alumno ya puede verlo.";
+        msg.className = "form-msg ok";
+      } catch (err) {
+        msg.textContent = "No se pudo guardar: " + err.message;
+        msg.className = "form-msg error";
+      }
+    });
+  });
+
+  return card;
+}
+
 // ---- Historial de clases registradas (ver + corregir monto/cancha) ----
 function cargarHistorialClases(uid) {
   const wrap = document.getElementById("lista-historial");
@@ -462,7 +623,9 @@ function cargarHistorialClases(uid) {
       wrap.innerHTML = '<p class="empty-state">Aún no registraste ninguna clase.</p>';
       return;
     }
-    reservas.forEach((r) => wrap.appendChild(construirTarjetaHistorial(r)));
+    agruparPorSesion(reservas).forEach((grupo) => wrap.appendChild(
+      grupo.length > 1 ? construirTarjetaHistorialGrupal(grupo) : construirTarjetaHistorial(grupo[0])
+    ));
   }, (err) => mostrarErrorConsulta(wrap, err));
 }
 
@@ -535,6 +698,87 @@ function construirTarjetaHistorial(r) {
       msg.textContent = "No se pudo guardar: " + err.message;
       msg.className = "form-msg error";
     }
+  });
+
+  return card;
+}
+
+// Misma sesión grupal en el historial -- cada alumno mantiene su propio
+// monto/costo de cancha/estado editable (puede diferir si alguno pagó
+// distinto o se le canceló solo a él), pero comparten la tarjeta.
+function construirTarjetaHistorialGrupal(grupo) {
+  const base = grupo[0];
+  const card = document.createElement("div");
+  card.className = "request-card";
+  const estadoLabel = (r) => ({ confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado);
+  card.innerHTML = `
+    <div class="request-info" style="flex:1 1 100%;">
+      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos)</p>
+      <p>${base.pistaNombre || ""} · ${formatearFecha(base.fecha)} · ${base.hora} hrs ${base.modalidad ? "· " + base.modalidad : ""}</p>
+      ${grupo.map((r) => `
+        <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:10px;" data-fila="${r.id}">
+          <p>
+            <strong>${escapeHtml(r.alumnoNombre)}</strong>
+            ${typeof r.montoCobrado === "number" ? ` · cobrado S/ ${r.montoCobrado}` : ""}
+            ${typeof r.costoCanchaPagado === "number" ? ` · cancha S/ ${r.costoCanchaPagado.toFixed(2)}` : ""}
+            <span class="badge ${r.estado === "confirmada" ? "badge-confirmada" : "badge-pendiente"}">${estadoLabel(r)}</span>
+          </p>
+          <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
+          <div class="form-grid" data-editar-form hidden style="margin-top:8px;">
+            <div class="field">
+              <label>Modalidad</label>
+              <select data-campo="modalidad">
+                <option value="Particular" ${r.modalidad === "Particular" ? "selected" : ""}>Particular</option>
+                <option value="Grupal (2-4 personas)" ${r.modalidad === "Grupal (2-4 personas)" ? "selected" : ""}>Grupal (2-4 personas)</option>
+                ${r.modalidad === "Dúo (2 personas)" || r.modalidad === "Grupal (3-4 personas)" ? `<option value="${r.modalidad}" selected>${r.modalidad} (anterior)</option>` : ""}
+              </select>
+            </div>
+            <div class="field">
+              <label>Monto cobrado (S/)</label>
+              <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}">
+            </div>
+            <div class="field">
+              <label>Costo de cancha de ESTE alumno (S/)</label>
+              <input type="number" min="0" step="0.01" data-campo="costoCanchaPagado" value="${typeof r.costoCanchaPagado === "number" ? r.costoCanchaPagado.toFixed(2) : ""}">
+              <p class="field-hint">La parte que le toca a él (el total de la cancha dividido entre todos).</p>
+            </div>
+            <div class="field">
+              <label>Estado</label>
+              <select data-campo="estado">
+                <option value="confirmada" ${r.estado === "confirmada" ? "selected" : ""}>Confirmada</option>
+                <option value="cancelada" ${r.estado === "cancelada" ? "selected" : ""}>Cancelada</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-small" type="button" data-guardar>Guardar</button>
+          </div>
+          <p class="form-msg"></p>
+        </div>`).join("")}
+    </div>`;
+
+  grupo.forEach((r) => {
+    const fila = card.querySelector(`[data-fila="${r.id}"]`);
+    const form = fila.querySelector("[data-editar-form]");
+    const msg = fila.querySelector(".form-msg");
+    fila.querySelector("[data-toggle-editar]").addEventListener("click", () => { form.hidden = !form.hidden; });
+    fila.querySelector("[data-guardar]").addEventListener("click", async () => {
+      const modalidad = form.querySelector('[data-campo="modalidad"]').value;
+      const montoCobrado = Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0;
+      const costoCanchaRaw = form.querySelector('[data-campo="costoCanchaPagado"]').value;
+      const estado = form.querySelector('[data-campo="estado"]').value;
+      try {
+        await updateDoc(doc(db, "reservas", r.id), {
+          modalidad,
+          montoCobrado,
+          costoCanchaPagado: costoCanchaRaw === "" ? null : Number(costoCanchaRaw),
+          estado
+        });
+        msg.textContent = "Actualizado.";
+        msg.className = "form-msg ok";
+      } catch (err) {
+        msg.textContent = "No se pudo guardar: " + err.message;
+        msg.className = "form-msg error";
+      }
+    });
   });
 
   return card;
