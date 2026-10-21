@@ -1204,7 +1204,10 @@ function construirFilaPaquete(p) {
   fila.className = "paquete-fila";
   fila.innerHTML = `
     <p>
-      ${p.tipo}: ${p.clasesUsadas}/${p.clasesTotales} usadas
+      ${p.tipo}:
+      <button class="btn btn-outline btn-small" type="button" data-menos title="Restar una clase usada" ${p.clasesUsadas <= 0 ? "disabled" : ""} style="padding:2px 10px;">−</button>
+      ${p.clasesUsadas}/${p.clasesTotales} usadas
+      <button class="btn btn-outline btn-small" type="button" data-mas title="Sumar una clase usada" ${p.clasesUsadas >= p.clasesTotales ? "disabled" : ""} style="padding:2px 10px;">+</button>
       <span class="badge ${agotado ? "badge-rechazada" : "badge-confirmada"}">${agotado ? "agotado" : "activo"}</span>
       <span class="badge ${p.pagado ? "badge-confirmada" : "badge-pendiente"}">${p.pagado ? "pagado" : "pendiente de pago"}</span>
       · S/ ${p.monto}
@@ -1227,6 +1230,15 @@ function construirFilaPaquete(p) {
 
   fila.querySelector("[data-toggle-editar]").addEventListener("click", () => {
     form.hidden = !form.hidden;
+  });
+
+  fila.querySelector("[data-menos]")?.addEventListener("click", async () => {
+    try { await updateDoc(doc(db, "paquetes", p.id), { clasesUsadas: Math.max(0, p.clasesUsadas - 1) }); }
+    catch (err) { msg.textContent = "No se pudo actualizar: " + err.message; msg.className = "form-msg error"; }
+  });
+  fila.querySelector("[data-mas]")?.addEventListener("click", async () => {
+    try { await updateDoc(doc(db, "paquetes", p.id), { clasesUsadas: Math.min(p.clasesTotales, p.clasesUsadas + 1) }); }
+    catch (err) { msg.textContent = "No se pudo actualizar: " + err.message; msg.className = "form-msg error"; }
   });
 
   fila.querySelector("[data-guardar-paquete]").addEventListener("click", async () => {
