@@ -1698,6 +1698,16 @@ function renderTurnos() {
 const ESTADOS_INTERESADO = ["nuevo", "contactado", "descartado"];
 const BADGE_POR_ESTADO_INTERESADO = { nuevo: "badge-pendiente", contactado: "badge-confirmada", descartado: "badge-rechazada" };
 
+// Nivel de interesado (texto largo del widget/link) -> nivel corto de
+// alumno, al convertir uno en el otro. Sin match (ej. vino del link
+// directo, sin nivel) cae en "Inicial" por defecto.
+const NIVEL_INTERESADO_A_ALUMNO = {
+  "Nunca jugué pádel ni un deporte de raqueta": "Inicial",
+  "Ya jugué pádel algunas veces, pero recién estoy empezando": "Inicial",
+  "Jugué tenis, frontón u otro deporte de raqueta, pero nunca pádel": "Inicial-Intermedio",
+  "Mantengo peloteo con control básico y rebote simple, busco regularidad y táctica": "Intermedio"
+};
+
 function cargarInteresadosGrupo() {
   onSnapshot(collection(db, "interesados_grupo"), (snap) => {
     interesadosGrupoCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
@@ -1738,12 +1748,44 @@ function renderInteresados() {
         <p style="margin-top:8px;">${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
         <button class="btn btn-outline btn-small" type="button" data-toggle-disp style="margin-top:4px;">Editar disponibilidad</button>
         <div class="availability-grid" data-disp-grid hidden style="margin-top:8px;"></div>
+        ${i.alumnoId
+          ? '<p class="court-meta" style="margin-top:8px;">✓ Ya es alumno.</p>'
+          : '<button class="btn btn-primary btn-small" type="button" data-convertir style="margin-top:8px;">Convertir en alumno</button>'}
         <p class="form-msg" data-disp-msg></p>
       </div>
       ${waLink}`;
     card.querySelector("[data-estado]").addEventListener("change", async (e) => {
       try { await updateDoc(doc(db, "interesados_grupo", i.id), { estado: e.target.value }); }
       catch (err) { alert("No se pudo cambiar el estado: " + err.message); }
+    });
+    const dispMsgConvertir = card.querySelector("[data-disp-msg]");
+    card.querySelector("[data-convertir]")?.addEventListener("click", async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      try {
+        const nuevoRef = doc(collection(db, "usuarios"));
+        await setDoc(nuevoRef, {
+          rol: "alumno",
+          nombre: i.nombre,
+          telefono: i.whatsapp || "",
+          whatsapp: i.whatsapp || "",
+          instagram: "",
+          edad: null,
+          nivel: NIVEL_INTERESADO_A_ALUMNO[i.nivel] || "Inicial",
+          programa: i.turnoNombre || (i.origen === "link_directo" ? "Link de disponibilidad" : ""),
+          observaciones: i.canchaInteresada ? `Interesado convertido — prefería la cancha ${i.canchaInteresada}.` : "Interesado convertido.",
+          disponibilidad: i.disponibilidad || [],
+          creadoEn: serverTimestamp()
+        });
+        await updateDoc(doc(db, "interesados_grupo", i.id), { alumnoId: nuevoRef.id, estado: "contactado" });
+        await cargarAlumnos();
+        dispMsgConvertir.textContent = `Convertido — ya está en "Tus alumnos".`;
+        dispMsgConvertir.className = "form-msg ok";
+      } catch (err) {
+        btn.disabled = false;
+        dispMsgConvertir.textContent = "No se pudo convertir: " + err.message;
+        dispMsgConvertir.className = "form-msg error";
+      }
     });
     const dispGridWrap = card.querySelector("[data-disp-grid]");
     const dispMsg = card.querySelector("[data-disp-msg]");
