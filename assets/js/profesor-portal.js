@@ -1724,6 +1724,10 @@ function renderTurnos() {
 
 const ESTADOS_INTERESADO = ["nuevo", "contactado", "descartado"];
 const BADGE_POR_ESTADO_INTERESADO = { nuevo: "badge-pendiente", contactado: "badge-confirmada", descartado: "badge-rechazada" };
+// "descartado" es el valor que ya existía en Firestore -- se muestra como
+// "Archivado" (no se borra nada, solo se saca de la vista por defecto).
+const LABEL_ESTADO_INTERESADO = { nuevo: "nuevo", contactado: "contactado", descartado: "archivado" };
+let filtroInteresados = "activos"; // activos | archivados | todos
 
 // Nivel de interesado (texto largo del widget/link) -> nivel corto de
 // alumno, al convertir uno en el otro. Sin match (ej. vino del link
@@ -1734,6 +1738,14 @@ const NIVEL_INTERESADO_A_ALUMNO = {
   "Jugué tenis, frontón u otro deporte de raqueta, pero nunca pádel": "Inicial-Intermedio",
   "Mantengo peloteo con control básico y rebote simple, busco regularidad y táctica": "Intermedio"
 };
+
+document.querySelectorAll("[data-filtro-interesado]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    filtroInteresados = btn.dataset.filtroInteresado;
+    document.querySelectorAll("[data-filtro-interesado]").forEach((b) => b.classList.toggle("activo", b === btn));
+    renderInteresados();
+  });
+});
 
 function cargarInteresadosGrupo() {
   onSnapshot(collection(db, "interesados_grupo"), (snap) => {
@@ -1746,13 +1758,37 @@ function cargarInteresadosGrupo() {
 
 function renderInteresados() {
   const wrap = document.getElementById("lista-interesados");
+
+  // Contadores en los botones de filtro, se recalculan en cada render.
+  const totalActivos = interesadosGrupoCache.filter((i) => i.estado !== "descartado").length;
+  const totalArchivados = interesadosGrupoCache.filter((i) => i.estado === "descartado").length;
+  const btnActivos = document.querySelector('[data-filtro-interesado="activos"]');
+  const btnArchivados = document.querySelector('[data-filtro-interesado="archivados"]');
+  const btnTodos = document.querySelector('[data-filtro-interesado="todos"]');
+  if (btnActivos) btnActivos.textContent = `Activos (${totalActivos})`;
+  if (btnArchivados) btnArchivados.textContent = `Archivados (${totalArchivados})`;
+  if (btnTodos) btnTodos.textContent = `Todos (${interesadosGrupoCache.length})`;
+
+  const visibles = interesadosGrupoCache.filter((i) => {
+    if (filtroInteresados === "archivados") return i.estado === "descartado";
+    if (filtroInteresados === "todos") return true;
+    return i.estado !== "descartado";
+  });
+
   if (!interesadosGrupoCache.length) {
     wrap.innerHTML = '<p class="empty-state">Todavía nadie se anotó en "¿Eres nuevo en el pádel?".</p>';
     renderCrucePersonas();
     return;
   }
+  if (!visibles.length) {
+    wrap.innerHTML = filtroInteresados === "archivados"
+      ? '<p class="empty-state">No tienes interesados archivados.</p>'
+      : '<p class="empty-state">No hay interesados activos — mira en "Archivados" o "Todos".</p>';
+    renderCrucePersonas();
+    return;
+  }
   wrap.innerHTML = "";
-  interesadosGrupoCache.forEach((i) => {
+  visibles.forEach((i) => {
     const telefono = soloDigitos(i.whatsapp);
     const origenTexto = i.turnoNombre ? `el turno "${i.turnoNombre}"` : (i.canchaInteresada ? `jugar en ${i.canchaInteresada}` : "armar grupo");
     const texto = `Hola ${i.nombre}, soy Gabriel de Academia de Pádel GP. Vi que te interesó ${origenTexto} — ¿coordinamos tu primera clase?`;
@@ -1765,13 +1801,14 @@ function renderInteresados() {
     card.className = "request-card";
     card.innerHTML = `
       <div class="request-info">
-        <p class="request-title">${escapeHtml(i.nombre)} <span class="badge ${BADGE_POR_ESTADO_INTERESADO[i.estado] || "badge-pendiente"}">${i.estado}</span>${i.origen === "link_directo" ? ' <span class="badge badge-confirmada">Vía link directo</span>' : ""}</p>
+        <p class="request-title">${escapeHtml(i.nombre)} <span class="badge ${BADGE_POR_ESTADO_INTERESADO[i.estado] || "badge-pendiente"}">${LABEL_ESTADO_INTERESADO[i.estado] || i.estado}</span>${i.origen === "link_directo" ? ' <span class="badge badge-confirmada">Vía link directo</span>' : ""}</p>
         <p>${linea2}</p>
         ${i.canchaInteresada ? `<p class="court-meta">Cancha de preferencia: ${escapeHtml(i.canchaInteresada)}</p>` : ""}
         <p class="court-meta">${escapeHtml(i.whatsapp)}${i.email ? " · " + escapeHtml(i.email) : ""}</p>
         <select data-estado style="margin-top:6px;">
-          ${ESTADOS_INTERESADO.map((e) => `<option value="${e}" ${e === i.estado ? "selected" : ""}>${e}</option>`).join("")}
+          ${ESTADOS_INTERESADO.map((e) => `<option value="${e}" ${e === i.estado ? "selected" : ""}>${LABEL_ESTADO_INTERESADO[e]}</option>`).join("")}
         </select>
+        <button class="btn btn-outline btn-small" type="button" data-archivar style="margin-top:6px; margin-left:6px;">${i.estado === "descartado" ? "Reactivar" : "Archivar"}</button>
         <p style="margin-top:8px;">${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
         <button class="btn btn-outline btn-small" type="button" data-toggle-disp style="margin-top:4px;">Editar disponibilidad</button>
         <div class="availability-grid" data-disp-grid hidden style="margin-top:8px;"></div>
@@ -1784,6 +1821,10 @@ function renderInteresados() {
     card.querySelector("[data-estado]").addEventListener("change", async (e) => {
       try { await updateDoc(doc(db, "interesados_grupo", i.id), { estado: e.target.value }); }
       catch (err) { alert("No se pudo cambiar el estado: " + err.message); }
+    });
+    card.querySelector("[data-archivar]").addEventListener("click", async () => {
+      try { await updateDoc(doc(db, "interesados_grupo", i.id), { estado: i.estado === "descartado" ? "nuevo" : "descartado" }); }
+      catch (err) { alert("No se pudo actualizar: " + err.message); }
     });
     const dispMsgConvertir = card.querySelector("[data-disp-msg]");
     card.querySelector("[data-convertir]")?.addEventListener("click", async (e) => {

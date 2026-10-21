@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=48">
+<link rel="stylesheet" href="assets/css/style.css?v=49">
 </head>
 <body>
 
@@ -366,6 +366,11 @@
             <button class="btn btn-outline btn-small" type="submit">Agregar interesado</button>
             <p class="form-msg" id="interesado-manual-msg"></p>
           </form>
+          <div class="disp-grid-actions" id="interesados-filtro" style="margin-bottom:10px;">
+            <button class="btn btn-outline btn-small activo" type="button" data-filtro-interesado="activos">Activos</button>
+            <button class="btn btn-outline btn-small" type="button" data-filtro-interesado="archivados">Archivados</button>
+            <button class="btn btn-outline btn-small" type="button" data-filtro-interesado="todos">Todos</button>
+          </div>
           <div id="lista-interesados"><p class="empty-state">Cargando...</p></div>
         </div>
 
@@ -447,6 +452,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=33"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=34"></script>
 </body>
 </html>

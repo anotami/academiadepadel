@@ -80,6 +80,8 @@ ul { padding: 0; margin: 0; list-style: none; }
 
 .btn-outline { background: transparent; color: var(--court); border-color: var(--border); }
 .btn-outline:hover { border-color: var(--court); }
+.btn-outline.activo { background: var(--court); color: #fff; border-color: var(--court); }
+.btn-outline.activo:hover { background: var(--court-dark); border-color: var(--court-dark); }
 
 /* Texto blanco sobre el verde de WhatsApp no llega al contraste AA
    (≈2:1); el mismo verde de marca con texto en var(--court-dark) sí
