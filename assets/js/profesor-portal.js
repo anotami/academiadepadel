@@ -1032,9 +1032,13 @@ async function cargarAlumnos() {
       ? `<a href="https://instagram.com/${instagramHandle}" target="_blank" rel="noopener">@${instagramHandle}</a>`
       : "";
     const telAlumno = soloDigitos(a.whatsapp || a.telefono);
+    const mensajePedirDisponibilidad = `Hola ${a.nombre}, ¿me actualizas tu disponibilidad acá? https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`;
+    // Todos los alumnos tienen la opción, tengan o no ya disponibilidad
+    // cargada (para actualizarla) y tengan o no un teléfono con el que se
+    // pueda armar un link de WhatsApp directo (si no, copia el mensaje).
     const linkPedirDisponibilidad = telAlumno
-      ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:8px; margin-left:8px;" href="https://wa.me/${telAlumno}?text=${encodeURIComponent(`Hola ${a.nombre}, ¿me actualizas tu disponibilidad acá? https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`)}">Pedir disponibilidad</a>`
-      : "";
+      ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:8px; margin-left:8px;" href="https://wa.me/${telAlumno}?text=${encodeURIComponent(mensajePedirDisponibilidad)}">Pedir disponibilidad</a>`
+      : `<button class="btn btn-outline btn-small" type="button" data-copiar-pedir-disp style="margin-top:8px; margin-left:8px;" title="No tiene un teléfono válido para abrir WhatsApp directo — copia el mensaje y pégalo donde le escribas.">Pedir disponibilidad (copiar mensaje)</button>`;
     card.innerHTML = `
       <h3>${escapeHtml(a.nombre)}</h3>
       <p class="court-meta">${escapeHtml(a.telefono) || "Sin teléfono"} · Nivel ${escapeHtml(a.nivel) || "—"}</p>
@@ -1082,6 +1086,17 @@ async function cargarAlumnos() {
     const form = card.querySelector("[data-editar-form]");
     const msg = card.querySelector(".form-msg");
     let dispGridAlumno = null;
+    card.querySelector("[data-copiar-pedir-disp]")?.addEventListener("click", async (e) => {
+      const btn = e.target;
+      const textoOriginal = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(mensajePedirDisponibilidad);
+        btn.textContent = "Copiado — pégalo donde le escribas";
+      } catch {
+        prompt("Copia el mensaje:", mensajePedirDisponibilidad);
+      }
+      setTimeout(() => { btn.textContent = textoOriginal; }, 2200);
+    });
     card.querySelector("[data-toggle-editar]").addEventListener("click", () => {
       form.hidden = !form.hidden;
       if (!form.hidden && !dispGridAlumno) {
