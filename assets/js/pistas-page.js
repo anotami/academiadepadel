@@ -1,19 +1,16 @@
 import { auth, db, onAuthStateChanged, signInAnonymously, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=18";
-import { construirGrillaTarifaPista } from "./portal-common.js?v=18";
+import { construirGrillaTarifaPista, prioridadNombreSede } from "./portal-common.js?v=19";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];
 const BADGE_POR_ESTADO = { Habilitada: "badge-confirmada", Reservada: "badge-pendiente", Bloqueada: "badge-rechazada" };
 const ORDEN_ESTADO = { Habilitada: 0, Reservada: 1, Bloqueada: 2 };
 
-// X3 y La Once (Cancha 11) primero, siempre — son las 2 sedes donde Gabriel
-// realmente dicta clase hoy. Después, el resto ordenado por estado
-// (Habilitada antes que Reservada/Bloqueada) y luego por nombre.
+// Las 3 sedes principales (X3, La Once, Benavides) primero, siempre.
+// Después, el resto ordenado por estado (Habilitada antes que
+// Reservada/Bloqueada) y luego por nombre.
 function prioridadPista(pista) {
-  const nombre = (pista.nombre || "").toLowerCase();
-  const cancha = (pista.cancha || "").toLowerCase();
-  if (nombre.includes("x3")) return 0;
-  if (nombre.includes("once") || cancha.includes("11")) return 1;
-  return 2 + (ORDEN_ESTADO[pista.estadoPista] ?? 3);
+  const base = prioridadNombreSede(pista.nombre, pista.cancha);
+  return base < 3 ? base : 3 + (ORDEN_ESTADO[pista.estadoPista] ?? 3);
 }
 
 function ordenarPistas(docs) {

@@ -16,7 +16,7 @@ import {
   doc, getDoc, updateDoc,
   collection, getDocs, addDoc, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { construirGrillaDisponibilidad } from "./portal-common.js?v=18";
+import { construirGrillaDisponibilidad, prioridadNombreSede } from "./portal-common.js?v=19";
 
 const WHATSAPP_NUMBER = "51957085531";
 const alumnoId = new URLSearchParams(location.search).get("alumno");
@@ -79,9 +79,19 @@ onAuthStateChanged(auth, async (user) => {
     const snap = await getDocs(collection(db, "pistas"));
     const pistas = snap.docs
       .map((d) => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
+      .sort((a, b) => {
+        const pa = prioridadNombreSede(a.nombre, a.cancha), pb = prioridadNombreSede(b.nombre, b.cancha);
+        if (pa !== pb) return pa - pb;
+        return (a.nombre || "").localeCompare(b.nombre || "", "es");
+      });
+    const opcion = (p) => `<option value="${p.id}" data-nombre="${(p.nombre || "")} — ${(p.distrito || "")}">${p.nombre} — ${p.distrito || ""}</option>`;
+    // Tus 3 sedes principales primero, en su propio grupo destacado —
+    // el resto de pistas que tengas cargadas va aparte, por si acaso.
+    const principales = pistas.filter((p) => prioridadNombreSede(p.nombre, p.cancha) < 3);
+    const otras = pistas.filter((p) => prioridadNombreSede(p.nombre, p.cancha) >= 3);
     canchaSelect.innerHTML = '<option value="">No tengo preferencia</option>' +
-      pistas.map((p) => `<option value="${p.id}" data-nombre="${(p.nombre || "")} — ${(p.distrito || "")}">${p.nombre} — ${p.distrito || ""}</option>`).join("");
+      (principales.length ? `<optgroup label="Tus sedes">${principales.map(opcion).join("")}</optgroup>` : "") +
+      (otras.length ? `<optgroup label="Otras pistas">${otras.map(opcion).join("")}</optgroup>` : "");
   } catch {
     // Si no se pudo cargar la lista de pistas, se sigue con "No tengo preferencia".
   }
