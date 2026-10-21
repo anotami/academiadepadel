@@ -8,7 +8,7 @@ import {
 import {
   DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
-} from "./portal-common.js?v=19";
+} from "./portal-common.js?v=20";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;

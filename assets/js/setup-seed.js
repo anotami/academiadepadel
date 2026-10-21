@@ -3,8 +3,8 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   doc, setDoc, deleteDoc, addDoc, collection, getDocs, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=15";
-import { TIPOS_CLASE } from "./portal-common.js?v=19";
+import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=16";
+import { TIPOS_CLASE } from "./portal-common.js?v=20";
 
 const logEl = document.getElementById("log");
 function log(msg) {

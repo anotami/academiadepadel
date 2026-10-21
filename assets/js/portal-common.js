@@ -241,7 +241,10 @@ export function esProgramaRegular(tipoClase) {
   return TIPOS_CLASE[0].opciones.includes(tipoClase);
 }
 
-export const TIPOS_PAQUETE = ["4 clases", "8 clases"];
+// 1 a 12 clases — antes solo dejaba elegir 4 u 8, pero Gabriel arma
+// paquetes a medida con cualquier cantidad.
+export const TIPOS_PAQUETE = Array.from({ length: 12 }, (_, i) => i + 1)
+  .map((n) => `${n} ${n === 1 ? "clase" : "clases"}`);
 
 // Deja solo dígitos para armar un link wa.me a partir de un teléfono guardado
 // con formato "+51 999 111 222".
