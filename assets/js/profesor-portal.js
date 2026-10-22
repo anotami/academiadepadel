@@ -627,12 +627,83 @@ function cargarHistorialClases(uid) {
     wrap.innerHTML = "";
     if (reservas.length === 0) {
       wrap.innerHTML = '<p class="empty-state">Aún no registraste ninguna clase.</p>';
+      historialSesionesCache = [];
       return;
     }
-    agruparPorSesion(reservas).forEach((grupo) => wrap.appendChild(
+    const grupos = agruparPorSesion(reservas);
+    // Lista de sesiones existentes (una por pista+fecha+hora), para el
+    // selector "Mover a otra clase" de cada reserva -- así se puede unir
+    // una clase suelta a un grupo que ya existe sin reescribir nada a mano.
+    historialSesionesCache = grupos.map((g) => ({
+      clave: claveSesion(g[0]),
+      pistaId: g[0].pistaId, pistaNombre: g[0].pistaNombre,
+      fecha: g[0].fecha, hora: g[0].hora,
+      tipoClase: g[0].tipoClase, modalidad: g[0].modalidad,
+      n: g.length
+    }));
+    grupos.forEach((grupo) => wrap.appendChild(
       grupo.length > 1 ? construirTarjetaHistorialGrupal(grupo) : construirTarjetaHistorial(grupo[0])
     ));
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+let historialSesionesCache = [];
+function claveSesion(r) { return `${r.pistaId}|${r.fecha}|${r.hora}`; }
+
+// Select con las otras sesiones existentes (excluye la propia), para
+// "mover" una reserva y que se agrupe con otra clase ya registrada.
+function opcionesMoverSesion(claveActual) {
+  const otras = historialSesionesCache.filter((s) => s.clave !== claveActual);
+  if (!otras.length) return "";
+  return `<option value="">— Elegir sesión —</option>` + otras.map((s) =>
+    `<option value="${s.clave}">${formatearFecha(s.fecha)} · ${s.hora} hrs · ${escapeHtml(s.pistaNombre)} (${s.n} alumno${s.n > 1 ? "s" : ""})</option>`
+  ).join("");
+}
+
+// Botón "+ Agregar alumno a esta clase": crea una reserva nueva con el
+// mismo pista/fecha/hora/tipoClase que la sesión base, sin reescribirlos.
+function construirFormAgregarAlumno(base) {
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "margin-top:12px; padding-top:12px; border-top:1px solid var(--border);";
+  wrap.innerHTML = `
+    <button class="btn btn-outline btn-small" type="button" data-toggle-agregar>+ Agregar alumno a esta clase</button>
+    <div class="form-grid" data-agregar-form hidden style="margin-top:8px;">
+      <div class="field">
+        <label>Alumno</label>
+        <select data-campo="alumnoId">${alumnosCache.map((a) => `<option value="${a.id}">${escapeHtml(a.nombre)}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Monto cobrado (S/)</label>
+        <input type="number" min="0" step="1" data-campo="monto" value="${PRECIOS_CLASE_SUELTA["Grupal (2-4 personas)"]}">
+      </div>
+      <button class="btn btn-primary btn-small" type="button" data-guardar-agregar>Agregar</button>
+    </div>
+    <p class="form-msg"></p>`;
+  const form = wrap.querySelector("[data-agregar-form]");
+  const msg = wrap.querySelector(".form-msg");
+  wrap.querySelector("[data-toggle-agregar]").addEventListener("click", () => { form.hidden = !form.hidden; });
+  wrap.querySelector("[data-guardar-agregar]").addEventListener("click", async () => {
+    const alumnoId = form.querySelector('[data-campo="alumnoId"]').value;
+    const alumno = alumnosCache.find((a) => a.id === alumnoId);
+    const montoCobrado = Number(form.querySelector('[data-campo="monto"]').value) || 0;
+    if (!alumno) { msg.textContent = "Elige un alumno."; msg.className = "form-msg error"; return; }
+    try {
+      await addDoc(collection(db, "reservas"), {
+        alumnoId: alumno.id, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
+        profesorId: currentUid, profesorNombre: currentPerfil.nombre,
+        tipoClase: base.tipoClase, pistaId: base.pistaId, pistaNombre: base.pistaNombre,
+        fecha: base.fecha, hora: base.hora, estado: "confirmada",
+        modalidad: "Grupal (2-4 personas)", montoCobrado, costoCanchaPagado: null,
+        creadoEn: serverTimestamp()
+      });
+      msg.textContent = `${alumno.nombre} agregado a esta clase.`;
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo agregar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
+  return wrap;
 }
 
 function construirTarjetaHistorial(r) {
@@ -673,6 +744,12 @@ function construirTarjetaHistorial(r) {
           </select>
         </div>
         <button class="btn btn-primary btn-small" type="button" data-guardar-historial>Guardar</button>
+        <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+          <label>Unir esta clase a otra sesión ya registrada</label>
+          <select data-mover-sesion>${opcionesMoverSesion(claveSesion(r))}</select>
+          <p class="field-hint">Le cambia la pista/fecha/hora/tipo de clase a esta reserva para que quede agrupada con la que elijas.</p>
+        </div>
+        <button class="btn btn-outline btn-small" type="button" data-guardar-mover>Unir</button>
       </div>
       <p class="form-msg"></p>
     </div>
@@ -705,6 +782,23 @@ function construirTarjetaHistorial(r) {
       msg.className = "form-msg error";
     }
   });
+  card.querySelector("[data-guardar-mover]").addEventListener("click", async () => {
+    const clave = form.querySelector("[data-mover-sesion]").value;
+    const destino = historialSesionesCache.find((s) => s.clave === clave);
+    if (!destino) { msg.textContent = "Elige a qué sesión unirla."; msg.className = "form-msg error"; return; }
+    try {
+      await updateDoc(doc(db, "reservas", r.id), {
+        pistaId: destino.pistaId, pistaNombre: destino.pistaNombre,
+        fecha: destino.fecha, hora: destino.hora, tipoClase: destino.tipoClase
+      });
+      msg.textContent = "Unida a esa sesión.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo unir: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
+  card.querySelector(".request-info").appendChild(construirFormAgregarAlumno(r));
 
   return card;
 }
@@ -756,6 +850,11 @@ function construirTarjetaHistorialGrupal(grupo) {
               </select>
             </div>
             <button class="btn btn-primary btn-small" type="button" data-guardar>Guardar</button>
+            <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+              <label>Sacar a ${escapeHtml(r.alumnoNombre)} de este grupo y unirlo a otra sesión</label>
+              <select data-mover-sesion>${opcionesMoverSesion(claveSesion(r))}</select>
+            </div>
+            <button class="btn btn-outline btn-small" type="button" data-guardar-mover>Unir</button>
           </div>
           <p class="form-msg"></p>
         </div>`).join("")}
@@ -785,7 +884,25 @@ function construirTarjetaHistorialGrupal(grupo) {
         msg.className = "form-msg error";
       }
     });
+    fila.querySelector("[data-guardar-mover]").addEventListener("click", async () => {
+      const clave = form.querySelector("[data-mover-sesion]").value;
+      const destino = historialSesionesCache.find((s) => s.clave === clave);
+      if (!destino) { msg.textContent = "Elige a qué sesión unirlo."; msg.className = "form-msg error"; return; }
+      try {
+        await updateDoc(doc(db, "reservas", r.id), {
+          pistaId: destino.pistaId, pistaNombre: destino.pistaNombre,
+          fecha: destino.fecha, hora: destino.hora, tipoClase: destino.tipoClase
+        });
+        msg.textContent = "Unido a esa sesión.";
+        msg.className = "form-msg ok";
+      } catch (err) {
+        msg.textContent = "No se pudo unir: " + err.message;
+        msg.className = "form-msg error";
+      }
+    });
   });
+
+  card.querySelector(".request-info").appendChild(construirFormAgregarAlumno(base));
 
   return card;
 }
