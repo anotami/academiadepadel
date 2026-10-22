@@ -3029,7 +3029,12 @@ document.getElementById("com-import-file").addEventListener("change", async (e) 
   try {
     const texto = await file.text();
     comunidadImportFilas = parsearChatWhatsApp(texto).map((f, i) => ({ ...f, id: i, incluir: !!normalizarTelefonoPeru(f.telefono) }));
-    if (!comunidadImportFilas.length) {
+    const hayFilas = comunidadImportFilas.length > 0;
+    document.getElementById("com-import-filtros").hidden = !hayFilas;
+    document.getElementById("btn-import-marcar-visibles").hidden = !hayFilas;
+    document.getElementById("btn-import-desmarcar-visibles").hidden = !hayFilas;
+    document.getElementById("com-import-contador").hidden = !hayFilas;
+    if (!hayFilas) {
       msg.textContent = "No se reconoció ningún remitente en ese archivo — ¿es un .txt exportado de WhatsApp?";
       msg.className = "form-msg error";
       document.getElementById("com-import-tabla").innerHTML = "";
@@ -3038,6 +3043,11 @@ document.getElementById("com-import-file").addEventListener("change", async (e) 
     }
     msg.textContent = `${comunidadImportFilas.length} remitente(s) encontrados. Revisa y corrige antes de guardar.`;
     msg.className = "form-msg ok";
+    // Limpia filtros que hayan quedado de una importación anterior.
+    document.getElementById("com-import-buscar").value = "";
+    document.getElementById("com-import-filtro-telefono").value = "";
+    document.getElementById("com-import-filtro-categoria").value = "";
+    document.getElementById("com-import-filtro-genero").value = "";
     renderImportTabla();
   } catch (err) {
     msg.textContent = "No se pudo leer el archivo: " + err.message;
@@ -3045,13 +3055,40 @@ document.getElementById("com-import-file").addEventListener("change", async (e) 
   }
 });
 
+// Con cientos de remitentes en un grupo real, estos filtros son lo que
+// hace usable la tabla -- ej. revisar primero solo a quienes se les
+// detectó categoría, antes de meterse con el resto a mano.
+function importFilasVisibles() {
+  const buscar = (document.getElementById("com-import-buscar").value || "").trim().toLowerCase();
+  const fTelefono = document.getElementById("com-import-filtro-telefono").value;
+  const fCategoria = document.getElementById("com-import-filtro-categoria").value;
+  const fGenero = document.getElementById("com-import-filtro-genero").value;
+  return comunidadImportFilas.filter((f) => {
+    if (buscar && !(f.nombreCompleto || "").toLowerCase().includes(buscar)) return false;
+    if (fTelefono === "con" && !f.telefono) return false;
+    if (fTelefono === "sin" && f.telefono) return false;
+    if (fCategoria === "con" && !f.categoria) return false;
+    if (fCategoria === "sin" && f.categoria) return false;
+    if (fGenero === "con" && !f.genero) return false;
+    if (fGenero === "sin" && f.genero) return false;
+    return true;
+  });
+}
+
 function renderImportTabla() {
   const wrap = document.getElementById("com-import-tabla");
   document.getElementById("btn-guardar-import").hidden = comunidadImportFilas.length === 0;
   if (!comunidadImportFilas.length) { wrap.innerHTML = ""; return; }
+
+  const visibles = importFilasVisibles();
+  const contador = document.getElementById("com-import-contador");
+  if (contador) contador.textContent = `Mostrando ${visibles.length} de ${comunidadImportFilas.length} fila(s).`;
+
+  if (!visibles.length) { wrap.innerHTML = '<p class="empty-state">Nadie calza con esos filtros.</p>'; return; }
+
   wrap.innerHTML = `<div style="overflow-x:auto;"><table class="detalle-table"><thead><tr>
     <th></th><th>Nombre</th><th>Teléfono</th><th>Categoría</th><th>Género</th><th>Mensaje de muestra</th>
-  </tr></thead><tbody>${comunidadImportFilas.map((f) => `
+  </tr></thead><tbody>${visibles.map((f) => `
     <tr data-fila-import="${f.id}">
       <td><input type="checkbox" data-campo="incluir" ${f.incluir ? "checked" : ""}></td>
       <td><input type="text" data-campo="nombreCompleto" value="${escapeHtml(f.nombreCompleto)}" style="width:140px;"></td>
@@ -3061,7 +3098,7 @@ function renderImportTabla() {
       <td class="court-meta" style="max-width:220px;">${escapeHtml(f.muestra)}</td>
     </tr>`).join("")}</tbody></table></div>`;
 
-  comunidadImportFilas.forEach((f) => {
+  visibles.forEach((f) => {
     const fila = wrap.querySelector(`[data-fila-import="${f.id}"]`);
     fila.querySelectorAll("[data-campo]").forEach((campo) => {
       const evento = campo.tagName === "SELECT" || campo.type === "checkbox" ? "change" : "input";
@@ -3071,6 +3108,19 @@ function renderImportTabla() {
     });
   });
 }
+
+document.getElementById("com-import-buscar").addEventListener("input", renderImportTabla);
+["com-import-filtro-telefono", "com-import-filtro-categoria", "com-import-filtro-genero"].forEach((id) =>
+  document.getElementById(id).addEventListener("change", renderImportTabla)
+);
+document.getElementById("btn-import-marcar-visibles").addEventListener("click", () => {
+  importFilasVisibles().forEach((f) => { f.incluir = true; });
+  renderImportTabla();
+});
+document.getElementById("btn-import-desmarcar-visibles").addEventListener("click", () => {
+  importFilasVisibles().forEach((f) => { f.incluir = false; });
+  renderImportTabla();
+});
 
 document.getElementById("btn-guardar-import").addEventListener("click", async () => {
   const msg = document.getElementById("com-import-guardar-msg");
@@ -3103,6 +3153,10 @@ document.getElementById("btn-guardar-import").addEventListener("click", async ()
   comunidadImportFilas = [];
   document.getElementById("com-import-tabla").innerHTML = "";
   document.getElementById("btn-guardar-import").hidden = true;
+  document.getElementById("com-import-filtros").hidden = true;
+  document.getElementById("btn-import-marcar-visibles").hidden = true;
+  document.getElementById("btn-import-desmarcar-visibles").hidden = true;
+  document.getElementById("com-import-contador").hidden = true;
   document.getElementById("com-import-file").value = "";
   msg.textContent = `${guardados} jugador(es) guardado(s).${errores.length ? " Con errores: " + errores.join("; ") : ""}`;
   msg.className = errores.length ? "form-msg error" : "form-msg ok";

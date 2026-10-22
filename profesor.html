@@ -43,7 +43,7 @@
         <button class="portal-tab" type="button" role="tab" data-tab="clases">Mis clases</button>
         <button class="portal-tab" type="button" role="tab" data-tab="alumnos">Alumnos y pagos</button>
         <button class="portal-tab" type="button" role="tab" data-tab="grupos">Grupos nuevos</button>
-        <button class="portal-tab" type="button" role="tab" data-tab="comunidad">Comunidad</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="mkt">MKT</button>
         <button class="portal-tab" type="button" role="tab" data-tab="datos">Mis datos</button>
       </nav>
 
@@ -308,7 +308,7 @@
       <!-- GRUPOS NUEVOS -->
       <div data-tabpanel="grupos" hidden>
         <div class="portal-card">
-          <h2>Grupos e interesados</h2>
+          <h2>Turnos</h2>
           <p class="field-hint">Turnos que ves en "¿Eres nuevo en el pádel?" de la web, y quién se anotó en cada uno. Abre o cierra turnos según la demanda real.</p>
 
           <div id="sugerencias-grupo"></div>
@@ -343,8 +343,38 @@
             <p class="form-msg" id="turno-msg"></p>
           </form>
           <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
+        </div>
 
-          <h3 style="margin-top:26px;">Interesados</h3>
+        <!-- Cruce de disponibilidad -->
+        <div class="portal-card">
+          <h2>Cruce de disponibilidad</h2>
+          <p class="field-hint">Tu disponibilidad (en "Mis datos") siempre cuenta. Marca qué alumnos e interesados quieres cruzar y en qué pista — la grilla muestra en qué día y horario coinciden todos y además hay cancha libre.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="cr-pista">Pista</label>
+              <select id="cr-pista"><option value="">Todas las pistas</option></select>
+            </div>
+          </div>
+          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Alumnos</h3>
+          <div id="cr-alumnos" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
+          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Interesados</h3>
+          <div id="cr-interesados" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
+          <div class="disp-legend" style="margin-top:16px;">
+            Pocos coinciden
+            <span style="display:inline-block; width:90px; height:14px; border-radius:3px; vertical-align:middle; background:linear-gradient(90deg, #fde2e1, #fff3cd, #d9f3e3);"></span>
+            Todos coinciden
+            <span class="disp-legend-swatch disp-off" style="margin-left:14px;"></span> Tú no estás libre o no hay cancha
+          </div>
+          <div class="availability-grid" id="cr-grid" style="margin-top:8px;"></div>
+          <p class="field-hint" id="cr-detalle" style="margin-top:10px;">Toca un bloque de la grilla para ver quién calza y quién no.</p>
+        </div>
+      </div>
+
+      <!-- MKT: interesados, directorio de jugadores, falta el cuarto y leads -->
+      <div data-tabpanel="mkt" hidden>
+        <!-- Interesados -->
+        <div class="portal-card">
+          <h2>Interesados</h2>
           <p class="field-hint">Se llenan solos cuando alguien se anota desde "¿Eres nuevo en el pádel?" en la web. Si alguien te escribió directo por WhatsApp, mándale el link de abajo para que complete su disponibilidad solo — aparece acá igual.</p>
           <button class="btn btn-outline btn-small" type="button" id="btn-copiar-link-disp" style="margin-bottom:14px;">Copiar mensaje con el link de disponibilidad</button>
           <p class="form-msg" id="copiar-link-disp-msg"></p>
@@ -382,7 +412,7 @@
                   <button class="btn btn-outline btn-small" type="button" id="im-disp-ninguno">Limpiar todo</button>
                 </div>
               </div>
-              <p class="field-hint">Si te escribió por WhatsApp con sus horarios libres, márcalos acá para cruzarlos en "Cruce de disponibilidad" más abajo.</p>
+              <p class="field-hint">Si te escribió por WhatsApp con sus horarios libres, márcalos acá para cruzarlos en "Cruce de disponibilidad" (pestaña "Grupos nuevos").</p>
               <div class="availability-grid" id="im-disponibilidad"></div>
             </div>
             <button class="btn btn-outline btn-small" type="submit">Agregar interesado</button>
@@ -396,33 +426,6 @@
           <div id="lista-interesados"><p class="empty-state">Cargando...</p></div>
         </div>
 
-        <!-- Cruce de disponibilidad -->
-        <div class="portal-card">
-          <h2>Cruce de disponibilidad</h2>
-          <p class="field-hint">Tu disponibilidad (en "Mis datos") siempre cuenta. Marca qué alumnos e interesados quieres cruzar y en qué pista — la grilla muestra en qué día y horario coinciden todos y además hay cancha libre.</p>
-          <div class="form-grid">
-            <div class="field">
-              <label for="cr-pista">Pista</label>
-              <select id="cr-pista"><option value="">Todas las pistas</option></select>
-            </div>
-          </div>
-          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Alumnos</h3>
-          <div id="cr-alumnos" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
-          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Interesados</h3>
-          <div id="cr-interesados" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
-          <div class="disp-legend" style="margin-top:16px;">
-            Pocos coinciden
-            <span style="display:inline-block; width:90px; height:14px; border-radius:3px; vertical-align:middle; background:linear-gradient(90deg, #fde2e1, #fff3cd, #d9f3e3);"></span>
-            Todos coinciden
-            <span class="disp-legend-swatch disp-off" style="margin-left:14px;"></span> Tú no estás libre o no hay cancha
-          </div>
-          <div class="availability-grid" id="cr-grid" style="margin-top:8px;"></div>
-          <p class="field-hint" id="cr-detalle" style="margin-top:10px;">Toca un bloque de la grilla para ver quién calza y quién no.</p>
-        </div>
-      </div>
-
-      <!-- COMUNIDAD: directorio de jugadores, falta el cuarto y leads -->
-      <div data-tabpanel="comunidad" hidden>
         <!-- Jugadores -->
         <div class="portal-card">
           <h2>Jugadores</h2>
@@ -538,7 +541,43 @@
           </p>
           <input type="file" id="com-import-file" accept=".txt">
           <p class="form-msg" id="com-import-msg"></p>
-          <div id="com-import-tabla" style="margin-top:14px;"></div>
+
+          <div class="form-grid" id="com-import-filtros" hidden style="margin-top:14px;">
+            <div class="field field-full">
+              <label for="com-import-buscar">Buscar por nombre</label>
+              <input type="text" id="com-import-buscar" placeholder="Ej: Juan">
+            </div>
+            <div class="field">
+              <label for="com-import-filtro-telefono">Teléfono</label>
+              <select id="com-import-filtro-telefono">
+                <option value="">Todos</option>
+                <option value="con">Con teléfono detectado</option>
+                <option value="sin">Sin teléfono</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="com-import-filtro-categoria">Categoría</label>
+              <select id="com-import-filtro-categoria">
+                <option value="">Todas</option>
+                <option value="con">Con categoría detectada</option>
+                <option value="sin">Sin categoría</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="com-import-filtro-genero">Género</label>
+              <select id="com-import-filtro-genero">
+                <option value="">Todos</option>
+                <option value="con">Con género detectado</option>
+                <option value="sin">Sin género</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+            <button class="btn btn-outline btn-small" type="button" id="btn-import-marcar-visibles" hidden>Marcar todos los visibles</button>
+            <button class="btn btn-outline btn-small" type="button" id="btn-import-desmarcar-visibles" hidden>Desmarcar todos los visibles</button>
+          </div>
+          <p class="field-hint" id="com-import-contador" hidden></p>
+          <div id="com-import-tabla" style="margin-top:10px;"></div>
           <button class="btn btn-primary btn-small" type="button" id="btn-guardar-import" hidden style="margin-top:10px;">Guardar seleccionados</button>
           <p class="form-msg" id="com-import-guardar-msg"></p>
         </div>
@@ -598,6 +637,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=48"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=49"></script>
 </body>
 </html>
