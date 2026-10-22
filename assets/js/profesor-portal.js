@@ -1937,6 +1937,20 @@ function renderCrucePersonas() {
   renderCruceGrid();
 }
 
+// Escala de color tipo Excel (rojo → amarillo → verde) según qué fracción
+// de los marcados calza en ese bloque — mismos tonos que ya usan los badges
+// (badge-rechazada/pendiente/confirmada) para que no se vea como una
+// paleta nueva.
+function colorEscalaCruce(ratio) {
+  const rojo = [0xfd, 0xe2, 0xe1];
+  const amarillo = [0xff, 0xf3, 0xcd];
+  const verde = [0xd9, 0xf3, 0xe3];
+  const [desde, hasta] = ratio <= 0.5 ? [rojo, amarillo] : [amarillo, verde];
+  const t = ratio <= 0.5 ? ratio / 0.5 : (ratio - 0.5) / 0.5;
+  const mezclar = (i) => Math.round(desde[i] + (hasta[i] - desde[i]) * t);
+  return `rgb(${mezclar(0)}, ${mezclar(1)}, ${mezclar(2)})`;
+}
+
 function renderCruceGrid() {
   const wrap = document.getElementById("cr-grid");
   const detalle = document.getElementById("cr-detalle");
@@ -1971,23 +1985,20 @@ function renderCruceGrid() {
 
       let claseExtra = "";
       let texto = "";
+      let fondo = "";
       if (!profesorOk || !pistaOk) {
         claseExtra = "disp-off";
       } else if (total === 0) {
         claseExtra = "on";
-      } else if (disponibles.length === total) {
-        claseExtra = "cruce-total";
-        texto = `${disponibles.length}/${total}`;
-      } else if (disponibles.length > 0) {
-        claseExtra = "cruce-parcial";
-        texto = `${disponibles.length}/${total}`;
       } else {
-        texto = `0/${total}`;
+        texto = `${disponibles.length}/${total}`;
+        fondo = colorEscalaCruce(disponibles.length / total);
       }
 
       const cell = document.createElement("button");
       cell.type = "button";
       cell.className = `disp-cell disp-toggle ${claseExtra}`;
+      if (fondo) { cell.style.background = fondo; cell.style.color = "var(--ink)"; cell.style.fontWeight = "700"; }
       cell.textContent = texto;
       cell.addEventListener("click", () => {
         const faltan = personas.filter((p) => !estaDisponible(p.disponibilidad, dia, franja)).map((p) => p.nombre);
