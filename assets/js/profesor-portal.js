@@ -2213,6 +2213,11 @@ function renderSugerenciasGrupo() {
 
   const lista = wrap.querySelector("#sugerencias-grupo-lista");
   top.forEach((s) => {
+    // Alumnos ya registrados que también tienen esa disponibilidad -- no
+    // cuentan como "interesados nuevos", pero suman para ver si de verdad
+    // conviene abrir el turno (quizás ya hay 3 alumnos sueltos que calzan).
+    const alumnosCoinciden = alumnosCache.filter((a) => (a.disponibilidad || []).length && estaDisponible(a.disponibilidad, s.dia, s.franja));
+
     const card = document.createElement("div");
     card.style.cssText = "margin-top:10px; padding-top:10px; border-top:1px solid var(--border);";
     const chips = s.personas.map((i) => {
@@ -2223,10 +2228,18 @@ function renderSugerenciasGrupo() {
         ? `<a class="badge badge-confirmada" target="_blank" rel="noopener" style="text-decoration:none;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">${escapeHtml(i.nombre)}</a>`
         : `<span class="badge badge-confirmada">${escapeHtml(i.nombre)}</span>`;
     }).join(" ");
+    const chipsAlumnos = alumnosCoinciden.map((a) => {
+      const tel = soloDigitos(a.whatsapp || a.telefono);
+      const texto = `Hola ${a.nombre}, estoy armando un grupo fijo el ${s.dia.toLowerCase()} de ${s.franja} hrs, justo tu horario — ¿te sumas?`;
+      return tel
+        ? `<a class="badge badge-pendiente" target="_blank" rel="noopener" style="text-decoration:none;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">${escapeHtml(a.nombre)}</a>`
+        : `<span class="badge badge-pendiente">${escapeHtml(a.nombre)}</span>`;
+    }).join(" ");
     card.innerHTML = `
-      <p><strong>${escapeHtml(s.dia)} · ${escapeHtml(s.franja)}</strong> — ${s.personas.length} interesados coinciden</p>
+      <p><strong>${escapeHtml(s.dia)} · ${escapeHtml(s.franja)}</strong> — ${alumnosCoinciden.length} alumno${alumnosCoinciden.length === 1 ? "" : "s"} y ${s.personas.length} interesado${s.personas.length === 1 ? "" : "s"} coinciden</p>
       <p class="court-meta" style="margin:4px 0 2px;">Pídeles que confirmen (toca el nombre para abrir WhatsApp):</p>
       <p style="margin:0 0 6px;">${chips}</p>
+      ${chipsAlumnos ? `<p class="court-meta" style="margin:4px 0 2px;">Alumnos que ya tienen clase y también calzan en ese horario:</p><p style="margin:0 0 6px;">${chipsAlumnos}</p>` : ""}
       <button class="btn btn-outline btn-small" type="button" data-prefill-turno>Prellenar turno con este horario</button>`;
     card.querySelector("[data-prefill-turno]").addEventListener("click", () => {
       const nombreInput = document.getElementById("tg-nombre");
