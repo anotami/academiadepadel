@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.gstatic.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-C2DJ9V0L4Z"></script>
+<script src="assets/js/gtag-init.js?v=2"></script>
+
+<title>Sumate a la comunidad | academiadepadel.pe</title>
+<meta name="description" content="Anotate en la comunidad de pádel de Lima: te metemos en el directorio de jugadores por categoría y te avisamos cuando falta el cuarto para un partido en tu horario.">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=52">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>Academia de Pádel GP</span>
+    </a>
+    <a href="index.html" class="test-back-link">← Volver al sitio</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section portal-section">
+    <div class="container portal-shell">
+      <div class="portal-card" id="caFormCard" style="max-width:720px; margin:0 auto;">
+        <p class="eyebrow">Comunidad</p>
+        <h1 style="margin-bottom:10px;">Sumate a la comunidad de pádel</h1>
+        <p class="field-hint" style="font-size:0.92rem; margin-bottom:18px;">
+          Te anotamos en el directorio de jugadores por categoría — cuando a alguien le falta el cuarto para un
+          partido en tu horario y tu nivel, te escribimos por WhatsApp. También es la forma más rápida de que te
+          contactemos para clases.
+        </p>
+
+        <form id="form-anotate" class="form-grid">
+          <!-- Honeypot: invisible para una persona, un bot de formularios lo suele completar igual. -->
+          <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+            <label for="ca-web">No completar este campo</label>
+            <input type="text" id="ca-web" name="web" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label for="ca-nombre">Nombre y apellido *</label>
+            <input type="text" id="ca-nombre" required maxlength="80">
+          </div>
+          <div class="field">
+            <label for="ca-whatsapp">WhatsApp *</label>
+            <input type="tel" id="ca-whatsapp" required placeholder="999 111 222" inputmode="numeric">
+            <p class="field-hint">Celular de Perú, con o sin +51 adelante.</p>
+          </div>
+          <div class="field">
+            <label for="ca-categoria">Categoría *</label>
+            <select id="ca-categoria" required></select>
+            <p class="field-hint">Si no estás seguro, elige "No sé / empezando" — no pasa nada.</p>
+          </div>
+          <div class="field">
+            <label for="ca-genero">Género</label>
+            <select id="ca-genero">
+              <option value="">Prefiero no decir</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Masculino">Masculino</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ca-posicion">Posición</label>
+            <select id="ca-posicion"></select>
+          </div>
+          <div class="field">
+            <label for="ca-distrito">Distrito</label>
+            <select id="ca-distrito"></select>
+          </div>
+          <div class="field field-full">
+            <label style="margin:0 0 8px;">¿Cuándo tienes horario para jugar?</label>
+            <div id="ca-horarios" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+          </div>
+          <div class="field field-full">
+            <label for="ca-clases">¿Te interesa tomar clases?</label>
+            <select id="ca-clases">
+              <option value="tal_vez">Tal vez</option>
+              <option value="si">Sí</option>
+              <option value="no">No, solo quiero jugar</option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label class="avail-slot" style="align-items:flex-start;">
+              <input type="checkbox" id="ca-consentimiento" required style="margin-top:3px;">
+              <span>Acepto que Academia de Pádel GP me contacte por WhatsApp para partidos, clases y torneos — ver
+                <a href="privacidad.html" target="_blank" rel="noopener">política de privacidad</a>.</span>
+            </label>
+          </div>
+          <button class="btn btn-primary" type="submit" id="ca-submit">Anotarme</button>
+          <p class="form-msg" id="ca-msg"></p>
+        </form>
+      </div>
+
+      <div class="portal-card" id="caOkCard" hidden style="max-width:720px; margin:24px auto 0; text-align:center;">
+        <h2>¡Listo, ya estás en la comunidad!</h2>
+        <p style="margin-bottom:18px;">Apenas haya un partido o un grupo que calce con tu horario y categoría, te escribimos por WhatsApp.</p>
+        <a class="btn btn-whatsapp" id="ca-whatsapp-cta" target="_blank" rel="noopener" href="#">Escribir por WhatsApp ahora</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="brand footer-brand">
+      <img src="assets/img/logo.svg" alt="" width="28" height="28">
+      <span>Academia de Pádel GP</span>
+    </div>
+    <p>Lima, Perú · <a href="https://wa.me/51957085531" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://www.instagram.com/academiapadelgp/" target="_blank" rel="noopener">Instagram</a></p>
+    <p class="footer-copy">© <span id="year"></span> academiadepadel.pe. Todos los derechos reservados. · <a href="privacidad.html">Privacidad</a></p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js?v=13"></script>
+<script src="assets/js/cookie-banner.js?v=1"></script>
+<script type="module" src="assets/js/comunidad-anotate-page.js?v=1"></script>
+</body>
+</html>

@@ -214,6 +214,63 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---------- Comunidad (directorio de jugadores, "falta el cuarto") ----------
+
+    match /jugadores_comunidad/{id} {
+      // Teléfonos de terceros, nunca públicos: solo el profesor lee.
+      allow read: if request.auth != null
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
+
+      // Alta pública desde "Anotate" (comunidad-anotate.html) y reimportación
+      // desde "Importar WhatsApp": el id del documento ES el WhatsApp
+      // normalizado (+51XXXXXXXXX), así que volver a enviar el mismo
+      // teléfono actualiza su propio registro en vez de duplicarlo -- el
+      // cliente público nunca necesita LEER la colección para deduplicar.
+      allow create, update: if (
+        request.auth != null
+        && request.resource.data.keys().hasOnly([
+          'nombreCompleto', 'whatsapp', 'categoria', 'categoriaEstado', 'genero',
+          'posicion', 'distrito', 'horarios', 'interesadoClases', 'consentimiento',
+          'origen', 'activo', 'notas', 'creadoEn', 'actualizadoEn'
+        ])
+        && request.resource.data.nombreCompleto is string
+        && request.resource.data.nombreCompleto.size() >= 1
+        && request.resource.data.nombreCompleto.size() <= 80
+        && request.resource.data.whatsapp == id
+        && request.resource.data.whatsapp.matches('^\\+519[0-9]{8}$')
+        && request.resource.data.categoria in ['1ra', '2da', '3ra', '4ta', '5ta', '6ta', '7ma', '8va', 'No sé / empezando']
+        && request.resource.data.categoriaEstado == 'a_verificar'
+        && (!('genero' in request.resource.data) || request.resource.data.genero is string)
+        && (!('posicion' in request.resource.data) || request.resource.data.posicion in ['Drive', 'Revés', 'Indistinto', ''])
+        && (!('distrito' in request.resource.data) || request.resource.data.distrito is string)
+        && request.resource.data.horarios is list
+        && request.resource.data.interesadoClases in ['si', 'tal_vez', 'no']
+        && request.resource.data.consentimiento.aceptado == true
+        && request.resource.data.consentimiento.fecha == request.time
+        && request.resource.data.origen in ['formulario', 'link_directo']
+        && request.resource.data.activo == true
+        && request.resource.data.creadoEn == request.time
+        && request.resource.data.actualizadoEn == request.time
+      ) || (
+        // El profesor escribe lo que sea: verificar categoría, editar,
+        // dar de baja (activo:false) o borrar de verdad, y también el
+        // importador de WhatsApp (que sí puede traer origen:'import_whatsapp'
+        // y categoriaEstado:'a_verificar' igual que el alta pública).
+        request.auth != null
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor'
+      );
+
+      allow delete: if request.auth != null
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
+    }
+
+    match /convocatorias/{id} {
+      // "Falta el cuarto": 100% interno, nunca se envía nada solo ni se
+      // expone al público -- registra a quién se convocó y cuándo.
+      allow read, write: if request.auth != null
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
+    }
+
     // ---------- Todo lo demás: denegado ----------
     match /{document=**} {
       allow read, write: if false;

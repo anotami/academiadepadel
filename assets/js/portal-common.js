@@ -251,3 +251,70 @@ export const TIPOS_PAQUETE = Array.from({ length: 12 }, (_, i) => i + 1)
 export function soloDigitos(telefono) {
   return (telefono || "").replace(/\D/g, "");
 }
+
+// ---- Comunidad (directorio de jugadores, "falta el cuarto") ----
+
+// Categorías de pádel estilo Argentina (1ra = nivel más alto), la misma
+// convención que ya explica categorias-padel.html.
+export const CATEGORIAS_COMUNIDAD = ["1ra", "2da", "3ra", "4ta", "5ta", "6ta", "7ma", "8va", "No sé / empezando"];
+export const DISTRITOS_COMUNIDAD = ["Miraflores", "San Isidro", "Surco", "La Molina", "San Borja", "Barranco", "Otro"];
+export const HORARIOS_COMUNIDAD = ["Mañana", "Tarde", "Noche"];
+export const POSICIONES_COMUNIDAD = ["Drive", "Revés", "Indistinto"];
+
+// Valida y normaliza un celular peruano a E.164 ("+51987654321"). Acepta con
+// o sin 51/+51 adelante, con espacios/guiones/puntos. Devuelve null si no
+// calza con un celular peruano real (9 dígitos, empieza con 9).
+export function normalizarTelefonoPeru(valor) {
+  let digitos = (valor || "").replace(/\D/g, "");
+  if (digitos.startsWith("51") && digitos.length === 11) digitos = digitos.slice(2);
+  if (digitos.length !== 9 || !digitos.startsWith("9")) return null;
+  return "+51" + digitos;
+}
+
+// Compara una categoría de jugador contra una categoría objetivo, con
+// margen opcional de ±1 (para "Falta el cuarto": buscar también un nivel
+// arriba/abajo cuando falta gente exacta).
+export function categoriaEnRango(categoria, objetivo, margen) {
+  const idx = CATEGORIAS_COMUNIDAD.indexOf(categoria);
+  const idxObjetivo = CATEGORIAS_COMUNIDAD.indexOf(objetivo);
+  if (idx === -1 || idxObjetivo === -1) return categoria === objetivo;
+  return Math.abs(idx - idxObjetivo) <= (margen || 0);
+}
+
+// ---- Heurísticas para el importador de un chat de WhatsApp exportado ----
+// Ninguna de estas es infalible -- el admin siempre revisa/corrige cada fila
+// en una tabla editable antes de guardar nada (ver "Importar desde WhatsApp").
+
+// Busca un celular peruano suelto dentro de un texto libre (típico cuando el
+// contacto no estaba guardado y WhatsApp exporta el número como remitente).
+export function detectarTelefonoPeruEnTexto(texto) {
+  const match = (texto || "").match(/(?:\+?51[\s.-]?)?9\d{2}[\s.-]?\d{3}[\s.-]?\d{3}\b/);
+  return match ? normalizarTelefonoPeru(match[0]) : null;
+}
+
+// Busca una categoría (1ra..8va) mencionada en el nombre o el mensaje -- ej.
+// apodos de grupo tipo "Juan Pérez 4ta M" o mensajes "soy de 5ta".
+export function detectarCategoriaEnTexto(texto) {
+  const t = (texto || "").toLowerCase();
+  const porSufijo = t.match(/\b([1-8])\s*(?:ra|da|ta|ma|va)\b/);
+  if (porSufijo) {
+    const candidata = CATEGORIAS_COMUNIDAD.find((c) => c.startsWith(porSufijo[1]));
+    if (candidata) return candidata;
+  }
+  const porPalabra = t.match(/\bcat(?:egor[ií]a)?\.?\s*([1-8])\b/);
+  if (porPalabra) {
+    const candidata = CATEGORIAS_COMUNIDAD.find((c) => c.startsWith(porPalabra[1]));
+    if (candidata) return candidata;
+  }
+  return "";
+}
+
+// Busca género mencionado como palabra completa -- deliberadamente NO
+// detecta una "M"/"F" suelta (demasiados falsos positivos con iniciales de
+// nombre), así que el admin suele tener que completarlo a mano.
+export function detectarGeneroEnTexto(texto) {
+  const t = (texto || "").toLowerCase();
+  if (/\b(femenino|mujer|dama|fem\.?)\b/.test(t)) return "Femenino";
+  if (/\b(masculino|var[oó]n|hombre|masc\.?)\b/.test(t)) return "Masculino";
+  return "";
+}

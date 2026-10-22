@@ -7,7 +7,7 @@ import {
 import {
   HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad
-} from "./portal-common.js?v=20";
+} from "./portal-common.js?v=21";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;

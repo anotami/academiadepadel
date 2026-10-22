@@ -7,8 +7,10 @@ import {
 } from "./firebase-app.js?v=18";
 import {
   DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
-  formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad
-} from "./portal-common.js?v=20";
+  formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad,
+  CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD, normalizarTelefonoPeru,
+  categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto
+} from "./portal-common.js?v=21";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -60,6 +62,9 @@ onAuthStateChanged(auth, async (user) => {
   cargarHistorialClases(user.uid);
   cargarGrupos();
   generarReservasDeGrupos();
+  poblarSelectsComunidad();
+  cargarComunidad();
+  cargarConvocatorias();
 });
 
 function poblarSelectPaquete() {
@@ -2582,4 +2587,523 @@ document.getElementById("btn-exportar-paquetes").addEventListener("click", async
     };
   });
   descargarCSV("paquetes.csv", filas);
+});
+
+// ============================================================
+// ---- Comunidad: directorio de jugadores, "falta el cuarto", leads ----
+// ============================================================
+
+let comunidadCache = [];
+let convocatoriasCache = [];
+let comunidadFilaMarcadas = new Set();
+let comunidadImportFilas = [];
+
+const ICONOS_CATEGORIA_COMUNIDAD = {
+  "1ra": "🏆", "2da": "🥇", "3ra": "🥈", "4ta": "🥉", "5ta": "🎾",
+  "6ta": "🎾", "7ma": "🎾", "8va": "🌱", "No sé / empezando": "🙋"
+};
+
+function poblarSelectsComunidad() {
+  const catOpts = CATEGORIAS_COMUNIDAD.map((c) => `<option value="${c}">${c}</option>`).join("");
+  document.getElementById("com-filtro-categoria").innerHTML = '<option value="">Todas</option>' + catOpts;
+  document.getElementById("fc-categoria").innerHTML = catOpts;
+  const distOpts = DISTRITOS_COMUNIDAD.map((d) => `<option value="${d}">${d}</option>`).join("");
+  document.getElementById("com-filtro-distrito").innerHTML = '<option value="">Todos</option>' + distOpts;
+  document.getElementById("fc-distrito").innerHTML = '<option value="">Cualquiera</option>' + distOpts;
+  document.getElementById("com-filtro-horario").innerHTML = '<option value="">Todos</option>' +
+    HORARIOS_COMUNIDAD.map((h) => `<option value="${h}">${h}</option>`).join("");
+  document.getElementById("fc-hora").innerHTML = HORAS_RESERVA.map((h) => `<option value="${h}">${h}</option>`).join("");
+  document.getElementById("fc-pista").innerHTML = '<option value="">— Elegir pista —</option>' +
+    pistasCache.filter((p) => p.estadoPista !== "Bloqueada")
+      .map((p) => `<option value="${p.id}" data-nombre="${escapeHtml(p.nombre)} — ${escapeHtml(p.distrito || "")}">${escapeHtml(p.nombre)} — ${escapeHtml(p.distrito || "")}</option>`)
+      .join("");
+}
+
+// "+51987654321" -> "+51 9•• ••• 321" -- nunca se muestra el teléfono completo.
+function enmascararTelefono(whatsapp) {
+  const d = soloDigitos(whatsapp).replace(/^51/, "");
+  if (d.length !== 9) return "Sin teléfono";
+  return `+51 ${d[0]}•• ••• ${d.slice(6)}`;
+}
+
+function horaABucketComunidad(hora) {
+  const h = Number((hora || "0").split(":")[0]);
+  if (h < 12) return "Mañana";
+  if (h < 18) return "Tarde";
+  return "Noche";
+}
+
+function cargarComunidad() {
+  onSnapshot(collection(db, "jugadores_comunidad"), (snap) => {
+    comunidadCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderComunidadContadores();
+    renderComunidadJugadores();
+    renderComunidadLeads();
+    renderFaltaElCuartoCandidatos();
+  }, (err) => mostrarErrorConsulta(document.getElementById("com-lista-jugadores"), err));
+}
+
+function cargarConvocatorias() {
+  onSnapshot(query(collection(db, "convocatorias"), orderBy("creadoEn", "desc"), limit(30)), (snap) => {
+    convocatoriasCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderConvocatoriasHistorial();
+    renderFaltaElCuartoCandidatos();
+  }, (err) => mostrarErrorConsulta(document.getElementById("fc-historial"), err));
+}
+
+// ---- Jugadores: contadores y directorio ----
+
+function renderComunidadContadores() {
+  const wrap = document.getElementById("com-contadores");
+  const fEstado = document.getElementById("com-filtro-estado")?.value || "activos";
+  const base = comunidadCache.filter((j) => fEstado === "todos" ? true : fEstado === "baja" ? j.activo === false : j.activo !== false);
+  wrap.innerHTML = CATEGORIAS_COMUNIDAD.map((c) => {
+    const n = base.filter((j) => j.categoria === c).length;
+    return `<div class="card clickable" data-com-cat="${escapeHtml(c)}"><div class="card-icon">${ICONOS_CATEGORIA_COMUNIDAD[c] || "🎾"}</div><h3>${n}</h3><p>${escapeHtml(c)}</p></div>`;
+  }).join("");
+  wrap.querySelectorAll("[data-com-cat]").forEach((card) => {
+    card.addEventListener("click", () => {
+      document.getElementById("com-filtro-categoria").value = card.dataset.comCat;
+      renderComunidadJugadores();
+    });
+  });
+}
+
+function jugadoresComunidadFiltrados() {
+  const buscar = (document.getElementById("com-buscar").value || "").trim().toLowerCase();
+  const fCategoria = document.getElementById("com-filtro-categoria").value;
+  const fGenero = document.getElementById("com-filtro-genero").value;
+  const fDistrito = document.getElementById("com-filtro-distrito").value;
+  const fHorario = document.getElementById("com-filtro-horario").value;
+  const fClases = document.getElementById("com-filtro-clases").value;
+  const fVerificado = document.getElementById("com-filtro-verificado").value;
+  const fEstado = document.getElementById("com-filtro-estado").value;
+
+  return comunidadCache.filter((j) => {
+    if (fEstado === "activos" && j.activo === false) return false;
+    if (fEstado === "baja" && j.activo !== false) return false;
+    if (buscar && !(j.nombreCompleto || "").toLowerCase().includes(buscar)) return false;
+    if (fCategoria && j.categoria !== fCategoria) return false;
+    if (fGenero && j.genero !== fGenero) return false;
+    if (fDistrito && j.distrito !== fDistrito) return false;
+    if (fHorario && !(j.horarios || []).includes(fHorario)) return false;
+    if (fClases && j.interesadoClases !== fClases) return false;
+    if (fVerificado === "si" && j.categoriaEstado !== "verificada") return false;
+    if (fVerificado === "no" && j.categoriaEstado === "verificada") return false;
+    return true;
+  });
+}
+
+function renderComunidadJugadores() {
+  const wrap = document.getElementById("com-lista-jugadores");
+  const filtrados = jugadoresComunidadFiltrados().sort((a, b) => (a.nombreCompleto || "").localeCompare(b.nombreCompleto || "", "es"));
+  if (!filtrados.length) { wrap.innerHTML = '<p class="empty-state">Nadie calza con esos filtros.</p>'; return; }
+  wrap.innerHTML = "";
+  filtrados.forEach((j) => wrap.appendChild(construirTarjetaJugador(j)));
+}
+
+function construirTarjetaJugador(j) {
+  const card = document.createElement("div");
+  card.className = "court-card";
+  const telDigits = soloDigitos(j.whatsapp);
+  const estadoBadge = j.categoriaEstado === "verificada"
+    ? '<span class="badge badge-confirmada">Verificado</span>'
+    : '<span class="badge badge-pendiente">A verificar</span>';
+  const bajaBadge = j.activo === false ? ' <span class="badge badge-rechazada">De baja</span>' : "";
+  const interesLabel = { si: "Sí", tal_vez: "Tal vez", no: "No" }[j.interesadoClases] || "—";
+  card.innerHTML = `
+    <h3>${escapeHtml(j.nombreCompleto)} ${estadoBadge}${bajaBadge}</h3>
+    <p class="court-meta">${escapeHtml(j.categoria || "—")} · ${escapeHtml(j.genero || "Sin especificar")} · ${escapeHtml(j.posicion || "Indistinto")}</p>
+    <p class="court-meta">${escapeHtml(j.distrito || "Sin distrito")} · ${(j.horarios || []).map((h) => escapeHtml(h)).join(", ") || "Sin horario"} · Clases: ${interesLabel}</p>
+    <p class="court-meta">${enmascararTelefono(j.whatsapp)}</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+      ${telDigits
+        ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telDigits}">WhatsApp</a>`
+        : '<button class="btn btn-outline btn-small" type="button" disabled style="opacity:.5;">Sin teléfono</button>'}
+      ${j.categoriaEstado !== "verificada" ? '<button class="btn btn-outline btn-small" type="button" data-verificar>Verificar</button>' : ""}
+      <button class="btn btn-outline btn-small" type="button" data-toggle-editar-jugador>Editar</button>
+      ${j.activo === false
+        ? '<button class="btn btn-outline btn-small" type="button" data-reactivar>Reactivar</button>'
+        : '<button class="btn btn-outline btn-small" type="button" data-dar-baja>Dar de baja</button>'}
+      <button class="btn btn-outline btn-small" type="button" data-borrar-jugador>Borrar definitivo</button>
+    </div>
+    <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
+      <div class="field"><label>Nombre</label><input type="text" data-campo="nombreCompleto" value="${escapeHtml(j.nombreCompleto || "")}"></div>
+      <div class="field"><label>Categoría</label><select data-campo="categoria">${CATEGORIAS_COMUNIDAD.map((c) => `<option ${c === j.categoria ? "selected" : ""}>${c}</option>`).join("")}</select></div>
+      <div class="field"><label>Género</label>
+        <select data-campo="genero">
+          <option value="">Sin especificar</option>
+          <option value="Femenino" ${j.genero === "Femenino" ? "selected" : ""}>Femenino</option>
+          <option value="Masculino" ${j.genero === "Masculino" ? "selected" : ""}>Masculino</option>
+        </select>
+      </div>
+      <div class="field"><label>Posición</label><select data-campo="posicion">${POSICIONES_COMUNIDAD.map((p) => `<option ${p === j.posicion ? "selected" : ""}>${p}</option>`).join("")}</select></div>
+      <div class="field"><label>Distrito</label>
+        <select data-campo="distrito">
+          <option value="" ${!j.distrito ? "selected" : ""}>Sin distrito</option>
+          ${DISTRITOS_COMUNIDAD.map((d) => `<option ${d === j.distrito ? "selected" : ""}>${d}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field"><label>Interés en clases</label>
+        <select data-campo="interesadoClases">
+          <option value="si" ${j.interesadoClases === "si" ? "selected" : ""}>Sí</option>
+          <option value="tal_vez" ${j.interesadoClases === "tal_vez" ? "selected" : ""}>Tal vez</option>
+          <option value="no" ${j.interesadoClases === "no" ? "selected" : ""}>No</option>
+        </select>
+      </div>
+      <div class="field field-full">
+        <label style="margin:0 0 6px;">Horarios</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${HORARIOS_COMUNIDAD.map((h) => `<label class="avail-slot${(j.horarios || []).includes(h) ? " checked" : ""}" style="display:inline-flex;"><input type="checkbox" data-campo="horarios" value="${h}" ${(j.horarios || []).includes(h) ? "checked" : ""}> ${h}</label>`).join("")}
+        </div>
+      </div>
+      <div class="field field-full"><label>Notas</label><textarea data-campo="notas" rows="2">${escapeHtml(j.notas || "")}</textarea></div>
+      <button class="btn btn-primary btn-small" type="button" data-guardar-jugador>Guardar</button>
+    </div>
+    <p class="form-msg"></p>`;
+  wireJugadorCard(card, j);
+  return card;
+}
+
+function wireJugadorCard(card, j) {
+  const form = card.querySelector("[data-editar-form]");
+  const msg = card.querySelector(".form-msg");
+  card.querySelector("[data-toggle-editar-jugador]").addEventListener("click", () => { form.hidden = !form.hidden; });
+  form.querySelectorAll('[data-campo="horarios"]').forEach((input) => {
+    input.addEventListener("change", () => input.closest(".avail-slot").classList.toggle("checked", input.checked));
+  });
+  card.querySelector("[data-verificar]")?.addEventListener("click", async () => {
+    try { await updateDoc(doc(db, "jugadores_comunidad", j.id), { categoriaEstado: "verificada" }); }
+    catch (err) { msg.textContent = "No se pudo verificar: " + err.message; msg.className = "form-msg error"; }
+  });
+  card.querySelector("[data-dar-baja]")?.addEventListener("click", async () => {
+    if (!confirm(`¿Dar de baja a ${j.nombreCompleto}? Deja de aparecer en el directorio activo, pero no se borra.`)) return;
+    try { await updateDoc(doc(db, "jugadores_comunidad", j.id), { activo: false }); }
+    catch (err) { msg.textContent = "No se pudo dar de baja: " + err.message; msg.className = "form-msg error"; }
+  });
+  card.querySelector("[data-reactivar]")?.addEventListener("click", async () => {
+    try { await updateDoc(doc(db, "jugadores_comunidad", j.id), { activo: true }); }
+    catch (err) { msg.textContent = "No se pudo reactivar: " + err.message; msg.className = "form-msg error"; }
+  });
+  card.querySelector("[data-borrar-jugador]").addEventListener("click", async () => {
+    if (!confirm(`¿Borrar DEFINITIVAMENTE a ${j.nombreCompleto}? Esto no se puede deshacer — úsalo solo si el jugador pidió que lo borres.`)) return;
+    try { await deleteDoc(doc(db, "jugadores_comunidad", j.id)); }
+    catch (err) { msg.textContent = "No se pudo borrar: " + err.message; msg.className = "form-msg error"; }
+  });
+  card.querySelector("[data-guardar-jugador]").addEventListener("click", async () => {
+    try {
+      await updateDoc(doc(db, "jugadores_comunidad", j.id), {
+        nombreCompleto: form.querySelector('[data-campo="nombreCompleto"]').value.trim(),
+        categoria: form.querySelector('[data-campo="categoria"]').value,
+        genero: form.querySelector('[data-campo="genero"]').value,
+        posicion: form.querySelector('[data-campo="posicion"]').value,
+        distrito: form.querySelector('[data-campo="distrito"]').value,
+        interesadoClases: form.querySelector('[data-campo="interesadoClases"]').value,
+        horarios: Array.from(form.querySelectorAll('[data-campo="horarios"]:checked')).map((i) => i.value),
+        notas: form.querySelector('[data-campo="notas"]').value.trim()
+      });
+      msg.textContent = "Guardado.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo guardar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
+}
+
+document.getElementById("com-buscar").addEventListener("input", renderComunidadJugadores);
+["com-filtro-categoria", "com-filtro-genero", "com-filtro-distrito", "com-filtro-horario", "com-filtro-clases", "com-filtro-verificado", "com-filtro-estado"]
+  .forEach((id) => document.getElementById(id).addEventListener("change", () => { renderComunidadJugadores(); renderComunidadContadores(); }));
+
+document.getElementById("btn-exportar-jugadores").addEventListener("click", () => {
+  const filas = comunidadCache.map((j) => ({
+    nombre: j.nombreCompleto,
+    whatsapp: j.whatsapp,
+    categoria: j.categoria,
+    categoriaEstado: j.categoriaEstado,
+    genero: j.genero || "",
+    posicion: j.posicion || "",
+    distrito: j.distrito || "",
+    horarios: (j.horarios || []).join(" / "),
+    interesadoClases: j.interesadoClases || "",
+    activo: j.activo === false ? "no" : "si"
+  }));
+  descargarCSV("jugadores_comunidad.csv", filas);
+});
+
+// ---- Falta el cuarto ----
+
+let fcUltimoMensajeAuto = "";
+
+function actualizarMensajeFaltaElCuarto() {
+  const categoria = document.getElementById("fc-categoria").value;
+  const fecha = document.getElementById("fc-fecha").value;
+  const hora = document.getElementById("fc-hora").value;
+  const lugar = document.getElementById("fc-lugar").value.trim();
+  if (categoria && fecha && hora && lugar) {
+    const dia = diaDeSemana(fecha).toLowerCase();
+    const mensaje = `¡Hola! Nos falta el cuarto para un partido de ${categoria} el ${dia} ${formatearFecha(fecha)} a las ${hora} en ${lugar}. ¿Te prendés?`;
+    const textarea = document.getElementById("fc-mensaje");
+    if (textarea.value === "" || textarea.value === fcUltimoMensajeAuto) {
+      textarea.value = mensaje;
+      fcUltimoMensajeAuto = mensaje;
+    }
+  }
+  renderFaltaElCuartoCandidatos();
+}
+
+document.getElementById("fc-pista").addEventListener("change", (e) => {
+  const opt = e.target.selectedOptions[0];
+  if (opt && opt.dataset.nombre) document.getElementById("fc-lugar").value = opt.dataset.nombre;
+  actualizarMensajeFaltaElCuarto();
+});
+["fc-categoria", "fc-fecha", "fc-hora", "fc-lugar"].forEach((id) =>
+  document.getElementById(id).addEventListener("input", actualizarMensajeFaltaElCuarto)
+);
+["fc-margen", "fc-distrito"].forEach((id) =>
+  document.getElementById(id).addEventListener("change", renderFaltaElCuartoCandidatos)
+);
+
+function renderFaltaElCuartoCandidatos() {
+  const wrap = document.getElementById("fc-candidatos");
+  const categoria = document.getElementById("fc-categoria").value;
+  const margen = Number(document.getElementById("fc-margen").value) || 0;
+  const hora = document.getElementById("fc-hora").value;
+  const distrito = document.getElementById("fc-distrito").value;
+  if (!categoria || !hora) { wrap.innerHTML = '<p class="empty-state">Elige categoría, fecha y hora para ver candidatos.</p>'; return; }
+  const bucket = horaABucketComunidad(hora);
+  const candidatos = comunidadCache
+    .filter((j) => j.activo !== false
+      && categoriaEnRango(j.categoria, categoria, margen)
+      && (j.horarios || []).includes(bucket)
+      && (!distrito || j.distrito === distrito))
+    .sort((a, b) => {
+      const va = a.categoriaEstado === "verificada" ? 0 : 1;
+      const vb = b.categoriaEstado === "verificada" ? 0 : 1;
+      if (va !== vb) return va - vb;
+      return (a.nombreCompleto || "").localeCompare(b.nombreCompleto || "", "es");
+    });
+  if (!candidatos.length) { wrap.innerHTML = '<p class="empty-state">Nadie calza con esos filtros todavía.</p>'; return; }
+
+  wrap.innerHTML = "";
+  candidatos.forEach((j) => {
+    const telDigits = soloDigitos(j.whatsapp);
+    const yaConvocado = convocatoriasCache.some((c) => (c.jugadorIds || []).includes(j.id));
+    const fila = document.createElement("div");
+    fila.style.cssText = "display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); flex-wrap:wrap;";
+    fila.innerHTML = `
+      <label style="display:flex; align-items:center; gap:6px; flex:1 1 220px;">
+        <input type="checkbox" data-marcar-candidato ${comunidadFilaMarcadas.has(j.id) ? "checked" : ""}>
+        <span><strong>${escapeHtml(j.nombreCompleto)}</strong> · ${escapeHtml(j.categoria)} ${j.categoriaEstado === "verificada" ? "✓" : "(a verificar)"}</span>
+      </label>
+      ${yaConvocado ? '<span class="badge badge-pendiente">Ya convocado antes</span>' : ""}
+      ${telDigits ? '<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" data-abrir-wa>WhatsApp</a>' : '<span class="badge badge-rechazada">Sin teléfono</span>'}`;
+    const checkbox = fila.querySelector("[data-marcar-candidato]");
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) comunidadFilaMarcadas.add(j.id); else comunidadFilaMarcadas.delete(j.id);
+    });
+    const waBtn = fila.querySelector("[data-abrir-wa]");
+    if (waBtn) {
+      waBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const mensaje = document.getElementById("fc-mensaje").value;
+        comunidadFilaMarcadas.add(j.id);
+        checkbox.checked = true;
+        window.open(`https://wa.me/${telDigits}?text=${encodeURIComponent(mensaje)}`, "_blank", "noopener");
+      });
+    }
+    wrap.appendChild(fila);
+  });
+}
+
+document.getElementById("btn-copiar-mensaje-cuarto").addEventListener("click", async () => {
+  const msg = document.getElementById("fc-copiar-msg");
+  try {
+    await navigator.clipboard.writeText(document.getElementById("fc-mensaje").value);
+    msg.textContent = "Mensaje copiado.";
+    msg.className = "form-msg ok";
+  } catch {
+    msg.textContent = "No se pudo copiar — selecciona y copia el texto a mano.";
+    msg.className = "form-msg error";
+  }
+});
+
+document.getElementById("btn-guardar-convocatoria").addEventListener("click", async () => {
+  const msg = document.getElementById("fc-convocatoria-msg");
+  const jugadorIds = Array.from(comunidadFilaMarcadas);
+  if (!jugadorIds.length) { msg.textContent = "Marca al menos un jugador."; msg.className = "form-msg error"; return; }
+  try {
+    await addDoc(collection(db, "convocatorias"), {
+      categoria: document.getElementById("fc-categoria").value,
+      margen: Number(document.getElementById("fc-margen").value) || 0,
+      fecha: document.getElementById("fc-fecha").value,
+      hora: document.getElementById("fc-hora").value,
+      lugar: document.getElementById("fc-lugar").value.trim(),
+      mensaje: document.getElementById("fc-mensaje").value,
+      jugadorIds,
+      creadoEn: serverTimestamp()
+    });
+    comunidadFilaMarcadas.clear();
+    msg.textContent = `Convocatoria guardada con ${jugadorIds.length} jugador(es).`;
+    msg.className = "form-msg ok";
+    renderFaltaElCuartoCandidatos();
+  } catch (err) {
+    msg.textContent = "No se pudo guardar: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
+
+function renderConvocatoriasHistorial() {
+  const wrap = document.getElementById("fc-historial");
+  if (!convocatoriasCache.length) { wrap.innerHTML = '<p class="empty-state">Todavía no armaste ninguna.</p>'; return; }
+  wrap.innerHTML = `<table class="detalle-table"><thead><tr><th>Fecha pedida</th><th>Categoría</th><th>Lugar</th><th>Jugadores</th></tr></thead><tbody>${
+    convocatoriasCache.map((c) => `<tr><td>${c.fecha ? formatearFecha(c.fecha) : "—"} ${escapeHtml(c.hora || "")}</td><td>${escapeHtml(c.categoria || "")}</td><td>${escapeHtml(c.lugar || "")}</td><td>${(c.jugadorIds || []).length}</td></tr>`).join("")
+  }</tbody></table>`;
+}
+
+// ---- Leads (captación) ----
+
+function renderComunidadLeads() {
+  const wrap = document.getElementById("com-leads");
+  const leads = comunidadCache
+    .filter((j) => j.activo !== false && (j.interesadoClases === "si" || j.interesadoClases === "tal_vez"))
+    .sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0));
+  if (!leads.length) { wrap.innerHTML = '<p class="empty-state">Todavía no hay leads.</p>'; return; }
+  wrap.innerHTML = "";
+  leads.forEach((j) => {
+    const telDigits = soloDigitos(j.whatsapp);
+    const texto = `Hola ${j.nombreCompleto}, vi que te interesa tomar clases de pádel. Tenemos la jornada gratuita "¡Conociendo el Pádel!" para que la pruebes sin compromiso — ¿coordinamos?`;
+    const card = document.createElement("div");
+    card.className = "court-card";
+    card.innerHTML = `
+      <h3>${escapeHtml(j.nombreCompleto)} <span class="badge ${j.interesadoClases === "si" ? "badge-confirmada" : "badge-pendiente"}">${j.interesadoClases === "si" ? "Interesado" : "Tal vez"}</span></h3>
+      <p class="court-meta">${escapeHtml(j.categoria || "—")} · ${escapeHtml(j.distrito || "Sin distrito")}</p>
+      ${telDigits
+        ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:8px;" href="https://wa.me/${telDigits}?text=${encodeURIComponent(texto)}">Invitar a la jornada gratis</a>`
+        : '<p class="court-meta">Sin teléfono.</p>'}`;
+    wrap.appendChild(card);
+  });
+}
+
+// ---- Importar desde WhatsApp ----
+
+function parsearChatWhatsApp(texto) {
+  const lineas = texto.split(/\r?\n/);
+  const prefijo = /^\[?(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:[ap]\.?\s*m\.?)?)\]?\s*-?\s*/i;
+  const porRemitente = new Map();
+
+  lineas.forEach((linea) => {
+    const m = linea.match(prefijo);
+    if (!m) return; // continuación de un mensaje multilínea o basura -- se ignora
+    const resto = linea.slice(m[0].length);
+    const corte = resto.indexOf(": ");
+    if (corte === -1) return; // mensaje de sistema sin remitente -- se ignora
+    const remitente = resto.slice(0, corte).trim();
+    const mensaje = resto.slice(corte + 2).trim();
+    if (!remitente) return;
+    if (!porRemitente.has(remitente)) porRemitente.set(remitente, []);
+    porRemitente.get(remitente).push(mensaje);
+  });
+
+  const candidatos = [];
+  porRemitente.forEach((mensajes, remitente) => {
+    const blob = `${remitente} ${mensajes.slice(0, 20).join(" ")}`;
+    const telefono = detectarTelefonoPeruEnTexto(remitente) || detectarTelefonoPeruEnTexto(blob);
+    candidatos.push({
+      nombreCompleto: remitente,
+      telefono: telefono || "",
+      categoria: detectarCategoriaEnTexto(blob),
+      genero: detectarGeneroEnTexto(blob),
+      muestra: mensajes[0] ? mensajes[0].slice(0, 80) : ""
+    });
+  });
+  return candidatos;
+}
+
+document.getElementById("com-import-file").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  const msg = document.getElementById("com-import-msg");
+  if (!file) return;
+  msg.textContent = "Leyendo archivo...";
+  msg.className = "form-msg";
+  try {
+    const texto = await file.text();
+    comunidadImportFilas = parsearChatWhatsApp(texto).map((f, i) => ({ ...f, id: i, incluir: !!normalizarTelefonoPeru(f.telefono) }));
+    if (!comunidadImportFilas.length) {
+      msg.textContent = "No se reconoció ningún remitente en ese archivo — ¿es un .txt exportado de WhatsApp?";
+      msg.className = "form-msg error";
+      document.getElementById("com-import-tabla").innerHTML = "";
+      document.getElementById("btn-guardar-import").hidden = true;
+      return;
+    }
+    msg.textContent = `${comunidadImportFilas.length} remitente(s) encontrados. Revisa y corrige antes de guardar.`;
+    msg.className = "form-msg ok";
+    renderImportTabla();
+  } catch (err) {
+    msg.textContent = "No se pudo leer el archivo: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
+
+function renderImportTabla() {
+  const wrap = document.getElementById("com-import-tabla");
+  document.getElementById("btn-guardar-import").hidden = comunidadImportFilas.length === 0;
+  if (!comunidadImportFilas.length) { wrap.innerHTML = ""; return; }
+  wrap.innerHTML = `<div style="overflow-x:auto;"><table class="detalle-table"><thead><tr>
+    <th></th><th>Nombre</th><th>Teléfono</th><th>Categoría</th><th>Género</th><th>Mensaje de muestra</th>
+  </tr></thead><tbody>${comunidadImportFilas.map((f) => `
+    <tr data-fila-import="${f.id}">
+      <td><input type="checkbox" data-campo="incluir" ${f.incluir ? "checked" : ""}></td>
+      <td><input type="text" data-campo="nombreCompleto" value="${escapeHtml(f.nombreCompleto)}" style="width:140px;"></td>
+      <td><input type="text" data-campo="telefono" value="${escapeHtml(f.telefono)}" placeholder="999 111 222" style="width:120px;"></td>
+      <td><select data-campo="categoria"><option value="">—</option>${CATEGORIAS_COMUNIDAD.map((c) => `<option value="${c}" ${c === f.categoria ? "selected" : ""}>${c}</option>`).join("")}</select></td>
+      <td><select data-campo="genero"><option value="">—</option><option value="Femenino" ${f.genero === "Femenino" ? "selected" : ""}>Femenino</option><option value="Masculino" ${f.genero === "Masculino" ? "selected" : ""}>Masculino</option></select></td>
+      <td class="court-meta" style="max-width:220px;">${escapeHtml(f.muestra)}</td>
+    </tr>`).join("")}</tbody></table></div>`;
+
+  comunidadImportFilas.forEach((f) => {
+    const fila = wrap.querySelector(`[data-fila-import="${f.id}"]`);
+    fila.querySelectorAll("[data-campo]").forEach((campo) => {
+      const evento = campo.tagName === "SELECT" || campo.type === "checkbox" ? "change" : "input";
+      campo.addEventListener(evento, () => {
+        f[campo.dataset.campo] = campo.type === "checkbox" ? campo.checked : campo.value;
+      });
+    });
+  });
+}
+
+document.getElementById("btn-guardar-import").addEventListener("click", async () => {
+  const msg = document.getElementById("com-import-guardar-msg");
+  const seleccionadas = comunidadImportFilas.filter((f) => f.incluir);
+  if (!seleccionadas.length) { msg.textContent = "Marca al menos una fila."; msg.className = "form-msg error"; return; }
+
+  let guardados = 0;
+  const errores = [];
+  for (const f of seleccionadas) {
+    const whatsapp = normalizarTelefonoPeru(f.telefono);
+    if (!whatsapp) { errores.push(`${f.nombreCompleto || "(sin nombre)"}: teléfono inválido`); continue; }
+    if (!f.nombreCompleto || !f.nombreCompleto.trim()) { errores.push(`${whatsapp}: falta el nombre`); continue; }
+    try {
+      await setDoc(doc(db, "jugadores_comunidad", whatsapp), {
+        nombreCompleto: f.nombreCompleto.trim(), whatsapp,
+        categoria: f.categoria || "No sé / empezando", categoriaEstado: "a_verificar",
+        genero: f.genero || "", posicion: "Indistinto", distrito: "",
+        horarios: [], interesadoClases: "tal_vez",
+        consentimiento: { aceptado: true, fecha: serverTimestamp() },
+        origen: "import_whatsapp", activo: true,
+        notas: `Importado de WhatsApp. Mensaje de muestra: "${f.muestra}"`,
+        creadoEn: serverTimestamp(), actualizadoEn: serverTimestamp()
+      }, { merge: true });
+      guardados++;
+    } catch (err) {
+      errores.push(`${f.nombreCompleto}: ${err.message}`);
+    }
+  }
+
+  comunidadImportFilas = [];
+  document.getElementById("com-import-tabla").innerHTML = "";
+  document.getElementById("btn-guardar-import").hidden = true;
+  document.getElementById("com-import-file").value = "";
+  msg.textContent = `${guardados} jugador(es) guardado(s).${errores.length ? " Con errores: " + errores.join("; ") : ""}`;
+  msg.className = errores.length ? "form-msg error" : "form-msg ok";
 });

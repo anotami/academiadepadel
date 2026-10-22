@@ -16,7 +16,7 @@ import {
   doc, getDoc, updateDoc,
   collection, getDocs, addDoc, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { construirGrillaDisponibilidad, prioridadNombreSede } from "./portal-common.js?v=20";
+import { construirGrillaDisponibilidad, prioridadNombreSede } from "./portal-common.js?v=21";
 
 const WHATSAPP_NUMBER = "51957085531";
 const alumnoId = new URLSearchParams(location.search).get("alumno");
