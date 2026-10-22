@@ -614,8 +614,18 @@ function construirTarjetaRegistroGrupal(grupo) {
 }
 
 // ---- Historial de clases registradas (ver + corregir monto/cancha) ----
+const NOMBRES_MES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+function nombreMes(aaaaMm) {
+  const [anio, mes] = aaaaMm.split("-");
+  return `${NOMBRES_MES[Number(mes) - 1]} ${anio}`;
+}
+
+let historialReservasCache = [];
+let historialMesSeleccionado = "todos";
+
 function cargarHistorialClases(uid) {
   const wrap = document.getElementById("lista-historial");
+  const selectMes = document.getElementById("historial-mes");
   const q = query(
     collection(db, "reservas"),
     where("profesorId", "==", uid),
@@ -623,28 +633,55 @@ function cargarHistorialClases(uid) {
     limit(150)
   );
   onSnapshot(q, (snap) => {
-    const reservas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    wrap.innerHTML = "";
-    if (reservas.length === 0) {
-      wrap.innerHTML = '<p class="empty-state">Aún no registraste ninguna clase.</p>';
-      historialSesionesCache = [];
-      return;
-    }
-    const grupos = agruparPorSesion(reservas);
-    // Lista de sesiones existentes (una por pista+fecha+hora), para el
-    // selector "Mover a otra clase" de cada reserva -- así se puede unir
-    // una clase suelta a un grupo que ya existe sin reescribir nada a mano.
-    historialSesionesCache = grupos.map((g) => ({
-      clave: claveSesion(g[0]),
-      pistaId: g[0].pistaId, pistaNombre: g[0].pistaNombre,
-      fecha: g[0].fecha, hora: g[0].hora,
-      tipoClase: g[0].tipoClase, modalidad: g[0].modalidad,
-      n: g.length
-    }));
-    grupos.forEach((grupo) => wrap.appendChild(
-      grupo.length > 1 ? construirTarjetaHistorialGrupal(grupo) : construirTarjetaHistorial(grupo[0])
-    ));
+    historialReservasCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    // Filtro por mes -- limit(150) ya acota la consulta, pero sin filtro el
+    // scroll de esta lista crece sin parar a medida que pasan los meses.
+    const meses = Array.from(new Set(historialReservasCache.map((r) => r.fecha.slice(0, 7)))).sort().reverse();
+    const valorPrevio = selectMes.value || historialMesSeleccionado;
+    selectMes.innerHTML = '<option value="todos">Todos los meses</option>' +
+      meses.map((m) => `<option value="${m}">${nombreMes(m)}</option>`).join("");
+    selectMes.value = (valorPrevio === "todos" || meses.includes(valorPrevio)) ? valorPrevio : "todos";
+    historialMesSeleccionado = selectMes.value;
+
+    renderHistorial();
   }, (err) => mostrarErrorConsulta(wrap, err));
+}
+
+document.getElementById("historial-mes").addEventListener("change", (e) => {
+  historialMesSeleccionado = e.target.value;
+  renderHistorial();
+});
+
+function renderHistorial() {
+  const wrap = document.getElementById("lista-historial");
+  const reservas = historialMesSeleccionado === "todos"
+    ? historialReservasCache
+    : historialReservasCache.filter((r) => r.fecha.slice(0, 7) === historialMesSeleccionado);
+
+  // Lista de TODAS las sesiones cargadas (sin el filtro de mes), para el
+  // selector "Mover a otra clase" de cada reserva -- tiene que poder unir
+  // una clase a una sesión de otro mes, no solo del que se está viendo.
+  historialSesionesCache = agruparPorSesion(historialReservasCache).map((g) => ({
+    clave: claveSesion(g[0]),
+    pistaId: g[0].pistaId, pistaNombre: g[0].pistaNombre,
+    fecha: g[0].fecha, hora: g[0].hora,
+    tipoClase: g[0].tipoClase, modalidad: g[0].modalidad,
+    n: g.length
+  }));
+
+  wrap.innerHTML = "";
+  if (historialReservasCache.length === 0) {
+    wrap.innerHTML = '<p class="empty-state">Aún no registraste ninguna clase.</p>';
+    return;
+  }
+  if (reservas.length === 0) {
+    wrap.innerHTML = '<p class="empty-state">No hay clases registradas ese mes.</p>';
+    return;
+  }
+  agruparPorSesion(reservas).forEach((grupo) => wrap.appendChild(
+    grupo.length > 1 ? construirTarjetaHistorialGrupal(grupo) : construirTarjetaHistorial(grupo[0])
+  ));
 }
 
 let historialSesionesCache = [];
@@ -1252,6 +1289,7 @@ async function cargarAlumnos() {
     wrap.appendChild(card);
   });
   renderCrucePersonas();
+  renderEstadisticas();
 }
 
 // ---- Paquetes de clases ----
@@ -1394,12 +1432,15 @@ function linkRecordatorio(r) {
 }
 
 // ---- Resumen / métricas ----
+let metricasReservasCache = null;
+
 async function cargarMetricas(uid) {
   const wrap = document.getElementById("metricas");
   const wrapRent = document.getElementById("rentabilidad");
   try {
     const snap = await getDocs(query(collection(db, "reservas"), where("profesorId", "==", uid)));
     const reservas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    metricasReservasCache = reservas;
 
     const confirmadas = reservas.filter((r) => r.estado === "confirmada").length;
     const rechazadas = reservas.filter((r) => r.estado === "rechazada").length;
@@ -1419,19 +1460,65 @@ async function cargarMetricas(uid) {
     const alumnosActivos = new Set(reservas.filter((r) => r.estado === "confirmada").map((r) => r.alumnoId)).size;
 
     wrap.innerHTML = `
-      <div class="card"><div class="card-icon">✅</div><h3>${confirmadas}</h3><p>Clases confirmadas</p></div>
-      <div class="card"><div class="card-icon">🚫</div><h3>${rechazadas}</h3><p>Rechazadas</p></div>
-      <div class="card"><div class="card-icon">⏳</div><h3>${pendientes}</h3><p>Pendientes ahora</p></div>
-      <div class="card"><div class="card-icon">📍</div><h3>${pistaTop ? pistaTop[0] : "—"}</h3><p>Pista más usada${pistaTop ? ` (${pistaTop[1]})` : ""}</p></div>
-      <div class="card"><div class="card-icon">⭐</div><h3>${npsPromedio}</h3><p>NPS promedio (${conNps.length} respuestas)</p></div>
-      <div class="card"><div class="card-icon">👥</div><h3>${alumnosActivos}</h3><p>Alumnos con clase confirmada</p></div>
+      <div class="card clickable" data-detalle-metrica="confirmadas"><div class="card-icon">✅</div><h3>${confirmadas}</h3><p>Clases confirmadas</p></div>
+      <div class="card clickable" data-detalle-metrica="rechazadas"><div class="card-icon">🚫</div><h3>${rechazadas}</h3><p>Rechazadas</p></div>
+      <div class="card clickable" data-detalle-metrica="pendientes"><div class="card-icon">⏳</div><h3>${pendientes}</h3><p>Pendientes ahora</p></div>
+      <div class="card clickable" data-detalle-metrica="pistas"><div class="card-icon">📍</div><h3>${pistaTop ? pistaTop[0] : "—"}</h3><p>Pista más usada${pistaTop ? ` (${pistaTop[1]})` : ""}</p></div>
+      <div class="card clickable" data-detalle-metrica="nps"><div class="card-icon">⭐</div><h3>${npsPromedio}</h3><p>NPS promedio (${conNps.length} respuestas)</p></div>
+      <div class="card clickable" data-detalle-metrica="alumnos"><div class="card-icon">👥</div><h3>${alumnosActivos}</h3><p>Alumnos con clase confirmada</p></div>
     `;
+    wrap.querySelectorAll("[data-detalle-metrica]").forEach((card) => {
+      card.addEventListener("click", () => mostrarDetalleMetrica(card.dataset.detalleMetrica, card));
+    });
 
     await calcularRentabilidad(wrapRent, reservas);
+    renderEstadisticas();
   } catch (err) {
     mostrarErrorConsulta(wrap, err);
   }
 }
+
+// ---- Detalle al tocar una tarjeta de Resumen ----
+function mostrarDetalleMetrica(tipo, cardEl) {
+  const wrap = document.getElementById("metricas-detalle");
+  const yaAbierto = !wrap.hidden && wrap.dataset.tipo === tipo;
+  document.querySelectorAll('#metricas [data-detalle-metrica]').forEach((c) => c.classList.remove("activa"));
+  if (yaAbierto) { wrap.hidden = true; wrap.dataset.tipo = ""; return; }
+  wrap.dataset.tipo = tipo;
+  cardEl.classList.add("activa");
+  const reservas = metricasReservasCache || [];
+  const filaReserva = (r) => `<tr><td>${formatearFecha(r.fecha)} · ${r.hora}</td><td>${escapeHtml(r.alumnoNombre || "")}</td><td>${escapeHtml(r.pistaNombre || "")}</td></tr>`;
+
+  if (tipo === "confirmadas" || tipo === "rechazadas" || tipo === "pendientes") {
+    const estado = { confirmadas: "confirmada", rechazadas: "rechazada", pendientes: "pendiente" }[tipo];
+    const filtradas = reservas.filter((r) => r.estado === estado).sort((a, b) => b.fecha.localeCompare(a.fecha));
+    wrap.innerHTML = filtradas.length
+      ? `<table class="detalle-table"><thead><tr><th>Fecha</th><th>Alumno</th><th>Pista</th></tr></thead><tbody>${filtradas.slice(0, 50).map(filaReserva).join("")}</tbody></table>${filtradas.length > 50 ? `<p class="field-hint">Mostrando las 50 más recientes de ${filtradas.length}.</p>` : ""}`
+      : '<p class="empty-state">Sin registros.</p>';
+  } else if (tipo === "pistas") {
+    const conteo = {};
+    reservas.filter((r) => r.estado === "confirmada").forEach((r) => { conteo[r.pistaNombre] = (conteo[r.pistaNombre] || 0) + 1; });
+    const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
+    wrap.innerHTML = filas.length
+      ? `<table class="detalle-table"><thead><tr><th>Pista</th><th>Clases confirmadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
+      : '<p class="empty-state">Sin registros.</p>';
+  } else if (tipo === "nps") {
+    const conNps = reservas.filter((r) => typeof r.nps === "number").sort((a, b) => b.fecha.localeCompare(a.fecha));
+    wrap.innerHTML = conNps.length
+      ? `<table class="detalle-table"><thead><tr><th>Fecha</th><th>Alumno</th><th>NPS</th></tr></thead><tbody>${conNps.map((r) => `<tr><td>${formatearFecha(r.fecha)}</td><td>${escapeHtml(r.alumnoNombre || "")}</td><td>${r.nps}</td></tr>`).join("")}</tbody></table>`
+      : '<p class="empty-state">Todavía no hay respuestas de NPS.</p>';
+  } else if (tipo === "alumnos") {
+    const conteo = {};
+    reservas.filter((r) => r.estado === "confirmada").forEach((r) => { conteo[r.alumnoNombre] = (conteo[r.alumnoNombre] || 0) + 1; });
+    const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
+    wrap.innerHTML = filas.length
+      ? `<table class="detalle-table"><thead><tr><th>Alumno</th><th>Clases confirmadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
+      : '<p class="empty-state">Sin registros.</p>';
+  }
+  wrap.hidden = false;
+}
+
+let rentabilidadDetalleCache = { ingreso: [], costo: [] };
 
 async function calcularRentabilidad(wrap, reservas) {
   const paquetesSnap = await getDocs(collection(db, "paquetes"));
@@ -1443,6 +1530,7 @@ async function calcularRentabilidad(wrap, reservas) {
 
   if (paquetesPagados.length === 0 && reservasSueltas.length === 0) {
     wrap.innerHTML = '<p class="empty-state">Todavía no hay paquetes pagados ni clases sueltas con monto cargado para calcular rentabilidad.</p>';
+    rentabilidadDetalleCache = { ingreso: [], costo: [] };
     return;
   }
 
@@ -1453,6 +1541,8 @@ async function calcularRentabilidad(wrap, reservas) {
 
   let ingresoTotal = 0;
   let costoTotal = 0;
+  const detalleIngreso = [];
+  const detalleCosto = [];
 
   paquetesPagados.forEach((paquete) => {
     const reservasDelPaquete = reservas.filter((r) => r.paqueteId && r.paqueteId === paquete.id);
@@ -1462,9 +1552,12 @@ async function calcularRentabilidad(wrap, reservas) {
     const costoCanchaHora = pistasUsadas.length
       ? pistasUsadas.reduce((sum, p) => sum + (p.costoHoraSinLuz || 0), 0) / pistasUsadas.length
       : costoPromedioPistas;
+    const costoPaquete = paquete.clasesTotales * (costoCanchaHora + costoProfesorHora);
 
     ingresoTotal += paquete.monto || 0;
-    costoTotal += paquete.clasesTotales * (costoCanchaHora + costoProfesorHora);
+    costoTotal += costoPaquete;
+    detalleIngreso.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")}`, monto: paquete.monto || 0 });
+    detalleCosto.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")} (${paquete.clasesTotales} clases)`, monto: costoPaquete });
   });
 
   // Una clase grupal son N reservas (una por alumno) con el mismo
@@ -1486,21 +1579,112 @@ async function calcularRentabilidad(wrap, reservas) {
         : (pista ? pista.costoHoraSinLuz || 0 : costoPromedioPistas);
       ingresoTotal += r.montoCobrado;
       costoTotal += costoCancha;
+      detalleIngreso.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado });
+      detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha });
     });
     costoTotal += costoProfesorHora;
+    const primera = reservasDeLaSesion[0];
+    detalleCosto.push({ concepto: `${formatearFecha(primera.fecha)} ${primera.hora} — tu hora de clase`, monto: costoProfesorHora });
   });
 
   const margenTotal = ingresoTotal - costoTotal;
   const margenPct = ingresoTotal ? Math.round((margenTotal / ingresoTotal) * 100) : 0;
   const sinDatos = costoPromedioPistas === 0 && costoProfesorHora === 0 && !reservasSueltas.some((r) => typeof r.costoCanchaPagado === "number");
 
+  rentabilidadDetalleCache = { ingreso: detalleIngreso, costo: detalleCosto, ingresoTotal, costoTotal, margenTotal, margenPct };
+
   wrap.innerHTML = `
-    <div class="card"><div class="card-icon">💵</div><h3>S/ ${ingresoTotal.toFixed(0)}</h3><p>Ingreso (paquetes pagados + clases sueltas)</p></div>
-    <div class="card"><div class="card-icon">🧾</div><h3>S/ ${costoTotal.toFixed(0)}</h3><p>Costo estimado (cancha + tu hora)</p></div>
-    <div class="card"><div class="card-icon">${margenTotal >= 0 ? "📈" : "📉"}</div><h3>S/ ${margenTotal.toFixed(0)}</h3><p>Margen neto</p></div>
-    <div class="card"><div class="card-icon">%</div><h3>${margenPct}%</h3><p>Margen sobre ingreso</p></div>
+    <div class="card clickable" data-detalle-rent="ingreso"><div class="card-icon">💵</div><h3>S/ ${ingresoTotal.toFixed(0)}</h3><p>Ingreso (paquetes pagados + clases sueltas)</p></div>
+    <div class="card clickable" data-detalle-rent="costo"><div class="card-icon">🧾</div><h3>S/ ${costoTotal.toFixed(0)}</h3><p>Costo estimado (cancha + tu hora)</p></div>
+    <div class="card clickable" data-detalle-rent="margen"><div class="card-icon">${margenTotal >= 0 ? "📈" : "📉"}</div><h3>S/ ${margenTotal.toFixed(0)}</h3><p>Margen neto</p></div>
+    <div class="card clickable" data-detalle-rent="margen"><div class="card-icon">%</div><h3>${margenPct}%</h3><p>Margen sobre ingreso</p></div>
     ${sinDatos ? '<p class="empty-state" style="grid-column:1/-1;">⚠ No cargaste costo de cancha ni tu costo por hora todavía, así que el costo estimado es S/0 y no refleja la realidad. Cárgalos en pistas.html y en "Mis datos" (o el costo de cancha específico al registrar cada clase suelta).</p>' : ""}
   `;
+  wrap.querySelectorAll("[data-detalle-rent]").forEach((card) => {
+    card.addEventListener("click", () => mostrarDetalleRentabilidad(card.dataset.detalleRent, card));
+  });
+}
+
+// ---- Detalle al tocar una tarjeta de Rentabilidad ----
+function mostrarDetalleRentabilidad(tipo, cardEl) {
+  const wrap = document.getElementById("rentabilidad-detalle");
+  const yaAbierto = !wrap.hidden && wrap.dataset.tipo === tipo;
+  document.querySelectorAll('#rentabilidad [data-detalle-rent]').forEach((c) => c.classList.remove("activa"));
+  if (yaAbierto) { wrap.hidden = true; wrap.dataset.tipo = ""; return; }
+  wrap.dataset.tipo = tipo;
+  document.querySelectorAll(`#rentabilidad [data-detalle-rent="${tipo}"]`).forEach((c) => c.classList.add("activa"));
+  const { ingreso, costo, ingresoTotal, costoTotal, margenTotal, margenPct } = rentabilidadDetalleCache;
+  const tabla = (filas) => filas.length
+    ? `<table class="detalle-table"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>${filas.map((f) => `<tr><td>${f.concepto}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("")}</tbody></table>`
+    : '<p class="empty-state">Sin datos.</p>';
+
+  if (tipo === "ingreso") wrap.innerHTML = tabla(ingreso);
+  else if (tipo === "costo") wrap.innerHTML = tabla(costo);
+  else if (tipo === "margen") {
+    wrap.innerHTML = `<p>Ingreso <strong>S/ ${(ingresoTotal || 0).toFixed(0)}</strong> − Costo <strong>S/ ${(costoTotal || 0).toFixed(0)}</strong> = Margen <strong>S/ ${(margenTotal || 0).toFixed(0)}</strong> (${margenPct || 0}% sobre el ingreso).</p>`;
+  }
+  wrap.hidden = false;
+}
+
+// ---- Estadísticas: alumnos, interesados, horarios y tipos de clase más demandados ----
+let estadisticasDetalleCache = {};
+
+function renderEstadisticas() {
+  const wrap = document.getElementById("estadisticas");
+  if (!wrap || !metricasReservasCache) return;
+
+  const confirmadas = metricasReservasCache.filter((r) => r.estado === "confirmada");
+
+  const porNivel = {};
+  alumnosCache.forEach((a) => { porNivel[a.nivel || "Sin nivel"] = (porNivel[a.nivel || "Sin nivel"] || 0) + 1; });
+
+  const interesadosActivos = interesadosGrupoCache.filter((i) => i.estado !== "descartado");
+  const porEstadoInteresado = {};
+  interesadosGrupoCache.forEach((i) => { porEstadoInteresado[i.estado] = (porEstadoInteresado[i.estado] || 0) + 1; });
+
+  const porHorario = {};
+  confirmadas.forEach((r) => {
+    const clave = `${diaDeSemana(r.fecha)} · ${horaAFranja(r.hora)}`;
+    porHorario[clave] = (porHorario[clave] || 0) + 1;
+  });
+  const horarioTop = Object.entries(porHorario).sort((a, b) => b[1] - a[1])[0];
+
+  const porTipo = {};
+  confirmadas.forEach((r) => { porTipo[r.tipoClase || "Sin tipo"] = (porTipo[r.tipoClase || "Sin tipo"] || 0) + 1; });
+  const tipoTop = Object.entries(porTipo).sort((a, b) => b[1] - a[1])[0];
+
+  estadisticasDetalleCache = { porNivel, porEstadoInteresado, porHorario, porTipo };
+
+  wrap.innerHTML = `
+    <div class="card clickable" data-detalle-estad="alumnos"><div class="card-icon">🎓</div><h3>${alumnosCache.length}</h3><p>Alumnos registrados</p></div>
+    <div class="card clickable" data-detalle-estad="interesados"><div class="card-icon">🙋</div><h3>${interesadosActivos.length}</h3><p>Interesados activos (${interesadosGrupoCache.length} en total)</p></div>
+    <div class="card clickable" data-detalle-estad="horario"><div class="card-icon">🕒</div><h3>${horarioTop ? horarioTop[0] : "—"}</h3><p>Horario más demandado${horarioTop ? ` (${horarioTop[1]})` : ""}</p></div>
+    <div class="card clickable" data-detalle-estad="tipo"><div class="card-icon">🎾</div><h3>${tipoTop ? tipoTop[0] : "—"}</h3><p>Tipo de clase más tomado${tipoTop ? ` (${tipoTop[1]})` : ""}</p></div>
+  `;
+  wrap.querySelectorAll("[data-detalle-estad]").forEach((card) => {
+    card.addEventListener("click", () => mostrarDetalleEstadistica(card.dataset.detalleEstad, card));
+  });
+}
+
+function mostrarDetalleEstadistica(tipo, cardEl) {
+  const wrap = document.getElementById("estadisticas-detalle");
+  const yaAbierto = !wrap.hidden && wrap.dataset.tipo === tipo;
+  document.querySelectorAll('#estadisticas [data-detalle-estad]').forEach((c) => c.classList.remove("activa"));
+  if (yaAbierto) { wrap.hidden = true; wrap.dataset.tipo = ""; return; }
+  wrap.dataset.tipo = tipo;
+  cardEl.classList.add("activa");
+  const { porNivel, porEstadoInteresado, porHorario, porTipo } = estadisticasDetalleCache;
+  const tablaConteo = (obj, colA) => {
+    const filas = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+    return filas.length
+      ? `<table class="detalle-table"><thead><tr><th>${colA}</th><th>Cantidad</th></tr></thead><tbody>${filas.map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${v}</td></tr>`).join("")}</tbody></table>`
+      : '<p class="empty-state">Sin datos.</p>';
+  };
+  if (tipo === "alumnos") wrap.innerHTML = tablaConteo(porNivel, "Nivel");
+  else if (tipo === "interesados") wrap.innerHTML = tablaConteo(porEstadoInteresado, "Estado");
+  else if (tipo === "horario") wrap.innerHTML = tablaConteo(porHorario, "Día · franja");
+  else if (tipo === "tipo") wrap.innerHTML = tablaConteo(porTipo, "Tipo de clase");
+  wrap.hidden = false;
 }
 
 // ---- Seguimiento: riesgo de abandono, renovaciones, cobros pendientes ----
@@ -1873,6 +2057,7 @@ function cargarInteresadosGrupo() {
     renderTurnos();
     renderInteresados();
     renderSugerenciasGrupo();
+    renderEstadisticas();
   }, (err) => mostrarErrorConsulta(document.getElementById("lista-interesados"), err));
 }
 

@@ -424,6 +424,15 @@ h1 .hl {
 .card-icon { font-size: 1.8rem; margin-bottom: 10px; }
 .card h3 { font-size: 1.05rem; }
 .card p { font-size: 0.94rem; margin: 0; }
+.card.clickable { cursor: pointer; transition: border-color 120ms, transform 120ms; }
+.card.clickable:hover { border-color: var(--court); }
+.card.clickable:active { transform: scale(0.98); }
+.card.clickable.activa { border-color: var(--court); border-width: 2px; }
+
+.detalle-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.86rem; }
+.detalle-table th, .detalle-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.detalle-table th { color: var(--ink-soft); font-weight: 700; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.detalle-table td:last-child, .detalle-table th:last-child { text-align: right; }
 
 /* Programas */
 .program-cards {
