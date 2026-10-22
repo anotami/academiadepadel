@@ -1630,6 +1630,7 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
   const whatsapp = document.getElementById("im-whatsapp").value.trim();
   const nivel = document.getElementById("im-nivel").value;
   const turnoId = document.getElementById("im-turno").value;
+  const notas = document.getElementById("im-notas").value.trim();
   const disponibilidad = dispGridInteresadoManual.obtenerSeleccion();
   const turno = turnosGrupalesCache.find((t) => t.id === turnoId);
   if (!turno) {
@@ -1645,6 +1646,7 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
       turnoNombre: turno.nombre,
       estado: "nuevo",
       disponibilidad,
+      notas,
       creadoEn: serverTimestamp()
     });
     try {
@@ -1865,6 +1867,12 @@ function renderInteresados() {
         <p>${linea2}</p>
         ${i.canchaInteresada ? `<p class="court-meta">Cancha de preferencia: ${escapeHtml(i.canchaInteresada)}</p>` : ""}
         <p class="court-meta">${escapeHtml(i.whatsapp)}${i.email ? " · " + escapeHtml(i.email) : ""}</p>
+        ${i.notas ? `<p class="court-meta">📝 ${escapeHtml(i.notas)}</p>` : ""}
+        <button class="btn btn-outline btn-small" type="button" data-toggle-notas style="margin-top:2px;">Editar notas</button>
+        <div data-notas-form hidden style="margin-top:6px;">
+          <textarea data-campo-notas rows="2" style="width:100%;">${escapeHtml(i.notas || "")}</textarea>
+          <button class="btn btn-primary btn-small" type="button" data-guardar-notas style="margin-top:6px;">Guardar notas</button>
+        </div>
         <select data-estado style="margin-top:6px;">
           ${ESTADOS_INTERESADO.map((e) => `<option value="${e}" ${e === i.estado ? "selected" : ""}>${LABEL_ESTADO_INTERESADO[e]}</option>`).join("")}
         </select>
@@ -1886,6 +1894,15 @@ function renderInteresados() {
       try { await updateDoc(doc(db, "interesados_grupo", i.id), { estado: i.estado === "descartado" ? "nuevo" : "descartado" }); }
       catch (err) { alert("No se pudo actualizar: " + err.message); }
     });
+    const notasForm = card.querySelector("[data-notas-form]");
+    card.querySelector("[data-toggle-notas]").addEventListener("click", () => {
+      notasForm.hidden = !notasForm.hidden;
+    });
+    card.querySelector("[data-guardar-notas]").addEventListener("click", async () => {
+      const notas = notasForm.querySelector("[data-campo-notas]").value.trim();
+      try { await updateDoc(doc(db, "interesados_grupo", i.id), { notas }); }
+      catch (err) { alert("No se pudo guardar la nota: " + err.message); }
+    });
     const dispMsgConvertir = card.querySelector("[data-disp-msg]");
     card.querySelector("[data-convertir]")?.addEventListener("click", async (e) => {
       const btn = e.target;
@@ -1901,7 +1918,7 @@ function renderInteresados() {
           edad: null,
           nivel: NIVEL_INTERESADO_A_ALUMNO[i.nivel] || "Inicial",
           programa: i.turnoNombre || (i.origen === "link_directo" ? "Link de disponibilidad" : ""),
-          observaciones: i.canchaInteresada ? `Interesado convertido — prefería la cancha ${i.canchaInteresada}.` : "Interesado convertido.",
+          observaciones: [i.notas, i.canchaInteresada ? `Prefería la cancha ${i.canchaInteresada}.` : ""].filter(Boolean).join(" ") || "Interesado convertido.",
           disponibilidad: i.disponibilidad || [],
           creadoEn: serverTimestamp()
         });

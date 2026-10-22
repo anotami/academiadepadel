@@ -131,7 +131,7 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.keys().hasOnly([
           'nombre', 'whatsapp', 'email', 'nivel', 'turnoId', 'turnoNombre',
-          'estado', 'creadoEn', 'disponibilidad', 'canchaInteresada', 'canchaInteresadaId', 'origen'
+          'estado', 'creadoEn', 'disponibilidad', 'canchaInteresada', 'canchaInteresadaId', 'origen', 'notas'
         ])
         && request.resource.data.nombre is string
         && request.resource.data.nombre.size() >= 1
@@ -153,6 +153,7 @@ service cloud.firestore {
         && (!('canchaInteresada' in request.resource.data) || (request.resource.data.canchaInteresada is string && request.resource.data.canchaInteresada.size() <= 100))
         && (!('canchaInteresadaId' in request.resource.data) || request.resource.data.canchaInteresadaId is string)
         && (!('origen' in request.resource.data) || request.resource.data.origen in ['widget', 'manual', 'link_directo'])
+        && (!('notas' in request.resource.data) || (request.resource.data.notas is string && request.resource.data.notas.size() <= 1000))
         && request.resource.data.estado == 'nuevo'
         && request.resource.data.creadoEn == request.time;
     }

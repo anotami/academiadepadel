@@ -140,7 +140,7 @@ form.addEventListener("submit", async (e) => {
       nombre, whatsapp, email: "",
       nivel: "", turnoId: "", turnoNombre: "",
       canchaInteresada, disponibilidad,
-      estado: "nuevo", origen: "link_directo",
+      estado: "nuevo", origen: "link_directo", notas: "",
       creadoEn: serverTimestamp()
     };
     if (canchaInteresadaId) datos.canchaInteresadaId = canchaInteresadaId;
