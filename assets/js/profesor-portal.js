@@ -929,6 +929,15 @@ function construirTarjetaHistorialGrupal(grupo) {
     <div class="request-info" style="flex:1 1 100%;">
       <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos)</p>
       <p>${base.pistaNombre || ""} · ${formatearFecha(base.fecha)} · ${base.hora} hrs ${base.modalidad ? "· " + base.modalidad : ""}</p>
+      <div class="form-grid" style="margin-top:8px;">
+        <div class="field">
+          <label>Costo total de esta sesión (cancha + otros, S/)</label>
+          <input type="number" min="0" step="0.01" data-campo="costoSesionTotal" placeholder="Ej: cancha, pelotas...">
+        </div>
+        <button class="btn btn-outline btn-small" type="button" data-dividir-costo-sesion>Dividir entre los ${grupo.length} alumnos</button>
+        <p class="field-hint">Pon el costo total de la sesión (cancha + lo que gastaste) y lo reparte por igual entre los ${grupo.length} alumnos de esta clase — reemplaza lo que tenía cargado cada uno.</p>
+      </div>
+      <p class="form-msg" data-msg-dividir-costo></p>
       ${grupo.map((r) => `
         <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:10px;" data-fila="${r.id}">
           <p>
@@ -1027,6 +1036,26 @@ function construirTarjetaHistorialGrupal(grupo) {
         msg.className = "form-msg error";
       }
     });
+  });
+
+  card.querySelector("[data-dividir-costo-sesion]").addEventListener("click", async () => {
+    const msgDividir = card.querySelector("[data-msg-dividir-costo]");
+    const totalRaw = card.querySelector('[data-campo="costoSesionTotal"]').value;
+    const total = Number(totalRaw);
+    if (totalRaw === "" || isNaN(total) || total < 0) {
+      msgDividir.textContent = "Pon el costo total de la sesión primero.";
+      msgDividir.className = "form-msg error";
+      return;
+    }
+    const porAlumno = total / grupo.length;
+    try {
+      await Promise.all(grupo.map((r) => updateDoc(doc(db, "reservas", r.id), { costoCanchaPagado: porAlumno })));
+      msgDividir.textContent = `Repartido: S/ ${porAlumno.toFixed(2)} por alumno.`;
+      msgDividir.className = "form-msg ok";
+    } catch (err) {
+      msgDividir.textContent = "No se pudo repartir: " + err.message;
+      msgDividir.className = "form-msg error";
+    }
   });
 
   card.querySelector(".request-info").appendChild(construirFormAgregarAlumno(base));
