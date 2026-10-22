@@ -1753,7 +1753,67 @@ function cargarInteresadosGrupo() {
       .sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0));
     renderTurnos();
     renderInteresados();
+    renderSugerenciasGrupo();
   }, (err) => mostrarErrorConsulta(document.getElementById("lista-interesados"), err));
+}
+
+// ---- Sugerencias de grupo nuevo (interesados que coinciden en día/horario) ----
+// Mismo mínimo que "Confirmación garantizada desde 2 personas" en la web: con
+// 2 que calcen ya alcanza para avisar.
+const UMBRAL_SUGERENCIA_GRUPO = 2;
+
+function renderSugerenciasGrupo() {
+  const wrap = document.getElementById("sugerencias-grupo");
+  const candidatos = interesadosGrupoCache.filter((i) =>
+    i.estado !== "descartado" && !i.alumnoId && (i.disponibilidad || []).length
+  );
+  if (candidatos.length < UMBRAL_SUGERENCIA_GRUPO) { wrap.innerHTML = ""; return; }
+
+  const sugerencias = [];
+  DIAS.forEach((dia) => {
+    FRANJAS.forEach((franja) => {
+      const coinciden = candidatos.filter((i) => estaDisponible(i.disponibilidad, dia, franja));
+      if (coinciden.length >= UMBRAL_SUGERENCIA_GRUPO) sugerencias.push({ dia, franja, personas: coinciden });
+    });
+  });
+  if (!sugerencias.length) { wrap.innerHTML = ""; return; }
+
+  sugerencias.sort((a, b) => b.personas.length - a.personas.length);
+  const top = sugerencias.slice(0, 5);
+
+  wrap.innerHTML = `
+    <div class="callout" style="margin-bottom:18px;">
+      <span class="callout-icon" aria-hidden="true">💡</span>
+      <div style="flex:1;">
+        <p><strong>Posibles grupos nuevos</strong> — varios interesados coinciden en el mismo horario. Verifica tu disponibilidad y la de la cancha en "Cruce de disponibilidad" antes de abrir el turno.</p>
+        <div id="sugerencias-grupo-lista"></div>
+      </div>
+    </div>`;
+
+  const lista = wrap.querySelector("#sugerencias-grupo-lista");
+  top.forEach((s) => {
+    const card = document.createElement("div");
+    card.style.cssText = "margin-top:10px; padding-top:10px; border-top:1px solid var(--border);";
+    const chips = s.personas.map((i) => {
+      const tel = soloDigitos(i.whatsapp);
+      const texto = `Hola ${i.nombre}, tengo más gente interesada en jugar el ${s.dia.toLowerCase()} ${s.franja} — ¿coordinamos ese grupo?`;
+      return tel
+        ? `<a class="badge badge-confirmada" target="_blank" rel="noopener" style="text-decoration:none;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">${escapeHtml(i.nombre)}</a>`
+        : `<span class="badge badge-confirmada">${escapeHtml(i.nombre)}</span>`;
+    }).join(" ");
+    card.innerHTML = `
+      <p><strong>${escapeHtml(s.dia)} · ${escapeHtml(s.franja)}</strong> — ${s.personas.length} interesados coinciden</p>
+      <p style="margin:6px 0;">${chips}</p>
+      <button class="btn btn-outline btn-small" type="button" data-prefill-turno>Prellenar turno con este horario</button>`;
+    card.querySelector("[data-prefill-turno]").addEventListener("click", () => {
+      const nombreInput = document.getElementById("tg-nombre");
+      document.getElementById("tg-horario").value = `${s.dia}, ${s.franja.replace("–", " - ")} hrs`;
+      nombreInput.value = `${s.dia} ${s.franja}`;
+      nombreInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      nombreInput.focus();
+    });
+    lista.appendChild(card);
+  });
 }
 
 function renderInteresados() {
