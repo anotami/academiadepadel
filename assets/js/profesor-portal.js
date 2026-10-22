@@ -1568,19 +1568,22 @@ async function calcularRentabilidad(wrap, reservas) {
   const detalleCosto = [];
 
   paquetesPagados.forEach((paquete) => {
-    const reservasDelPaquete = reservas.filter((r) => r.paqueteId && r.paqueteId === paquete.id);
+    // Costo real = solo las clases que YA se dictaron (confirmadas), no el
+    // total del paquete -- si pagó 4 clases pero solo tomó 1, el costo de
+    // cancha/profesor de las otras 3 todavía no existe.
+    const reservasDelPaquete = reservas.filter((r) => r.paqueteId && r.paqueteId === paquete.id && r.estado === "confirmada");
     const pistasUsadas = reservasDelPaquete
       .map((r) => pistasCache.find((p) => p.id === r.pistaId))
       .filter(Boolean);
     const costoCanchaHora = pistasUsadas.length
       ? pistasUsadas.reduce((sum, p) => sum + (p.costoHoraSinLuz || 0), 0) / pistasUsadas.length
       : costoPromedioPistas;
-    const costoPaquete = paquete.clasesTotales * (costoCanchaHora + costoProfesorHora);
+    const costoPaquete = reservasDelPaquete.length * (costoCanchaHora + costoProfesorHora);
 
     ingresoTotal += paquete.monto || 0;
     costoTotal += costoPaquete;
     detalleIngreso.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")}`, monto: paquete.monto || 0 });
-    detalleCosto.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")} (${paquete.clasesTotales} clases)`, monto: costoPaquete });
+    detalleCosto.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")} (${reservasDelPaquete.length}/${paquete.clasesTotales} clases dictadas)`, monto: costoPaquete });
   });
 
   // Una clase grupal son N reservas (una por alumno) con el mismo
