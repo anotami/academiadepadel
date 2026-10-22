@@ -743,6 +743,25 @@ function construirFormAgregarAlumno(base) {
   return wrap;
 }
 
+// Borra una clase del historial. Si estaba descontada de un paquete
+// (paqueteId), le devuelve la clase al paquete para que no se le pierda.
+async function borrarReservaHistorial(r, msg) {
+  if (!confirm(`¿Borrar esta clase de ${r.alumnoNombre}?${r.paqueteId ? " Se le devolverá la clase a su paquete." : ""}`)) return;
+  try {
+    if (r.paqueteId) {
+      const paqueteSnap = await getDoc(doc(db, "paquetes", r.paqueteId));
+      if (paqueteSnap.exists()) {
+        const clasesUsadas = paqueteSnap.data().clasesUsadas || 0;
+        await updateDoc(doc(db, "paquetes", r.paqueteId), { clasesUsadas: Math.max(0, clasesUsadas - 1) });
+      }
+    }
+    await deleteDoc(doc(db, "reservas", r.id));
+    if (msg) { msg.textContent = "Clase borrada."; msg.className = "form-msg ok"; }
+  } catch (err) {
+    if (msg) { msg.textContent = "No se pudo borrar: " + err.message; msg.className = "form-msg error"; }
+  }
+}
+
 function construirTarjetaHistorial(r) {
   const card = document.createElement("div");
   card.className = "request-card";
@@ -793,6 +812,7 @@ function construirTarjetaHistorial(r) {
     <div class="request-actions">
       <span class="badge ${r.estado === "confirmada" ? "badge-confirmada" : "badge-pendiente"}">${estadoLabel}</span>
       <button class="btn btn-outline btn-small" type="button" data-toggle-editar-historial>Editar</button>
+      <button class="btn btn-outline btn-small" type="button" data-borrar-historial>Borrar</button>
     </div>`;
 
   const form = card.querySelector("[data-editar-form]");
@@ -800,6 +820,7 @@ function construirTarjetaHistorial(r) {
     form.hidden = !form.hidden;
   });
   const msg = card.querySelector(".form-msg");
+  card.querySelector("[data-borrar-historial]").addEventListener("click", () => borrarReservaHistorial(r, msg));
   card.querySelector("[data-guardar-historial]").addEventListener("click", async () => {
     const modalidad = form.querySelector('[data-campo="modalidad"]').value;
     const montoCobrado = Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0;
@@ -861,6 +882,7 @@ function construirTarjetaHistorialGrupal(grupo) {
             <span class="badge ${r.estado === "confirmada" ? "badge-confirmada" : "badge-pendiente"}">${estadoLabel(r)}</span>
           </p>
           <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
+          <button class="btn btn-outline btn-small" type="button" data-borrar-fila>Borrar</button>
           <div class="form-grid" data-editar-form hidden style="margin-top:8px;">
             <div class="field">
               <label>Modalidad</label>
@@ -902,6 +924,7 @@ function construirTarjetaHistorialGrupal(grupo) {
     const form = fila.querySelector("[data-editar-form]");
     const msg = fila.querySelector(".form-msg");
     fila.querySelector("[data-toggle-editar]").addEventListener("click", () => { form.hidden = !form.hidden; });
+    fila.querySelector("[data-borrar-fila]").addEventListener("click", () => borrarReservaHistorial(r, msg));
     fila.querySelector("[data-guardar]").addEventListener("click", async () => {
       const modalidad = form.querySelector('[data-campo="modalidad"]').value;
       const montoCobrado = Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0;
