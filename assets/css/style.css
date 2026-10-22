@@ -1375,6 +1375,8 @@ h1 .hl {
   border: 1.5px solid var(--border);
   background: #fff;
   color: var(--ink);
+  width: 100%;
+  min-width: 0;
 }
 .field input:focus, .field select:focus, .field textarea:focus {
   outline: none;
