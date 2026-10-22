@@ -1635,38 +1635,26 @@ async function calcularRentabilidad(wrap, reservas) {
   const detalleIngreso = [];
   const detalleCosto = [];
 
+  // Ingreso: el paquete se cobra una sola vez por su monto completo,
+  // sin importar cuántas de sus clases ya se dictaron.
   paquetesPagados.forEach((paquete) => {
-    // Costo real = solo las clases que YA se dictaron (confirmadas), no el
-    // total del paquete -- si pagó 4 clases pero solo tomó 1, el costo de
-    // cancha/profesor de las otras 3 todavía no existe.
-    const reservasDelPaquete = reservas.filter((r) => r.paqueteId && r.paqueteId === paquete.id && r.estado === "confirmada");
-    const pistasUsadas = reservasDelPaquete
-      .map((r) => pistasCache.find((p) => p.id === r.pistaId))
-      .filter(Boolean);
-    const costoCanchaHora = pistasUsadas.length
-      ? pistasUsadas.reduce((sum, p) => sum + (p.costoHoraSinLuz || 0), 0) / pistasUsadas.length
-      : costoPromedioPistas;
-    const costoCanchaPaquete = reservasDelPaquete.length * costoCanchaHora;
-    const costoProfesorPaquete = reservasDelPaquete.length * costoProfesorHora;
-    const costoPaquete = costoCanchaPaquete + costoProfesorPaquete;
-
     ingresoTotal += paquete.monto || 0;
-    costoTotal += costoPaquete;
     detalleIngreso.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")}`, monto: paquete.monto || 0 });
-    if (reservasDelPaquete.length > 0) {
-      const etiqueta = `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")} (${reservasDelPaquete.length}/${paquete.clasesTotales} clases dictadas)`;
-      detalleCosto.push({ concepto: `${etiqueta} (cancha)`, monto: costoCanchaPaquete, tipo: "cancha" });
-      detalleCosto.push({ concepto: `${etiqueta} — tu hora de clase`, monto: costoProfesorPaquete, tipo: "hora" });
-    }
+  });
+  reservasSueltas.forEach((r) => {
+    ingresoTotal += r.montoCobrado;
+    detalleIngreso.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado });
   });
 
-  // Una clase grupal son N reservas (una por alumno) con el mismo
-  // pista+fecha+hora. El costo de cancha ya viene dividido entre todos al
-  // guardarse, así que sumarlo por reserva es correcto — pero tu hora de
-  // profesor es UNA sola por sesión, sin importar cuántos alumnos había, así
-  // que debe contarse una sola vez por sesión y no una vez por alumno.
+  // Costo: TODAS las clases confirmadas, vengan de un paquete o sueltas,
+  // agrupadas por sesión real (misma pista+fecha+hora). Así, si una clase
+  // grupal mezcla alumnos de paquete con alumnos sueltos, la cancha no se
+  // cuenta de más por cada alumno de paquete (antes se cobraba la tarifa
+  // completa de la pista por cada uno, sin dividir) y tu hora de profesor
+  // se cuenta UNA sola vez por sesión, no una vez por alumno.
+  const confirmadas = reservas.filter((r) => r.estado === "confirmada");
   const sesiones = new Map();
-  reservasSueltas.forEach((r) => {
+  confirmadas.forEach((r) => {
     const clave = `${r.pistaId}|${r.fecha}|${r.hora}`;
     if (!sesiones.has(clave)) sesiones.set(clave, []);
     sesiones.get(clave).push(r);
@@ -1677,9 +1665,7 @@ async function calcularRentabilidad(wrap, reservas) {
       const costoCancha = typeof r.costoCanchaPagado === "number"
         ? r.costoCanchaPagado
         : (pista ? pista.costoHoraSinLuz || 0 : costoPromedioPistas);
-      ingresoTotal += r.montoCobrado;
       costoTotal += costoCancha;
-      detalleIngreso.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado });
       detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha, tipo: "cancha" });
     });
     costoTotal += costoProfesorHora;
@@ -1689,7 +1675,7 @@ async function calcularRentabilidad(wrap, reservas) {
 
   const margenTotal = ingresoTotal - costoTotal;
   const margenPct = ingresoTotal ? Math.round((margenTotal / ingresoTotal) * 100) : 0;
-  const sinDatos = costoPromedioPistas === 0 && costoProfesorHora === 0 && !reservasSueltas.some((r) => typeof r.costoCanchaPagado === "number");
+  const sinDatos = costoPromedioPistas === 0 && costoProfesorHora === 0 && !confirmadas.some((r) => typeof r.costoCanchaPagado === "number");
 
   rentabilidadDetalleCache = { ingreso: detalleIngreso, costo: detalleCosto, ingresoTotal, costoTotal, margenTotal, margenPct };
 
