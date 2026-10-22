@@ -795,7 +795,9 @@ async function vincularReservaAPaquete(r, paqueteIdNuevo, msg) {
         const p = nuevoSnap.data();
         await updateDoc(doc(db, "paquetes", paqueteIdNuevo), { clasesUsadas: Math.min(p.clasesTotales, (p.clasesUsadas || 0) + 1) });
       }
-      await updateDoc(doc(db, "reservas", r.id), { paqueteId: paqueteIdNuevo });
+      // Ya se cobró dentro del monto del paquete -- un cobro aparte en esta
+      // clase sería cobrarle dos veces por lo mismo.
+      await updateDoc(doc(db, "reservas", r.id), { paqueteId: paqueteIdNuevo, montoCobrado: null });
     } else {
       await updateDoc(doc(db, "reservas", r.id), { paqueteId: null });
     }
@@ -828,7 +830,8 @@ function construirTarjetaHistorial(r) {
         </div>
         <div class="field">
           <label>Monto cobrado (S/)</label>
-          <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}">
+          <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}" ${r.paqueteId ? "disabled" : ""}>
+          ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvincúlala abajo si quieres cargarle un cobro aparte.</p>' : ""}
         </div>
         <div class="field">
           <label>Costo de cancha de ESTA clase (S/)</label>
@@ -876,7 +879,7 @@ function construirTarjetaHistorial(r) {
   });
   card.querySelector("[data-guardar-historial]").addEventListener("click", async () => {
     const modalidad = form.querySelector('[data-campo="modalidad"]').value;
-    const montoCobrado = Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0;
+    const montoCobrado = r.paqueteId ? null : (Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0);
     const costoCanchaRaw = form.querySelector('[data-campo="costoCanchaPagado"]').value;
     const estado = form.querySelector('[data-campo="estado"]').value;
     try {
@@ -947,7 +950,8 @@ function construirTarjetaHistorialGrupal(grupo) {
             </div>
             <div class="field">
               <label>Monto cobrado (S/)</label>
-              <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}">
+              <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}" ${r.paqueteId ? "disabled" : ""}>
+              ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvincúlala abajo si quieres cargarle un cobro aparte.</p>' : ""}
             </div>
             <div class="field">
               <label>Costo de cancha de ESTE alumno (S/)</label>
@@ -990,7 +994,7 @@ function construirTarjetaHistorialGrupal(grupo) {
     });
     fila.querySelector("[data-guardar]").addEventListener("click", async () => {
       const modalidad = form.querySelector('[data-campo="modalidad"]').value;
-      const montoCobrado = Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0;
+      const montoCobrado = r.paqueteId ? null : (Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0);
       const costoCanchaRaw = form.querySelector('[data-campo="costoCanchaPagado"]').value;
       const estado = form.querySelector('[data-campo="estado"]').value;
       try {
