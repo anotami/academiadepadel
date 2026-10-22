@@ -2593,6 +2593,16 @@ document.getElementById("btn-exportar-paquetes").addEventListener("click", async
 // ---- Comunidad: directorio de jugadores, "falta el cuarto", leads ----
 // ============================================================
 
+// Accesos directos de la pestaña MKT (evitan scrollear toda la pestaña,
+// que ahora junta Interesados + Turnos + Cruce + Jugadores + Falta el
+// cuarto + Leads + Importar en un solo lugar).
+document.querySelectorAll("[data-ir-a]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const destino = document.getElementById(btn.dataset.irA);
+    if (destino) destino.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
+
 let comunidadCache = [];
 let convocatoriasCache = [];
 let comunidadFilaMarcadas = new Set();

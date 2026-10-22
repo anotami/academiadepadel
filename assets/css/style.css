@@ -1324,6 +1324,21 @@ h1 .hl {
 
 /* Pestañas de profesor.html / alumno.html: agrupan las tarjetas del panel
    en un flujo por tarea en vez de un solo scroll largo. */
+/* Accesos directos dentro de una pestaña larga (ej. MKT): queda pegada
+   justo debajo del header sticky para saltar de sección sin scrollear
+   todo de vuelta hacia arriba. */
+.mkt-quicknav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: sticky;
+  top: 60px;
+  z-index: 10;
+  background: var(--bg);
+  padding: 10px 0;
+  margin-bottom: 14px;
+}
+
 .portal-tabs {
   display: flex;
   gap: 6px;

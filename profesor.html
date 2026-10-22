@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=52">
+<link rel="stylesheet" href="assets/css/style.css?v=53">
 </head>
 <body>
 
@@ -42,7 +42,6 @@
         <button class="portal-tab" type="button" role="tab" data-tab="hoy">Hoy</button>
         <button class="portal-tab" type="button" role="tab" data-tab="clases">Mis clases</button>
         <button class="portal-tab" type="button" role="tab" data-tab="alumnos">Alumnos y pagos</button>
-        <button class="portal-tab" type="button" role="tab" data-tab="grupos">Grupos nuevos</button>
         <button class="portal-tab" type="button" role="tab" data-tab="mkt">MKT</button>
         <button class="portal-tab" type="button" role="tab" data-tab="datos">Mis datos</button>
       </nav>
@@ -306,74 +305,21 @@
       </div>
 
       <!-- GRUPOS NUEVOS -->
-      <div data-tabpanel="grupos" hidden>
-        <div class="portal-card">
-          <h2>Turnos</h2>
-          <p class="field-hint">Turnos que ves en "¿Eres nuevo en el pádel?" de la web, y quién se anotó en cada uno. Abre o cierra turnos según la demanda real.</p>
-
-          <div id="sugerencias-grupo"></div>
-
-          <h3 style="margin-top:4px;">Turnos</h3>
-          <form id="form-turno" class="form-grid">
-            <div class="field">
-              <label for="tg-nombre">Nombre del turno</label>
-              <input type="text" id="tg-nombre" required maxlength="60" placeholder="Ej: Mañanas entre semana">
-            </div>
-            <div class="field">
-              <label for="tg-horario">Horario (texto libre)</label>
-              <input type="text" id="tg-horario" required maxlength="100" placeholder="Ej: Lunes a viernes, 7:00 - 8:30 am">
-            </div>
-            <div class="field">
-              <label for="tg-fecha">Fecha puntual (opcional)</label>
-              <input type="date" id="tg-fecha">
-            </div>
-            <div class="field">
-              <label for="tg-cupo">Cupos</label>
-              <input type="number" id="tg-cupo" min="1" required value="4">
-            </div>
-            <div class="field">
-              <label for="tg-tipo">Tipo</label>
-              <select id="tg-tipo">
-                <option value="regular">Turno regular</option>
-                <option value="clinica-gratuita">Clínica gratuita mensual</option>
-              </select>
-            </div>
-            <button class="btn btn-outline" type="submit">Agregar turno</button>
-            <p class="field-hint">Deja la fecha vacía en turnos recurrentes (Mañanas, Tardes, Fin de Semana). Ponle fecha solo a eventos puntuales como la clínica — cada mes crea un turno nuevo con la fecha que toque.</p>
-            <p class="form-msg" id="turno-msg"></p>
-          </form>
-          <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
-        </div>
-
-        <!-- Cruce de disponibilidad -->
-        <div class="portal-card">
-          <h2>Cruce de disponibilidad</h2>
-          <p class="field-hint">Tu disponibilidad (en "Mis datos") siempre cuenta. Marca qué alumnos e interesados quieres cruzar y en qué pista — la grilla muestra en qué día y horario coinciden todos y además hay cancha libre.</p>
-          <div class="form-grid">
-            <div class="field">
-              <label for="cr-pista">Pista</label>
-              <select id="cr-pista"><option value="">Todas las pistas</option></select>
-            </div>
-          </div>
-          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Alumnos</h3>
-          <div id="cr-alumnos" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
-          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Interesados</h3>
-          <div id="cr-interesados" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
-          <div class="disp-legend" style="margin-top:16px;">
-            Pocos coinciden
-            <span style="display:inline-block; width:90px; height:14px; border-radius:3px; vertical-align:middle; background:linear-gradient(90deg, #fde2e1, #fff3cd, #d9f3e3);"></span>
-            Todos coinciden
-            <span class="disp-legend-swatch disp-off" style="margin-left:14px;"></span> Tú no estás libre o no hay cancha
-          </div>
-          <div class="availability-grid" id="cr-grid" style="margin-top:8px;"></div>
-          <p class="field-hint" id="cr-detalle" style="margin-top:10px;">Toca un bloque de la grilla para ver quién calza y quién no.</p>
-        </div>
-      </div>
-
-      <!-- MKT: interesados, directorio de jugadores, falta el cuarto y leads -->
+      <!-- MKT: interesados, turnos, directorio de jugadores, falta el cuarto y leads -->
       <div data-tabpanel="mkt" hidden>
+        <!-- Accesos directos para no tener que scrollear toda la pestaña -->
+        <nav class="mkt-quicknav" aria-label="Ir a sección de MKT">
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-interesados">Interesados</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-turnos">Turnos</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-cruce">Cruce de disponibilidad</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-jugadores">Jugadores</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-falta-cuarto">Falta el cuarto</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-leads">Leads</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-import">Importar WhatsApp</button>
+        </nav>
+
         <!-- Interesados -->
-        <div class="portal-card">
+        <div class="portal-card" id="mkt-interesados">
           <h2>Interesados</h2>
           <p class="field-hint">Se llenan solos cuando alguien se anota desde "¿Eres nuevo en el pádel?" en la web. Si alguien te escribió directo por WhatsApp, mándale el link de abajo para que complete su disponibilidad solo — aparece acá igual.</p>
           <button class="btn btn-outline btn-small" type="button" id="btn-copiar-link-disp" style="margin-bottom:14px;">Copiar mensaje con el link de disponibilidad</button>
@@ -426,8 +372,71 @@
           <div id="lista-interesados"><p class="empty-state">Cargando...</p></div>
         </div>
 
+        <!-- Turnos -->
+        <div class="portal-card" id="mkt-turnos">
+          <h2>Turnos</h2>
+          <p class="field-hint">Turnos que ves en "¿Eres nuevo en el pádel?" de la web, y quién se anotó en cada uno. Abre o cierra turnos según la demanda real.</p>
+
+          <div id="sugerencias-grupo"></div>
+
+          <h3 style="margin-top:4px;">Turnos</h3>
+          <form id="form-turno" class="form-grid">
+            <div class="field">
+              <label for="tg-nombre">Nombre del turno</label>
+              <input type="text" id="tg-nombre" required maxlength="60" placeholder="Ej: Mañanas entre semana">
+            </div>
+            <div class="field">
+              <label for="tg-horario">Horario (texto libre)</label>
+              <input type="text" id="tg-horario" required maxlength="100" placeholder="Ej: Lunes a viernes, 7:00 - 8:30 am">
+            </div>
+            <div class="field">
+              <label for="tg-fecha">Fecha puntual (opcional)</label>
+              <input type="date" id="tg-fecha">
+            </div>
+            <div class="field">
+              <label for="tg-cupo">Cupos</label>
+              <input type="number" id="tg-cupo" min="1" required value="4">
+            </div>
+            <div class="field">
+              <label for="tg-tipo">Tipo</label>
+              <select id="tg-tipo">
+                <option value="regular">Turno regular</option>
+                <option value="clinica-gratuita">Clínica gratuita mensual</option>
+              </select>
+            </div>
+            <button class="btn btn-outline" type="submit">Agregar turno</button>
+            <p class="field-hint">Deja la fecha vacía en turnos recurrentes (Mañanas, Tardes, Fin de Semana). Ponle fecha solo a eventos puntuales como la clínica — cada mes crea un turno nuevo con la fecha que toque.</p>
+            <p class="form-msg" id="turno-msg"></p>
+          </form>
+          <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
+        </div>
+
+        <!-- Cruce de disponibilidad -->
+        <div class="portal-card" id="mkt-cruce">
+          <h2>Cruce de disponibilidad</h2>
+          <p class="field-hint">Tu disponibilidad (en "Mis datos") siempre cuenta. Marca qué alumnos e interesados quieres cruzar y en qué pista — la grilla muestra en qué día y horario coinciden todos y además hay cancha libre.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="cr-pista">Pista</label>
+              <select id="cr-pista"><option value="">Todas las pistas</option></select>
+            </div>
+          </div>
+          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Alumnos</h3>
+          <div id="cr-alumnos" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
+          <h3 style="margin:16px 0 8px; font-size:0.95rem;">Interesados</h3>
+          <div id="cr-interesados" class="cruce-personas"><p class="empty-state">Cargando...</p></div>
+          <div class="disp-legend" style="margin-top:16px;">
+            Pocos coinciden
+            <span style="display:inline-block; width:90px; height:14px; border-radius:3px; vertical-align:middle; background:linear-gradient(90deg, #fde2e1, #fff3cd, #d9f3e3);"></span>
+            Todos coinciden
+            <span class="disp-legend-swatch disp-off" style="margin-left:14px;"></span> Tú no estás libre o no hay cancha
+          </div>
+          <div class="availability-grid" id="cr-grid" style="margin-top:8px;"></div>
+          <p class="field-hint" id="cr-detalle" style="margin-top:10px;">Toca un bloque de la grilla para ver quién calza y quién no.</p>
+        </div>
+
         <!-- Jugadores -->
-        <div class="portal-card">
+        <div class="portal-card" id="mkt-jugadores">
           <h2>Jugadores</h2>
           <p class="field-hint">Directorio de la comunidad — se llena solo desde <a href="comunidad-anotate.html" target="_blank" rel="noopener">comunidad-anotate.html</a>, o impórtalo de tu grupo de WhatsApp más abajo. Los teléfonos nunca son públicos, solo los ves acá.</p>
           <div id="com-contadores" class="cards grid-3" style="margin:14px 0;"></div>
@@ -470,7 +479,7 @@
         </div>
 
         <!-- Falta el cuarto -->
-        <div class="portal-card">
+        <div class="portal-card" id="mkt-falta-cuarto">
           <h2>Falta el cuarto</h2>
           <p class="field-hint">Arma el mensaje, elige a quién mandárselo y ábrelo directo en WhatsApp. Nada se envía solo desde acá.</p>
           <div class="form-grid">
@@ -524,14 +533,14 @@
         </div>
 
         <!-- Leads (captación) -->
-        <div class="portal-card">
+        <div class="portal-card" id="mkt-leads">
           <h2>Leads — interesados en clases</h2>
           <p class="field-hint">Jugadores de la comunidad que marcaron "Sí" o "Tal vez" en clases, del más reciente al más antiguo.</p>
           <div id="com-leads"><p class="empty-state">Cargando...</p></div>
         </div>
 
         <!-- Importar desde WhatsApp -->
-        <div class="portal-card">
+        <div class="portal-card" id="mkt-import">
           <h2>Importar desde WhatsApp</h2>
           <p class="field-hint">
             Exporta el chat de tu grupo (WhatsApp → Grupo → Más opciones → Exportar chat → "Sin archivos multimedia") y súbelo acá.
@@ -650,6 +659,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=50"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=51"></script>
 </body>
 </html>
