@@ -67,6 +67,10 @@ service cloud.firestore {
         get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor'
       );
       allow update: if request.auth != null;
+      // Solo el profesor puede borrar una reserva (ej. historial cargado
+      // por error) — un alumno no debe poder borrarse una clase propia.
+      allow delete: if request.auth != null &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
     }
 
     match /paquetes/{id} {
