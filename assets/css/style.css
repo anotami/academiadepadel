@@ -433,6 +433,10 @@ h1 .hl {
 .detalle-table th, .detalle-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
 .detalle-table th { color: var(--ink-soft); font-weight: 700; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.03em; }
 .detalle-table td:last-child, .detalle-table th:last-child { text-align: right; }
+/* Costo estimado: separa visualmente tu hora de clase (es tu ingreso, no
+   sale de tu bolsillo) del costo de cancha (plata real que le pagas al club). */
+.detalle-table tr.fila-hora td { color: #157347; }
+.detalle-table tr.fila-cancha td { color: #b02a24; }
 
 /* Programas */
 .program-cards {

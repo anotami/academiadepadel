@@ -18,6 +18,7 @@ let pistasCache = [];
 let turnosGrupalesCache = [];
 let interesadosGrupoCache = [];
 let gruposCache = [];
+let paquetesCache = [];
 
 function mostrarErrorConsulta(wrap, err) {
   const match = err.message && err.message.match(/https:\/\/\S+/);
@@ -762,6 +763,48 @@ async function borrarReservaHistorial(r, msg) {
   }
 }
 
+// Opciones de paquete del alumno de esta reserva, para el select de
+// "Vincular a paquete" del historial.
+function opcionesPaquetesAlumno(alumnoId, paqueteIdActual) {
+  const paquetes = paquetesCache.filter((p) => p.alumnoId === alumnoId);
+  const suelta = `<option value="" ${!paqueteIdActual ? "selected" : ""}>— Clase suelta (sin paquete) —</option>`;
+  if (!paquetes.length) return suelta;
+  return suelta + paquetes.map((p) =>
+    `<option value="${p.id}" ${p.id === paqueteIdActual ? "selected" : ""}>${escapeHtml(p.tipo)} (${p.clasesUsadas}/${p.clasesTotales} usadas)</option>`
+  ).join("");
+}
+
+// Vincula/desvincula esta reserva de un paquete, ajustando clasesUsadas del
+// paquete anterior y del nuevo para que el contador quede correcto.
+async function vincularReservaAPaquete(r, paqueteIdNuevo, msg) {
+  if ((r.paqueteId || "") === (paqueteIdNuevo || "")) {
+    if (msg) { msg.textContent = "Ya estaba así."; msg.className = "form-msg ok"; }
+    return;
+  }
+  try {
+    if (r.paqueteId) {
+      const anteriorSnap = await getDoc(doc(db, "paquetes", r.paqueteId));
+      if (anteriorSnap.exists()) {
+        const usadas = anteriorSnap.data().clasesUsadas || 0;
+        await updateDoc(doc(db, "paquetes", r.paqueteId), { clasesUsadas: Math.max(0, usadas - 1) });
+      }
+    }
+    if (paqueteIdNuevo) {
+      const nuevoSnap = await getDoc(doc(db, "paquetes", paqueteIdNuevo));
+      if (nuevoSnap.exists()) {
+        const p = nuevoSnap.data();
+        await updateDoc(doc(db, "paquetes", paqueteIdNuevo), { clasesUsadas: Math.min(p.clasesTotales, (p.clasesUsadas || 0) + 1) });
+      }
+      await updateDoc(doc(db, "reservas", r.id), { paqueteId: paqueteIdNuevo });
+    } else {
+      await updateDoc(doc(db, "reservas", r.id), { paqueteId: null });
+    }
+    if (msg) { msg.textContent = "Vinculado."; msg.className = "form-msg ok"; }
+  } catch (err) {
+    if (msg) { msg.textContent = "No se pudo vincular: " + err.message; msg.className = "form-msg error"; }
+  }
+}
+
 function construirTarjetaHistorial(r) {
   const card = document.createElement("div");
   card.className = "request-card";
@@ -806,6 +849,12 @@ function construirTarjetaHistorial(r) {
           <p class="field-hint">Le cambia la pista/fecha/hora/tipo de clase a esta reserva para que quede agrupada con la que elijas.</p>
         </div>
         <button class="btn btn-outline btn-small" type="button" data-guardar-mover>Unir</button>
+        <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+          <label>Vincular a un paquete de ${escapeHtml(r.alumnoNombre)}</label>
+          <select data-vincular-paquete>${opcionesPaquetesAlumno(r.alumnoId, r.paqueteId)}</select>
+          <p class="field-hint">Si esta clase se pagó dentro de un paquete, vincúlala acá para que no se cuente aparte como clase suelta.</p>
+        </div>
+        <button class="btn btn-outline btn-small" type="button" data-guardar-vincular>Vincular</button>
       </div>
       <p class="form-msg"></p>
     </div>
@@ -821,6 +870,10 @@ function construirTarjetaHistorial(r) {
   });
   const msg = card.querySelector(".form-msg");
   card.querySelector("[data-borrar-historial]").addEventListener("click", () => borrarReservaHistorial(r, msg));
+  card.querySelector("[data-guardar-vincular]").addEventListener("click", () => {
+    const paqueteId = form.querySelector("[data-vincular-paquete]").value;
+    vincularReservaAPaquete(r, paqueteId || null, msg);
+  });
   card.querySelector("[data-guardar-historial]").addEventListener("click", async () => {
     const modalidad = form.querySelector('[data-campo="modalidad"]').value;
     const montoCobrado = Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0;
@@ -914,6 +967,12 @@ function construirTarjetaHistorialGrupal(grupo) {
               <select data-mover-sesion>${opcionesMoverSesion(claveSesion(r))}</select>
             </div>
             <button class="btn btn-outline btn-small" type="button" data-guardar-mover>Unir</button>
+            <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+              <label>Vincular a un paquete de ${escapeHtml(r.alumnoNombre)}</label>
+              <select data-vincular-paquete>${opcionesPaquetesAlumno(r.alumnoId, r.paqueteId)}</select>
+              <p class="field-hint">Si esta clase se pagó dentro de un paquete, vincúlala acá para que no se cuente aparte como clase suelta.</p>
+            </div>
+            <button class="btn btn-outline btn-small" type="button" data-guardar-vincular>Vincular</button>
           </div>
           <p class="form-msg"></p>
         </div>`).join("")}
@@ -925,6 +984,10 @@ function construirTarjetaHistorialGrupal(grupo) {
     const msg = fila.querySelector(".form-msg");
     fila.querySelector("[data-toggle-editar]").addEventListener("click", () => { form.hidden = !form.hidden; });
     fila.querySelector("[data-borrar-fila]").addEventListener("click", () => borrarReservaHistorial(r, msg));
+    fila.querySelector("[data-guardar-vincular]").addEventListener("click", () => {
+      const paqueteId = form.querySelector("[data-vincular-paquete]").value;
+      vincularReservaAPaquete(r, paqueteId || null, msg);
+    });
     fila.querySelector("[data-guardar]").addEventListener("click", async () => {
       const modalidad = form.querySelector('[data-campo="modalidad"]').value;
       const montoCobrado = Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0;
@@ -1355,6 +1418,7 @@ document.getElementById("form-paquete").addEventListener("submit", async (e) => 
 function cargarPaquetes() {
   const wrap = document.getElementById("lista-paquetes");
   onSnapshot(collection(db, "paquetes"), (snap) => {
+    paquetesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     if (snap.empty) {
       wrap.innerHTML = '<p class="empty-state">Todavía no activaste ningún paquete.</p>';
       return;
@@ -1578,12 +1642,18 @@ async function calcularRentabilidad(wrap, reservas) {
     const costoCanchaHora = pistasUsadas.length
       ? pistasUsadas.reduce((sum, p) => sum + (p.costoHoraSinLuz || 0), 0) / pistasUsadas.length
       : costoPromedioPistas;
-    const costoPaquete = reservasDelPaquete.length * (costoCanchaHora + costoProfesorHora);
+    const costoCanchaPaquete = reservasDelPaquete.length * costoCanchaHora;
+    const costoProfesorPaquete = reservasDelPaquete.length * costoProfesorHora;
+    const costoPaquete = costoCanchaPaquete + costoProfesorPaquete;
 
     ingresoTotal += paquete.monto || 0;
     costoTotal += costoPaquete;
     detalleIngreso.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")}`, monto: paquete.monto || 0 });
-    detalleCosto.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")} (${reservasDelPaquete.length}/${paquete.clasesTotales} clases dictadas)`, monto: costoPaquete });
+    if (reservasDelPaquete.length > 0) {
+      const etiqueta = `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")} (${reservasDelPaquete.length}/${paquete.clasesTotales} clases dictadas)`;
+      detalleCosto.push({ concepto: `${etiqueta} (cancha)`, monto: costoCanchaPaquete, tipo: "cancha" });
+      detalleCosto.push({ concepto: `${etiqueta} — tu hora de clase`, monto: costoProfesorPaquete, tipo: "hora" });
+    }
   });
 
   // Una clase grupal son N reservas (una por alumno) con el mismo
@@ -1606,11 +1676,11 @@ async function calcularRentabilidad(wrap, reservas) {
       ingresoTotal += r.montoCobrado;
       costoTotal += costoCancha;
       detalleIngreso.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado });
-      detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha });
+      detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha, tipo: "cancha" });
     });
     costoTotal += costoProfesorHora;
     const primera = reservasDeLaSesion[0];
-    detalleCosto.push({ concepto: `${formatearFecha(primera.fecha)} ${primera.hora} — tu hora de clase`, monto: costoProfesorHora });
+    detalleCosto.push({ concepto: `${formatearFecha(primera.fecha)} ${primera.hora} — tu hora de clase`, monto: costoProfesorHora, tipo: "hora" });
   });
 
   const margenTotal = ingresoTotal - costoTotal;
@@ -1641,11 +1711,13 @@ function mostrarDetalleRentabilidad(tipo, cardEl) {
   document.querySelectorAll(`#rentabilidad [data-detalle-rent="${tipo}"]`).forEach((c) => c.classList.add("activa"));
   const { ingreso, costo, ingresoTotal, costoTotal, margenTotal, margenPct } = rentabilidadDetalleCache;
   const tabla = (filas) => filas.length
-    ? `<table class="detalle-table"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>${filas.map((f) => `<tr><td>${f.concepto}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("")}</tbody></table>`
+    ? `<table class="detalle-table"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>${filas.map((f) => `<tr class="${f.tipo ? `fila-${f.tipo}` : ""}"><td>${f.concepto}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("")}</tbody></table>`
     : '<p class="empty-state">Sin datos.</p>';
 
   if (tipo === "ingreso") wrap.innerHTML = tabla(ingreso);
-  else if (tipo === "costo") wrap.innerHTML = tabla(costo);
+  else if (tipo === "costo") {
+    wrap.innerHTML = `<p class="field-hint"><span style="color:#b02a24; font-weight:700;">● Cancha</span> = plata que le pagas al club &nbsp; <span style="color:#157347; font-weight:700;">● Tu hora</span> = tu ingreso por dictar la clase, no un gasto real</p>${tabla(costo)}`;
+  }
   else if (tipo === "margen") {
     wrap.innerHTML = `<p>Ingreso <strong>S/ ${(ingresoTotal || 0).toFixed(0)}</strong> − Costo <strong>S/ ${(costoTotal || 0).toFixed(0)}</strong> = Margen <strong>S/ ${(margenTotal || 0).toFixed(0)}</strong> (${margenPct || 0}% sobre el ingreso).</p>`;
   }
