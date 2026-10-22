@@ -1915,14 +1915,16 @@ function renderSugerenciasGrupo() {
     card.style.cssText = "margin-top:10px; padding-top:10px; border-top:1px solid var(--border);";
     const chips = s.personas.map((i) => {
       const tel = soloDigitos(i.whatsapp);
-      const texto = `Hola ${i.nombre}, tengo más gente interesada en jugar el ${s.dia.toLowerCase()} ${s.franja} — ¿coordinamos ese grupo?`;
+      const otros = s.personas.length - 1;
+      const texto = `Hola ${i.nombre}, tengo ${otros > 0 ? `${otros} persona${otros === 1 ? "" : "s"} más` : "gente"} interesada en jugar el ${s.dia.toLowerCase()} de ${s.franja} hrs — ¿confirmas que sigues interesado? Si me confirman todos, abro el grupo ya.`;
       return tel
         ? `<a class="badge badge-confirmada" target="_blank" rel="noopener" style="text-decoration:none;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">${escapeHtml(i.nombre)}</a>`
         : `<span class="badge badge-confirmada">${escapeHtml(i.nombre)}</span>`;
     }).join(" ");
     card.innerHTML = `
       <p><strong>${escapeHtml(s.dia)} · ${escapeHtml(s.franja)}</strong> — ${s.personas.length} interesados coinciden</p>
-      <p style="margin:6px 0;">${chips}</p>
+      <p class="court-meta" style="margin:4px 0 2px;">Pídeles que confirmen (toca el nombre para abrir WhatsApp):</p>
+      <p style="margin:0 0 6px;">${chips}</p>
       <button class="btn btn-outline btn-small" type="button" data-prefill-turno>Prellenar turno con este horario</button>`;
     card.querySelector("[data-prefill-turno]").addEventListener("click", () => {
       const nombreInput = document.getElementById("tg-nombre");
