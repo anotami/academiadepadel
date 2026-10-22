@@ -571,6 +571,19 @@
                 <option value="sin">Sin género</option>
               </select>
             </div>
+            <div class="field">
+              <label for="com-import-max-mensajes">Máx. mensajes</label>
+              <input type="number" id="com-import-max-mensajes" min="0" placeholder="Ej: 5">
+              <p class="field-hint">Las canchas que promocionan partidos todos los días mandan muchos mensajes — ponle un tope para esconderlas y quedarte con jugadores.</p>
+            </div>
+            <div class="field">
+              <label for="com-import-orden">Ordenar por</label>
+              <select id="com-import-orden">
+                <option value="mensajes-asc">Menos mensajes primero (probable jugador)</option>
+                <option value="mensajes-desc">Más mensajes primero (probable cancha)</option>
+                <option value="nombre">Nombre (A-Z)</option>
+              </select>
+            </div>
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
             <button class="btn btn-outline btn-small" type="button" id="btn-import-marcar-visibles" hidden>Marcar todos los visibles</button>
@@ -637,6 +650,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=49"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=50"></script>
 </body>
 </html>

@@ -3014,7 +3014,11 @@ function parsearChatWhatsApp(texto) {
       telefono: telefono || "",
       categoria: detectarCategoriaEnTexto(blob),
       genero: detectarGeneroEnTexto(blob),
-      muestra: mensajes[0] ? mensajes[0].slice(0, 80) : ""
+      muestra: mensajes[0] ? mensajes[0].slice(0, 80) : "",
+      // Las cuentas de canchas que spamean promos todos los días mandan
+      // decenas/cientos de mensajes; un jugador real suele mandar unos
+      // pocos. Sirve para filtrarlas y priorizar a quién de verdad importa.
+      totalMensajes: mensajes.length
     });
   });
   return candidatos;
@@ -3048,6 +3052,8 @@ document.getElementById("com-import-file").addEventListener("change", async (e) 
     document.getElementById("com-import-filtro-telefono").value = "";
     document.getElementById("com-import-filtro-categoria").value = "";
     document.getElementById("com-import-filtro-genero").value = "";
+    document.getElementById("com-import-max-mensajes").value = "";
+    document.getElementById("com-import-orden").value = "mensajes-asc";
     renderImportTabla();
   } catch (err) {
     msg.textContent = "No se pudo leer el archivo: " + err.message;
@@ -3063,7 +3069,11 @@ function importFilasVisibles() {
   const fTelefono = document.getElementById("com-import-filtro-telefono").value;
   const fCategoria = document.getElementById("com-import-filtro-categoria").value;
   const fGenero = document.getElementById("com-import-filtro-genero").value;
-  return comunidadImportFilas.filter((f) => {
+  const maxMensajesRaw = document.getElementById("com-import-max-mensajes").value;
+  const maxMensajes = maxMensajesRaw === "" ? null : Number(maxMensajesRaw);
+  const orden = document.getElementById("com-import-orden").value;
+
+  const filtradas = comunidadImportFilas.filter((f) => {
     if (buscar && !(f.nombreCompleto || "").toLowerCase().includes(buscar)) return false;
     if (fTelefono === "con" && !f.telefono) return false;
     if (fTelefono === "sin" && f.telefono) return false;
@@ -3071,8 +3081,15 @@ function importFilasVisibles() {
     if (fCategoria === "sin" && f.categoria) return false;
     if (fGenero === "con" && !f.genero) return false;
     if (fGenero === "sin" && f.genero) return false;
+    if (maxMensajes !== null && f.totalMensajes > maxMensajes) return false;
     return true;
   });
+
+  if (orden === "mensajes-desc") filtradas.sort((a, b) => b.totalMensajes - a.totalMensajes);
+  else if (orden === "nombre") filtradas.sort((a, b) => (a.nombreCompleto || "").localeCompare(b.nombreCompleto || "", "es"));
+  else filtradas.sort((a, b) => a.totalMensajes - b.totalMensajes); // "mensajes-asc" (default)
+
+  return filtradas;
 }
 
 function renderImportTabla() {
@@ -3087,11 +3104,12 @@ function renderImportTabla() {
   if (!visibles.length) { wrap.innerHTML = '<p class="empty-state">Nadie calza con esos filtros.</p>'; return; }
 
   wrap.innerHTML = `<div style="overflow-x:auto;"><table class="detalle-table"><thead><tr>
-    <th></th><th>Nombre</th><th>Teléfono</th><th>Categoría</th><th>Género</th><th>Mensaje de muestra</th>
+    <th></th><th>Nombre</th><th>Mensajes</th><th>Teléfono</th><th>Categoría</th><th>Género</th><th>Mensaje de muestra</th>
   </tr></thead><tbody>${visibles.map((f) => `
     <tr data-fila-import="${f.id}">
       <td><input type="checkbox" data-campo="incluir" ${f.incluir ? "checked" : ""}></td>
       <td><input type="text" data-campo="nombreCompleto" value="${escapeHtml(f.nombreCompleto)}" style="width:140px;"></td>
+      <td class="court-meta" style="text-align:center;">${f.totalMensajes}</td>
       <td><input type="text" data-campo="telefono" value="${escapeHtml(f.telefono)}" placeholder="999 111 222" style="width:120px;"></td>
       <td><select data-campo="categoria"><option value="">—</option>${CATEGORIAS_COMUNIDAD.map((c) => `<option value="${c}" ${c === f.categoria ? "selected" : ""}>${c}</option>`).join("")}</select></td>
       <td><select data-campo="genero"><option value="">—</option><option value="Femenino" ${f.genero === "Femenino" ? "selected" : ""}>Femenino</option><option value="Masculino" ${f.genero === "Masculino" ? "selected" : ""}>Masculino</option></select></td>
@@ -3110,7 +3128,8 @@ function renderImportTabla() {
 }
 
 document.getElementById("com-import-buscar").addEventListener("input", renderImportTabla);
-["com-import-filtro-telefono", "com-import-filtro-categoria", "com-import-filtro-genero"].forEach((id) =>
+document.getElementById("com-import-max-mensajes").addEventListener("input", renderImportTabla);
+["com-import-filtro-telefono", "com-import-filtro-categoria", "com-import-filtro-genero", "com-import-orden"].forEach((id) =>
   document.getElementById(id).addEventListener("change", renderImportTabla)
 );
 document.getElementById("btn-import-marcar-visibles").addEventListener("click", () => {
@@ -3141,7 +3160,7 @@ document.getElementById("btn-guardar-import").addEventListener("click", async ()
         horarios: [], interesadoClases: "tal_vez",
         consentimiento: { aceptado: true, fecha: serverTimestamp() },
         origen: "import_whatsapp", activo: true,
-        notas: `Importado de WhatsApp. Mensaje de muestra: "${f.muestra}"`,
+        notas: `Importado de WhatsApp (${f.totalMensajes} mensaje${f.totalMensajes === 1 ? "" : "s"} en el chat). Mensaje de muestra: "${f.muestra}"`,
         creadoEn: serverTimestamp(), actualizadoEn: serverTimestamp()
       }, { merge: true });
       guardados++;
