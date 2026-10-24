@@ -1030,8 +1030,9 @@ function construirTarjetaHistorialGrupal(grupo) {
             </div>
             <button class="btn btn-primary btn-small" type="button" data-guardar>Guardar</button>
             <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
-              <label>Sacar a ${escapeHtml(r.alumnoNombre)} de este grupo y unirlo a otra sesión</label>
+              <label>Sacar a ${escapeHtml(r.alumnoNombre)} de esta clase y unir su reserva a otra clase ya registrada</label>
               <select data-mover-sesion>${opcionesMoverSesion(claveSesion(r))}</select>
+              <p class="field-hint">Es para corregir una clase que quedó mal cargada (pista/fecha/hora equivocada) — las opciones son otras clases que ya registraste, no tus Grupos fijos. Para cambiarla de Grupo fijo (su clase semanal), hacelo en "Alumnos y pagos" → "Tus alumnos" → Editar.</p>
             </div>
             <button class="btn btn-outline btn-small" type="button" data-guardar-mover>Unir</button>
             <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
