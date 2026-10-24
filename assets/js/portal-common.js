@@ -47,7 +47,7 @@ export function formatearFecha(fechaStr) {
 export const TIPOS_CLASE = [
   {
     grupo: "Programas regulares",
-    opciones: ["Junior (8-15 años)", "Adultos — Mujeres", "Adultos — Ejecutivos", "Clase individual"]
+    opciones: ["Junior (8-15 años)", "Adultos — Mujeres", "Adultos — Ejecutivos", "Clase individual", "Clase grupal"]
   },
   {
     grupo: "Clínicas de Un Solo Golpe · Nivel inicial",

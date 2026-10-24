@@ -10,7 +10,7 @@ import {
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad,
   CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD, normalizarTelefonoPeru,
   categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto
-} from "./portal-common.js?v=21";
+} from "./portal-common.js?v=22";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;

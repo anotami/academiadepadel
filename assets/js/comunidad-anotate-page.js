@@ -9,7 +9,7 @@ import {
 import {
   CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD,
   normalizarTelefonoPeru
-} from "./portal-common.js?v=21";
+} from "./portal-common.js?v=22";
 
 const WHATSAPP_NUMBER = "51957085531";
 
