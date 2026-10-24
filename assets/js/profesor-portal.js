@@ -121,6 +121,36 @@ document.getElementById("form-nuevo-alumno").addEventListener("submit", async (e
   }
 });
 
+// Por cada alumno elegido arriba, deja marcar si esta clase se cobra
+// suelta o si sale de un paquete que ya tiene activo -- así "Registrar
+// clase ya dictada" queda en un solo paso, sin tener que acordarse de ir
+// después al historial a vincular (ni de tocar el +/- de Paquetes, que
+// no deja registro de fecha/pista/cancha).
+function renderPaquetesPorAlumnoClaseDictada() {
+  const wrap = document.getElementById("cd-paquetes-alumno");
+  const alumnoIds = Array.from(document.getElementById("cd-alumno").selectedOptions).map((o) => o.value);
+  if (!alumnoIds.length) { wrap.innerHTML = ""; return; }
+  wrap.innerHTML = alumnoIds.map((id) => {
+    const alumno = alumnosCache.find((a) => a.id === id);
+    if (!alumno) return "";
+    const activos = paquetesCache
+      .filter((p) => p.alumnoId === id && p.clasesUsadas < p.clasesTotales)
+      .sort((a, b) => (a.creadoEn?.seconds || 0) - (b.creadoEn?.seconds || 0));
+    if (!activos.length) {
+      return `<p class="field-hint" style="margin:0;"><strong>${escapeHtml(alumno.nombre)}</strong>: cobra esta clase (sin paquete activo).</p>`;
+    }
+    return `
+      <div class="field" style="margin:0;">
+        <label>${escapeHtml(alumno.nombre)}</label>
+        <select data-cd-paquete="${id}">
+          <option value="">Cobra esta clase (suelto)</option>
+          ${activos.map((p) => `<option value="${p.id}">Usa su paquete "${escapeHtml(p.tipo)}" (${p.clasesUsadas}/${p.clasesTotales} usadas)</option>`).join("")}
+        </select>
+      </div>`;
+  }).join("");
+}
+document.getElementById("cd-alumno").addEventListener("change", renderPaquetesPorAlumnoClaseDictada);
+
 document.getElementById("form-clase-dictada").addEventListener("submit", async (e) => {
   e.preventDefault();
   const msg = document.getElementById("clase-dictada-msg");
@@ -144,20 +174,39 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
   // El costo de cancha es por sesión, no por persona — se reparte entre
   // todos los alumnos elegidos para que Rentabilidad no lo cuente varias veces.
   const costoCanchaPorAlumno = costoCanchaTotal === null ? null : costoCanchaTotal / alumnosSeleccionados.length;
+  const paqueteElegidoPorAlumno = {};
+  alumnosSeleccionados.forEach((alumno) => {
+    const select = document.querySelector(`[data-cd-paquete="${alumno.id}"]`);
+    paqueteElegidoPorAlumno[alumno.id] = select ? select.value : "";
+  });
 
   try {
     for (const alumno of alumnosSeleccionados) {
-      await addDoc(collection(db, "reservas"), {
+      const paqueteId = paqueteElegidoPorAlumno[alumno.id];
+      const datos = {
         alumnoId: alumno.id, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
         profesorId: currentUid, profesorNombre: currentPerfil.nombre,
         tipoClase, pistaId, pistaNombre: `${pista.nombre} — ${pista.distrito}`,
         fecha, hora, estado: "confirmada",
-        modalidad, montoCobrado, costoCanchaPagado: costoCanchaPorAlumno,
+        modalidad, costoCanchaPagado: costoCanchaPorAlumno,
         creadoEn: serverTimestamp()
-      });
+      };
+      if (paqueteId) {
+        // Ya está pagada dentro del paquete -- no se cobra aparte.
+        datos.montoCobrado = null;
+        datos.paqueteId = paqueteId;
+        const paquete = paquetesCache.find((p) => p.id === paqueteId);
+        if (paquete) {
+          await updateDoc(doc(db, "paquetes", paqueteId), { clasesUsadas: Math.min(paquete.clasesTotales, (paquete.clasesUsadas || 0) + 1) });
+        }
+      } else {
+        datos.montoCobrado = montoCobrado;
+      }
+      await addDoc(collection(db, "reservas"), datos);
     }
     e.target.reset();
     document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA["Particular"];
+    document.getElementById("cd-paquetes-alumno").innerHTML = "";
     const nombres = alumnosSeleccionados.map((a) => a.nombre).join(", ");
     msg.textContent = `Clase registrada para ${nombres} — ve a "Hoy" → "Clases por registrar" para marcar asistencia y feedback.`;
     msg.className = "form-msg ok";
@@ -1457,6 +1506,7 @@ function cargarPaquetes() {
   const wrap = document.getElementById("lista-paquetes");
   onSnapshot(collection(db, "paquetes"), (snap) => {
     paquetesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderPaquetesPorAlumnoClaseDictada();
     if (snap.empty) {
       wrap.innerHTML = '<p class="empty-state">Todavía no activaste ningún paquete.</p>';
       return;
@@ -1517,6 +1567,17 @@ function construirFilaPaquete(p) {
     catch (err) { msg.textContent = "No se pudo actualizar: " + err.message; msg.className = "form-msg error"; }
   });
   fila.querySelector("[data-mas]")?.addEventListener("click", async () => {
+    // Este botón SOLO mueve el contador -- no crea una clase en el
+    // historial (sin fecha, sin pista, sin costo de cancha). Para una
+    // clase recién dictada el camino correcto es "Registrar clase ya
+    // dictada" (pestaña Alumnos y pagos), eligiendo ahí mismo el paquete
+    // -- así queda un solo paso y no hay que acordarse de nada más.
+    const seguro = confirm(
+      `Esto solo mueve el contador de ${p.alumnoNombre} a ${p.clasesUsadas + 1}/${p.clasesTotales} — no registra la clase (sin fecha, pista ni costo de cancha).\n\n` +
+      `Si es una clase que acabas de dictar, cancela esto y usá "Registrar clase ya dictada" en la pestaña Alumnos y pagos, eligiendo el paquete ahí mismo.\n\n` +
+      `¿Seguro que querés ajustar solo el contador?`
+    );
+    if (!seguro) return;
     try { await updateDoc(doc(db, "paquetes", p.id), { clasesUsadas: Math.min(p.clasesTotales, p.clasesUsadas + 1) }); }
     catch (err) { msg.textContent = "No se pudo actualizar: " + err.message; msg.className = "form-msg error"; }
   });

@@ -215,6 +215,7 @@
               <select id="cd-alumno" required multiple size="4"></select>
               <p class="field-hint">Si fue clase grupal, selecciona varios (Ctrl/Cmd + clic) — se crea una clase por cada uno y el costo de cancha se reparte entre todos.</p>
             </div>
+            <div class="field-full" id="cd-paquetes-alumno" style="display:flex; flex-direction:column; gap:10px;"></div>
             <div class="field field-full">
               <label for="cd-tipo">Tipo de clase</label>
               <select id="cd-tipo" required></select>
@@ -249,7 +250,7 @@
             </div>
           </form>
           <button class="btn btn-primary btn-small" type="submit" form="form-clase-dictada" style="margin-top:10px;">Registrar clase</button>
-          <p class="field-hint">El monto cobrado se sugiere solo según tu tabla de precios ("Clase suelta") — puedes cambiarlo libremente. Queda como clase confirmada — ve a "Hoy" → "Clases por registrar" para marcar asistencia y dejar feedback.</p>
+          <p class="field-hint">El monto cobrado se sugiere solo según tu tabla de precios ("Clase suelta") — puedes cambiarlo libremente, pero si un alumno usó una clase de su paquete elegilo arriba en vez de editar el monto: no se cobra aparte y el contador de su paquete sube solo. Queda como clase confirmada — ve a "Hoy" → "Clases por registrar" para marcar asistencia y dejar feedback.</p>
           <p class="form-msg" id="clase-dictada-msg"></p>
         </div>
 
@@ -659,6 +660,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=51"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=52"></script>
 </body>
 </html>
