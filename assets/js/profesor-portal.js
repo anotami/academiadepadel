@@ -1704,7 +1704,7 @@ function mostrarDetalleMetrica(tipo, cardEl) {
   wrap.hidden = false;
 }
 
-let rentabilidadDetalleCache = { ingreso: [], costo: [] };
+let rentabilidadDetalleCache = { ingreso: [], costo: [], cobrado: [] };
 
 async function calcularRentabilidad(wrap, reservas) {
   const paquetesSnap = await getDocs(collection(db, "paquetes"));
@@ -1716,7 +1716,7 @@ async function calcularRentabilidad(wrap, reservas) {
 
   if (paquetesPagados.length === 0 && reservasSueltas.length === 0) {
     wrap.innerHTML = '<p class="empty-state">Todavía no hay paquetes pagados ni clases sueltas con monto cargado para calcular rentabilidad.</p>';
-    rentabilidadDetalleCache = { ingreso: [], costo: [] };
+    rentabilidadDetalleCache = { ingreso: [], costo: [], cobrado: [] };
     return;
   }
 
@@ -1727,18 +1727,36 @@ async function calcularRentabilidad(wrap, reservas) {
 
   let ingresoTotal = 0;
   let costoTotal = 0;
+  let cobradoEfectivoTotal = 0;
   const detalleIngreso = [];
   const detalleCosto = [];
+  const detalleCobrado = [];
 
-  // Ingreso: el paquete se cobra una sola vez por su monto completo,
-  // sin importar cuántas de sus clases ya se dictaron.
+  // Ingreso devengado: la plata de un paquete se reconoce EN PROPORCIÓN a
+  // las clases que ya se dictaron, no toda junta el día que se paga -- si
+  // cobraste un paquete de 4 y solo diste 1, hoy solo ganaste 1/4 de eso.
+  // El resto no es ingreso todavía, aunque ya lo tengas en la mano (eso se
+  // ve aparte, en "Cobrado en efectivo").
   paquetesPagados.forEach((paquete) => {
-    ingresoTotal += paquete.monto || 0;
-    detalleIngreso.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")}`, monto: paquete.monto || 0 });
+    const monto = paquete.monto || 0;
+    cobradoEfectivoTotal += monto;
+    detalleCobrado.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")}`, monto });
+
+    const clasesTotales = paquete.clasesTotales || 0;
+    const clasesUsadas = Math.min(paquete.clasesUsadas || 0, clasesTotales);
+    const devengado = clasesTotales > 0 ? (monto / clasesTotales) * clasesUsadas : 0;
+    ingresoTotal += devengado;
+    if (devengado > 0) {
+      detalleIngreso.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")} (${clasesUsadas}/${clasesTotales} dictadas)`, monto: devengado });
+    }
   });
+  // Las clases sueltas se cobran la misma sesión en que se dictan, así que
+  // ahí "devengado" y "cobrado en efectivo" ya son lo mismo.
   reservasSueltas.forEach((r) => {
     ingresoTotal += r.montoCobrado;
+    cobradoEfectivoTotal += r.montoCobrado;
     detalleIngreso.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado });
+    detalleCobrado.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado });
   });
 
   // Costo: TODAS las clases confirmadas, vengan de un paquete o sueltas,
@@ -1771,15 +1789,18 @@ async function calcularRentabilidad(wrap, reservas) {
   const margenTotal = ingresoTotal - costoTotal;
   const margenPct = ingresoTotal ? Math.round((margenTotal / ingresoTotal) * 100) : 0;
   const sinDatos = costoPromedioPistas === 0 && costoProfesorHora === 0 && !confirmadas.some((r) => typeof r.costoCanchaPagado === "number");
+  const pendienteDeDictar = cobradoEfectivoTotal - ingresoTotal;
 
-  rentabilidadDetalleCache = { ingreso: detalleIngreso, costo: detalleCosto, ingresoTotal, costoTotal, margenTotal, margenPct };
+  rentabilidadDetalleCache = { ingreso: detalleIngreso, costo: detalleCosto, cobrado: detalleCobrado, ingresoTotal, costoTotal, cobradoEfectivoTotal, margenTotal, margenPct };
 
   wrap.innerHTML = `
-    <div class="card clickable" data-detalle-rent="ingreso"><div class="card-icon">💵</div><h3>S/ ${ingresoTotal.toFixed(0)}</h3><p>Ingreso (paquetes pagados + clases sueltas)</p></div>
+    <div class="card clickable" data-detalle-rent="ingreso"><div class="card-icon">💵</div><h3>S/ ${ingresoTotal.toFixed(0)}</h3><p>Ingreso devengado (solo clases ya dictadas)</p></div>
     <div class="card clickable" data-detalle-rent="costo"><div class="card-icon">🧾</div><h3>S/ ${costoTotal.toFixed(0)}</h3><p>Costo estimado (cancha + tu hora)</p></div>
     <div class="card clickable" data-detalle-rent="margen"><div class="card-icon">${margenTotal >= 0 ? "📈" : "📉"}</div><h3>S/ ${margenTotal.toFixed(0)}</h3><p>Margen neto</p></div>
     <div class="card clickable" data-detalle-rent="margen"><div class="card-icon">%</div><h3>${margenPct}%</h3><p>Margen sobre ingreso</p></div>
+    <div class="card clickable" data-detalle-rent="cobrado"><div class="card-icon">💰</div><h3>S/ ${cobradoEfectivoTotal.toFixed(0)}</h3><p>Cobrado en efectivo (incluye paquetes con clases pendientes)</p></div>
     ${sinDatos ? '<p class="empty-state" style="grid-column:1/-1;">⚠ No cargaste costo de cancha ni tu costo por hora todavía, así que el costo estimado es S/0 y no refleja la realidad. Cárgalos en pistas.html y en "Mis datos" (o el costo de cancha específico al registrar cada clase suelta).</p>' : ""}
+    ${pendienteDeDictar > 0.5 ? `<p class="field-hint" style="grid-column:1/-1;">De lo cobrado, S/ ${pendienteDeDictar.toFixed(0)} todavía son clases de paquete sin dictar — no cuentan como ingreso hasta que las des.</p>` : ""}
   `;
   wrap.querySelectorAll("[data-detalle-rent]").forEach((card) => {
     card.addEventListener("click", () => mostrarDetalleRentabilidad(card.dataset.detalleRent, card));
@@ -1794,17 +1815,22 @@ function mostrarDetalleRentabilidad(tipo, cardEl) {
   if (yaAbierto) { wrap.hidden = true; wrap.dataset.tipo = ""; return; }
   wrap.dataset.tipo = tipo;
   document.querySelectorAll(`#rentabilidad [data-detalle-rent="${tipo}"]`).forEach((c) => c.classList.add("activa"));
-  const { ingreso, costo, ingresoTotal, costoTotal, margenTotal, margenPct } = rentabilidadDetalleCache;
+  const { ingreso, costo, cobrado, ingresoTotal, costoTotal, cobradoEfectivoTotal, margenTotal, margenPct } = rentabilidadDetalleCache;
   const tabla = (filas) => filas.length
     ? `<table class="detalle-table"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>${filas.map((f) => `<tr class="${f.tipo ? `fila-${f.tipo}` : ""}"><td>${f.concepto}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("")}</tbody></table>`
     : '<p class="empty-state">Sin datos.</p>';
 
-  if (tipo === "ingreso") wrap.innerHTML = tabla(ingreso);
+  if (tipo === "ingreso") {
+    wrap.innerHTML = `<p class="field-hint">Solo lo que ya ganaste por clases realmente dictadas. Un paquete pagado pero sin empezar no suma acá todavía.</p>${tabla(ingreso)}`;
+  }
   else if (tipo === "costo") {
     wrap.innerHTML = `<p class="field-hint"><span style="color:#b02a24; font-weight:700;">● Cancha</span> = plata que le pagas al club &nbsp; <span style="color:#157347; font-weight:700;">● Tu hora</span> = tu ingreso por dictar la clase, no un gasto real</p>${tabla(costo)}`;
   }
   else if (tipo === "margen") {
-    wrap.innerHTML = `<p>Ingreso <strong>S/ ${(ingresoTotal || 0).toFixed(0)}</strong> − Costo <strong>S/ ${(costoTotal || 0).toFixed(0)}</strong> = Margen <strong>S/ ${(margenTotal || 0).toFixed(0)}</strong> (${margenPct || 0}% sobre el ingreso).</p>`;
+    wrap.innerHTML = `<p>Ingreso devengado <strong>S/ ${(ingresoTotal || 0).toFixed(0)}</strong> − Costo <strong>S/ ${(costoTotal || 0).toFixed(0)}</strong> = Margen <strong>S/ ${(margenTotal || 0).toFixed(0)}</strong> (${margenPct || 0}% sobre el ingreso devengado).</p>`;
+  }
+  else if (tipo === "cobrado") {
+    wrap.innerHTML = `<p class="field-hint">Plata que ya tienes en la mano, incluidos paquetes con clases todavía por dictar (S/ ${((cobradoEfectivoTotal || 0) - (ingresoTotal || 0)).toFixed(0)} de eso es a futuro).</p>${tabla(cobrado)}`;
   }
   wrap.hidden = false;
 }
