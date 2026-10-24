@@ -1172,6 +1172,10 @@ function cargarGrupos() {
     gruposCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
     renderGrupos();
+    // "Tus alumnos" se carga una sola vez al entrar al panel -- si creas
+    // un grupo nuevo sin recargar la página, su select "Grupo" se queda
+    // con la lista vieja. Lo refresca cada vez que cambian los grupos.
+    cargarAlumnos();
   }, (err) => mostrarErrorConsulta(document.getElementById("lista-grupos"), err));
 }
 
