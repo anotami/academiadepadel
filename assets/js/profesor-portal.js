@@ -398,6 +398,7 @@ function cargarConfirmadas(uid) {
       agruparPorSesion(porRegistrar).forEach((grupo) => wrapPorRegistrar.appendChild(
         grupo.length > 1 ? construirTarjetaRegistroGrupal(grupo) : construirTarjetaRegistro(grupo[0])
       ));
+      activarPausaEnvioMasivo(wrapPorRegistrar);
     }
 
     wrapFuturas.innerHTML = "";
@@ -407,6 +408,7 @@ function cargarConfirmadas(uid) {
       agruparPorSesion(futuras).forEach((grupo) => wrapFuturas.appendChild(
         grupo.length > 1 ? construirTarjetaFuturaGrupal(grupo) : construirTarjetaFutura(grupo[0])
       ));
+      activarPausaEnvioMasivo(wrapFuturas);
     }
   }, (err) => {
     mostrarErrorConsulta(wrapFuturas, err);
@@ -554,6 +556,52 @@ function construirTarjetaFuturaGrupal(grupo) {
   });
 
   return card;
+}
+
+// ---- Pausa anti-ráfaga de WhatsApp ----
+// Variar el texto (elegirMensaje) no alcanza si de todos modos se abren
+// muchos chats prellenados seguidos, a números distintos, en pocos
+// segundos — eso es justo el patrón que WhatsApp detecta como
+// "comportamiento automatizado" y puede terminar en bloqueo de cuenta.
+// Esto no controla lo que pasa dentro de WhatsApp (ahí el envío sigue
+// siendo 100% manual), pero sí evita que el panel deje abrir el
+// siguiente chat de la misma lista de inmediato: tras cada clic, los
+// demás botones de WhatsApp de ese bloque quedan bloqueados un rato
+// (con duración variable, para no ser tampoco un patrón fijo).
+function activarPausaEnvioMasivo(contenedor) {
+  if (!contenedor) return;
+  const enlaces = Array.from(contenedor.querySelectorAll("a.btn-whatsapp, a.badge[href*='wa.me'], [data-abrir-wa]"));
+  if (enlaces.length < 2) return;
+  enlaces.forEach((el) => {
+    el.addEventListener("click", () => {
+      if (el.dataset.pausaActiva === "1") return;
+      const espera = Math.floor(18 + Math.random() * 22); // 18–40s, nunca el mismo número
+      const otros = enlaces.filter((o) => o !== el && o.dataset.pausaActiva !== "1");
+      otros.forEach((o) => {
+        o.dataset.pausaActiva = "1";
+        o.dataset.textoOriginal = o.dataset.textoOriginal || o.innerHTML;
+        o.style.pointerEvents = "none";
+        o.style.opacity = "0.45";
+      });
+      let restante = espera;
+      const pintar = () => otros.forEach((o) => { o.innerHTML = `Espera ${restante}s`; });
+      pintar();
+      const intervalo = setInterval(() => {
+        restante -= 1;
+        if (restante <= 0) {
+          clearInterval(intervalo);
+          otros.forEach((o) => {
+            o.dataset.pausaActiva = "";
+            o.style.pointerEvents = "";
+            o.style.opacity = "";
+            o.innerHTML = o.dataset.textoOriginal;
+          });
+        } else {
+          pintar();
+        }
+      }, 1000);
+    });
+  });
 }
 
 function linkPedirOpinion(nombre, telefono) {
@@ -1506,6 +1554,7 @@ async function cargarAlumnos() {
     });
     wrap.appendChild(card);
   });
+  activarPausaEnvioMasivo(wrap);
   renderCrucePersonas();
   renderEstadisticas();
 }
@@ -2007,6 +2056,7 @@ function renderLeadsJornadaGratis(wrap, reservas, paquetes) {
         ${link}
       </div>`;
   }).join("");
+  activarPausaEnvioMasivo(wrap);
 }
 
 function renderRiesgoAbandono(wrap, reservas) {
@@ -2043,6 +2093,7 @@ function renderRiesgoAbandono(wrap, reservas) {
         ${link}
       </div>`;
   }).join("");
+  activarPausaEnvioMasivo(wrap);
 }
 
 function renderPorRenovar(wrap, paquetes) {
@@ -2072,6 +2123,7 @@ function renderPorRenovar(wrap, paquetes) {
         ${link}
       </div>`;
   }).join("");
+  activarPausaEnvioMasivo(wrap);
 }
 
 function renderCobrosPendientes(wrap, paquetes) {
@@ -2099,6 +2151,7 @@ function renderCobrosPendientes(wrap, paquetes) {
         ${link}
       </div>`;
   }).join("");
+  activarPausaEnvioMasivo(wrap);
 }
 
 // ---- Lista de espera ----
@@ -2129,6 +2182,7 @@ function cargarEsperas() {
           ${link}
         </div>`;
     }).join("");
+    activarPausaEnvioMasivo(wrap);
   }, (err) => mostrarErrorConsulta(wrap, err));
 }
 
@@ -2429,6 +2483,7 @@ function renderSugerenciasGrupo() {
     });
     lista.appendChild(card);
   });
+  activarPausaEnvioMasivo(lista);
 }
 
 function renderInteresados() {
@@ -2576,6 +2631,7 @@ function renderInteresados() {
     });
     wrap.appendChild(card);
   });
+  activarPausaEnvioMasivo(wrap);
   renderCrucePersonas();
 }
 
@@ -3119,6 +3175,7 @@ function renderFaltaElCuartoCandidatos() {
     }
     wrap.appendChild(fila);
   });
+  activarPausaEnvioMasivo(wrap);
 }
 
 document.getElementById("btn-copiar-mensaje-cuarto").addEventListener("click", async () => {
@@ -3193,6 +3250,7 @@ function renderComunidadLeads() {
         : '<p class="court-meta">Sin teléfono.</p>'}`;
     wrap.appendChild(card);
   });
+  activarPausaEnvioMasivo(wrap);
 }
 
 // ---- Importar desde WhatsApp ----
