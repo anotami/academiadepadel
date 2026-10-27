@@ -101,21 +101,35 @@ function cargarJugar() {
 function cargarProgreso(uid) {
   const wrap = document.getElementById("mi-progreso");
   onSnapshot(
-    query(collection(db, "reservas"), where("alumnoId", "==", uid), where("registrada", "==", true)),
+    query(collection(db, "reservas"), where("alumnoId", "==", uid)),
     (snap) => {
-      if (snap.empty) {
-        wrap.innerHTML = '<p class="empty-state">Todavía no hay sesiones registradas por tu profesor.</p>';
+      const sesiones = snap.docs
+        .map((d) => d.data())
+        .filter((r) => r.registrada || r.encuesta)
+        .sort((a, b) => a.fecha.localeCompare(b.fecha));
+      if (!sesiones.length) {
+        wrap.innerHTML = '<p class="empty-state">Todavía no hay sesiones registradas.</p>';
         return;
       }
-      const sesiones = snap.docs.map((d) => d.data()).sort((a, b) => a.fecha.localeCompare(b.fecha));
       wrap.innerHTML = sesiones.map((r) => {
         const f = r.feedback || {};
+        const en = r.encuesta || null;
         return `
           <div class="request-card">
             <div class="request-info">
-              <p class="request-title">${formatearFecha(r.fecha)} · <span class="badge badge-confirmada">${f.nivelTrabajado || "—"}</span></p>
-              ${f.comentario ? `<p>${f.comentario}</p>` : ""}
-              ${f.siguienteObjetivo ? `<p><em>Próximo objetivo: ${f.siguienteObjetivo}</em></p>` : ""}
+              <p class="request-title">${formatearFecha(r.fecha)}${f.nivelTrabajado ? ` · <span class="badge badge-confirmada">${f.nivelTrabajado}</span>` : ""}</p>
+              ${f.comentario ? `<p>${escapeHtml(f.comentario)}</p>` : ""}
+              ${f.siguienteObjetivo ? `<p><em>Próximo objetivo: ${escapeHtml(f.siguienteObjetivo)}</em></p>` : ""}
+              ${en ? `
+                <div class="callout" style="margin-top:8px;">
+                  <span class="callout-icon">🗒️</span>
+                  <p>
+                    <strong>Lo que tú contaste:</strong> sensación ${en.sentimiento}/10 · esfuerzo ${en.esfuerzo}/10
+                    ${en.trabajado ? `<br>Trabajaron: ${escapeHtml(en.trabajado)}` : ""}
+                    ${en.comentario ? `<br>${escapeHtml(en.comentario)}` : ""}
+                    ${en.mejorar ? `<br><em>Quieres mejorar: ${escapeHtml(en.mejorar)}</em>` : ""}
+                  </p>
+                </div>` : ""}
             </div>
           </div>`;
       }).join("");
@@ -377,6 +391,7 @@ function cargarReservas(uid) {
           ${r.nota ? `<p>"${r.nota}"</p>` : ""}
           ${bloqueFeedback(r)}
           ${bloqueNps(r)}
+          ${bloqueEncuesta(r)}
         </div>
         <div class="request-actions">
           <span class="badge badge-${r.estado === "cancelada" ? "rechazada" : r.estado}">${r.estado}</span>
@@ -385,6 +400,7 @@ function cargarReservas(uid) {
       if (puedeCancelar) {
         card.querySelector("[data-cancelar]").addEventListener("click", () => cancelarReserva(r));
       }
+      wireEncuesta(card, r);
       wrap.appendChild(card);
     });
   }, (err) => mostrarErrorConsulta(wrap, err));
@@ -430,6 +446,74 @@ function bloqueNps(r) {
       <p style="margin-bottom:6px;"><strong>¿Qué tan probable es que recomiendes tu clase de hoy?</strong> (0 = nada, 10 = totalmente)</p>
       <div>${botones}</div>
     </div>`;
+}
+
+// ---- Encuesta post-clase (autorreporte del alumno) ----
+function bloqueEncuesta(r) {
+  if (r.estado !== "confirmada" || !fechaYaPaso(r.fecha) || r.encuesta) return "";
+  const escala = (campo, max) => Array.from({ length: max }, (_, i) => i + 1)
+    .map((n) => `<button type="button" class="btn btn-outline btn-small" data-escala="${campo}" data-valor="${n}" style="padding:6px 10px; margin:2px;">${n}</button>`)
+    .join("");
+  return `
+    <div class="callout" data-encuesta-form style="margin:10px 0 0; flex-direction:column; align-items:stretch;">
+      <p style="margin-bottom:6px;"><strong>¿Cómo te fue en esta clase?</strong> Le ayuda a tu profesor a preparar la siguiente.</p>
+      <p class="field-hint" style="margin:6px 0 2px;">¿Cómo te sentiste? (1 = mal, 10 = excelente)</p>
+      <div>${escala("sentimiento", 10)}</div>
+      <p class="field-hint" style="margin:10px 0 2px;">¿Qué tan duro sentiste el esfuerzo? (1 = muy suave, 10 = al máximo)</p>
+      <div>${escala("esfuerzo", 10)}</div>
+      <div class="field" style="margin-top:10px;">
+        <label>¿Qué trabajaron en la clase?</label>
+        <input type="text" data-campo-encuesta="trabajado" placeholder="Ej: volea, saque, defensa de pared">
+      </div>
+      <div class="field">
+        <label>¿Algo más que quieras contar?</label>
+        <input type="text" data-campo-encuesta="comentario" placeholder="Opcional">
+      </div>
+      <div class="field">
+        <label>¿Qué te gustaría mejorar la próxima clase?</label>
+        <input type="text" data-campo-encuesta="mejorar" placeholder="Opcional">
+      </div>
+      <button class="btn btn-primary btn-small" type="button" data-enviar-encuesta style="margin-top:8px; align-self:flex-start;">Enviar</button>
+      <p class="form-msg" data-msg-encuesta></p>
+    </div>`;
+}
+
+function wireEncuesta(card, r) {
+  const form = card.querySelector("[data-encuesta-form]");
+  if (!form) return;
+  const seleccion = {};
+  form.querySelectorAll("[data-escala]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const campo = btn.dataset.escala;
+      seleccion[campo] = Number(btn.dataset.valor);
+      form.querySelectorAll(`[data-escala="${campo}"]`).forEach((b) => {
+        b.classList.toggle("btn-primary", b === btn);
+        b.classList.toggle("btn-outline", b !== btn);
+      });
+    });
+  });
+  const msg = form.querySelector("[data-msg-encuesta]");
+  form.querySelector("[data-enviar-encuesta]").addEventListener("click", async () => {
+    if (!seleccion.sentimiento || !seleccion.esfuerzo) {
+      msg.textContent = "Marca cómo te sentiste y el esfuerzo antes de enviar.";
+      msg.className = "form-msg error";
+      return;
+    }
+    const trabajado = form.querySelector('[data-campo-encuesta="trabajado"]').value.trim();
+    const comentario = form.querySelector('[data-campo-encuesta="comentario"]').value.trim();
+    const mejorar = form.querySelector('[data-campo-encuesta="mejorar"]').value.trim();
+    try {
+      await updateDoc(doc(db, "reservas", r.id), {
+        encuesta: { sentimiento: seleccion.sentimiento, esfuerzo: seleccion.esfuerzo, trabajado, comentario, mejorar },
+        encuestaEn: serverTimestamp()
+      });
+      msg.textContent = "¡Gracias! Tu profesor ya puede verlo.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo enviar: " + err.message;
+      msg.className = "form-msg error";
+    }
+  });
 }
 
 function bloqueFeedback(r) {

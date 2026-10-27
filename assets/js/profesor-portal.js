@@ -556,6 +556,27 @@ function construirTarjetaFuturaGrupal(grupo) {
   return card;
 }
 
+// Varias plantillas para que el mensaje no se vea igual cada vez que se
+// manda — distinta redacción y emojis cada vez, nunca el mismo texto.
+const PLANTILLAS_PEDIR_OPINION = [
+  (n) => `Hola ${n}, ¿cómo te fue en la clase de hoy? Cuéntame en tu portal (academiadepadel.pe) cómo te sentiste, me ayuda un montón para planear la siguiente 🎾`,
+  (n) => `${n}, antes de que se te pase: entra a tu portal y déjame tu feedback de la clase de hoy, así ajusto lo que sigue 👍`,
+  (n) => `Hola ${n}! Un favor rápido: cuéntame en tu portal qué tal la clase de hoy, son dos minutos nomás 🙌`,
+  (n) => `${n}, ¿tienes un minuto? Me ayudaría mucho que me cuentes en tu portal cómo sentiste la clase de hoy.`,
+  (n) => `Hola ${n}, me interesa tu opinión sobre la clase de hoy — entra a tu portal y déjame unas líneas cuando puedas 🎾`
+];
+function mensajePedirOpinionAleatorio(nombre) {
+  const plantilla = PLANTILLAS_PEDIR_OPINION[Math.floor(Math.random() * PLANTILLAS_PEDIR_OPINION.length)];
+  return plantilla(nombre);
+}
+function linkPedirOpinion(nombre, telefono) {
+  const tel = soloDigitos(telefono);
+  if (!tel) return "";
+  const texto = mensajePedirOpinionAleatorio(nombre);
+  return `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:10px;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">Pedir su opinión por WhatsApp</a>
+    <p class="field-hint" style="margin-top:4px;">Mándalo en otro momento, no siempre apenas termine la clase — así no se nota como un mensaje automático.</p>`;
+}
+
 function construirTarjetaRegistro(r) {
   const card = document.createElement("div");
   card.className = "request-card";
@@ -581,6 +602,7 @@ function construirTarjetaRegistro(r) {
         </div>
       </div>
       <button class="btn btn-primary btn-small" type="button" style="margin-top:10px;">Guardar registro</button>
+      ${linkPedirOpinion(r.alumnoNombre, r.alumnoTelefono)}
       <p class="form-msg"></p>
     </div>`;
 
@@ -638,6 +660,7 @@ function construirTarjetaRegistroGrupal(grupo) {
             </div>
           </div>
           <button class="btn btn-primary btn-small" type="button" data-guardar style="margin-top:10px;">Guardar registro de ${escapeHtml(r.alumnoNombre)}</button>
+          ${linkPedirOpinion(r.alumnoNombre, r.alumnoTelefono)}
           <p class="form-msg"></p>
         </div>`).join("")}
     </div>`;
@@ -1337,11 +1360,14 @@ async function cargarAlumnos() {
   // Qué tipos de clase tomó cada alumno hasta ahora — un alumno no queda
   // encasillado en un solo programa, cada reserva elige el suyo.
   const tiposPorAlumno = {};
+  const encuestasPorAlumno = {};
   snapReservas.docs.forEach((d) => {
     const r = d.data();
-    if (!r.alumnoId || !r.tipoClase) return;
-    (tiposPorAlumno[r.alumnoId] ||= new Set()).add(r.tipoClase);
+    if (!r.alumnoId) return;
+    if (r.tipoClase) (tiposPorAlumno[r.alumnoId] ||= new Set()).add(r.tipoClase);
+    if (r.encuesta) (encuestasPorAlumno[r.alumnoId] ||= []).push({ fecha: r.fecha, ...r.encuesta });
   });
+  Object.values(encuestasPorAlumno).forEach((lista) => lista.sort((a, b) => b.fecha.localeCompare(a.fecha)));
 
   const opcionesAlumno = alumnosCache.map((a) => `<option value="${a.id}">${a.nombre}</option>`).join("");
   document.getElementById("pq-alumno").innerHTML = opcionesAlumno;
@@ -1357,6 +1383,7 @@ async function cargarAlumnos() {
       .map((x) => `<span class="badge badge-confirmada">${x.dia} · ${x.franja}</span>`)
       .join(" ");
     const clasesTomadas = Array.from(tiposPorAlumno[a.id] || []);
+    const encuestas = encuestasPorAlumno[a.id] || [];
     const card = document.createElement("div");
     card.className = "court-card";
     const instagramHandle = escapeHtml((a.instagram || "").replace(/^@/, ""));
@@ -1385,6 +1412,18 @@ async function cargarAlumnos() {
       <p>${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
       <button class="btn btn-outline btn-small" type="button" data-toggle-editar style="margin-top:8px;">Editar</button>
       ${linkPedirDisponibilidad}
+      ${encuestas.length ? `<button class="btn btn-outline btn-small" type="button" data-toggle-evolucion style="margin-top:8px; margin-left:8px;">Ver evolución (${encuestas.length})</button>` : ""}
+      <div data-evolucion-panel hidden style="margin-top:10px;">
+        ${encuestas.map((en) => `
+          <div class="request-card" style="margin-bottom:8px;">
+            <div class="request-info">
+              <p class="request-title">${formatearFecha(en.fecha)} · Sensación ${en.sentimiento}/10 · Esfuerzo ${en.esfuerzo}/10</p>
+              ${en.trabajado ? `<p>Trabajó: ${escapeHtml(en.trabajado)}</p>` : ""}
+              ${en.comentario ? `<p>${escapeHtml(en.comentario)}</p>` : ""}
+              ${en.mejorar ? `<p><em>Quiere mejorar: ${escapeHtml(en.mejorar)}</em></p>` : ""}
+            </div>
+          </div>`).join("")}
+      </div>
       <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
         <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${a.nombre || ""}"></div>
         <div class="field"><label>Teléfono</label><input type="tel" data-campo="telefono" value="${a.telefono || ""}"></div>
@@ -1418,6 +1457,10 @@ async function cargarAlumnos() {
     const form = card.querySelector("[data-editar-form]");
     const msg = card.querySelector(".form-msg");
     let dispGridAlumno = null;
+    card.querySelector("[data-toggle-evolucion]")?.addEventListener("click", () => {
+      const panel = card.querySelector("[data-evolucion-panel]");
+      panel.hidden = !panel.hidden;
+    });
     card.querySelector("[data-copiar-pedir-disp]")?.addEventListener("click", async (e) => {
       const btn = e.target;
       const textoOriginal = btn.textContent;
