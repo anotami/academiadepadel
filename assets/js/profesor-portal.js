@@ -9,8 +9,8 @@ import {
   DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad,
   CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD, normalizarTelefonoPeru,
-  categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto
-} from "./portal-common.js?v=22";
+  categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto, elegirMensaje
+} from "./portal-common.js?v=23";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -556,25 +556,17 @@ function construirTarjetaFuturaGrupal(grupo) {
   return card;
 }
 
-// Varias plantillas para que el mensaje no se vea igual cada vez que se
-// manda — distinta redacción y emojis cada vez, nunca el mismo texto.
-const PLANTILLAS_PEDIR_OPINION = [
-  (n) => `Hola ${n}, ¿cómo te fue en la clase de hoy? Cuéntame en tu portal (academiadepadel.pe) cómo te sentiste, me ayuda un montón para planear la siguiente 🎾`,
-  (n) => `${n}, antes de que se te pase: entra a tu portal y déjame tu feedback de la clase de hoy, así ajusto lo que sigue 👍`,
-  (n) => `Hola ${n}! Un favor rápido: cuéntame en tu portal qué tal la clase de hoy, son dos minutos nomás 🙌`,
-  (n) => `${n}, ¿tienes un minuto? Me ayudaría mucho que me cuentes en tu portal cómo sentiste la clase de hoy.`,
-  (n) => `Hola ${n}, me interesa tu opinión sobre la clase de hoy — entra a tu portal y déjame unas líneas cuando puedas 🎾`
-];
-function mensajePedirOpinionAleatorio(nombre) {
-  const plantilla = PLANTILLAS_PEDIR_OPINION[Math.floor(Math.random() * PLANTILLAS_PEDIR_OPINION.length)];
-  return plantilla(nombre);
-}
 function linkPedirOpinion(nombre, telefono) {
   const tel = soloDigitos(telefono);
   if (!tel) return "";
-  const texto = mensajePedirOpinionAleatorio(nombre);
-  return `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:10px;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">Pedir su opinión por WhatsApp</a>
-    <p class="field-hint" style="margin-top:4px;">Mándalo en otro momento, no siempre apenas termine la clase — así no se nota como un mensaje automático.</p>`;
+  const texto = elegirMensaje([
+    `Hola ${nombre}, ¿cómo te fue en la clase de hoy? Cuéntame en tu portal (academiadepadel.pe) cómo te sentiste, me ayuda un montón para planear la siguiente 🎾`,
+    `${nombre}, antes de que se te pase: entra a tu portal y déjame tu feedback de la clase de hoy, así ajusto lo que sigue 👍`,
+    `Hola ${nombre}! Un favor rápido: cuéntame en tu portal qué tal la clase de hoy, son dos minutos nomás 🙌`,
+    `${nombre}, ¿tienes un minuto? Me ayudaría mucho que me cuentes en tu portal cómo sentiste la clase de hoy.`,
+    `Hola ${nombre}, me interesa tu opinión sobre la clase de hoy — entra a tu portal y déjame unas líneas cuando puedas 🎾`
+  ]);
+  return `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:10px;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">Pedir su opinión por WhatsApp</a>`;
 }
 
 function construirTarjetaRegistro(r) {
@@ -1391,7 +1383,12 @@ async function cargarAlumnos() {
       ? `<a href="https://instagram.com/${instagramHandle}" target="_blank" rel="noopener">@${instagramHandle}</a>`
       : "";
     const telAlumno = soloDigitos(a.whatsapp || a.telefono);
-    const mensajePedirDisponibilidad = `Hola ${a.nombre}, ¿me actualizas tu disponibilidad acá? https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`;
+    const mensajePedirDisponibilidad = elegirMensaje([
+      `Hola ${a.nombre}, ¿me actualizas tu disponibilidad acá? https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`,
+      `${a.nombre}, cuando tengas un momento actualiza tu disponibilidad por acá: https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`,
+      `Hola ${a.nombre}! Para armarte el horario necesito tu disponibilidad actualizada — https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`,
+      `${a.nombre}, ¿me confirmas tu disponibilidad por este link? https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`
+    ]);
     // Todos los alumnos tienen la opción, tengan o no ya disponibilidad
     // cargada (para actualizarla) y tengan o no un teléfono con el que se
     // pueda armar un link de WhatsApp directo (si no, copia el mensaje).
@@ -1661,7 +1658,12 @@ function construirFilaPaquete(p) {
 function linkRecordatorio(r) {
   const telefono = soloDigitos(r.alumnoTelefono);
   if (!telefono) return "";
-  const texto = `Hola ${r.alumnoNombre}, te recuerdo tu clase de pádel el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre}. ¡Nos vemos en la cancha!`;
+  const texto = elegirMensaje([
+    `Hola ${r.alumnoNombre}, te recuerdo tu clase de pádel el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre}. ¡Nos vemos en la cancha!`,
+    `${r.alumnoNombre}, no te olvides: clase el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre} 🎾`,
+    `Hola ${r.alumnoNombre}! Recordatorio rápido de tu clase: ${formatearFecha(r.fecha)}, ${r.hora} hrs, en ${r.pistaNombre}.`,
+    `${r.alumnoNombre}, nos vemos el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre} para tu clase.`
+  ]);
   return `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Recordar</a>`;
 }
 
@@ -1986,7 +1988,12 @@ function renderLeadsJornadaGratis(wrap, reservas, paquetes) {
     const convirtio = alumnosConPaquete.has(r.alumnoId);
     const alumno = alumnosCache.find((a) => a.id === r.alumnoId);
     const telefono = soloDigitos(alumno?.telefono);
-    const texto = `Hola ${r.alumnoNombre}, ¿qué te pareció la jornada "Conociendo el Pádel"? Te cuento los paquetes para seguir jugando.`;
+    const texto = elegirMensaje([
+      `Hola ${r.alumnoNombre}, ¿qué te pareció la jornada "Conociendo el Pádel"? Te cuento los paquetes para seguir jugando.`,
+      `${r.alumnoNombre}, ¿cómo te fue en la jornada gratis? Si te gustó, te paso los paquetes para que sigas jugando 🎾`,
+      `Hola ${r.alumnoNombre}! Quería saber qué te pareció probar el pádel con nosotros — ¿seguimos con clases?`,
+      `${r.alumnoNombre}, cuéntame qué tal la jornada — tengo paquetes que te pueden interesar para continuar.`
+    ]);
     const link = !convirtio && telefono
       ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Dar seguimiento</a>`
       : "";
@@ -2020,7 +2027,12 @@ function renderRiesgoAbandono(wrap, reservas) {
 
   wrap.innerHTML = enRiesgo.map(({ alumno, ultimaFecha, diasSinClase }) => {
     const telefono = soloDigitos(alumno.telefono);
-    const texto = `Hola ${alumno.nombre}, hace tiempo no te vemos por la academia — ¿coordinamos tu próxima clase de pádel?`;
+    const texto = elegirMensaje([
+      `Hola ${alumno.nombre}, hace tiempo no te vemos por la academia — ¿coordinamos tu próxima clase de pádel?`,
+      `${alumno.nombre}, ¿cómo vas? Hace rato no jugamos — ¿te animas a coordinar una clase?`,
+      `Hola ${alumno.nombre}! Te extrañamos en la cancha, ¿vemos horario para tu próxima clase?`,
+      `${alumno.nombre}, ¿seguimos con las clases? Cuando quieras coordinamos un horario.`
+    ]);
     const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Escribirle</a>` : "";
     return `
       <div class="request-card">
@@ -2043,7 +2055,13 @@ function renderPorRenovar(wrap, paquetes) {
     const alumno = alumnosCache.find((a) => a.id === p.alumnoId);
     const telefono = soloDigitos(alumno?.telefono);
     const restantes = p.clasesTotales - p.clasesUsadas;
-    const texto = `Hola ${p.alumnoNombre}, ${restantes <= 0 ? "ya usaste todas las clases de tu paquete" : "te queda solo " + restantes + " clase de tu paquete"} "${p.tipo}" — ¿coordinamos la renovación?`;
+    const estadoPaquete = restantes <= 0 ? "ya usaste todas las clases de tu paquete" : "te queda solo " + restantes + " clase de tu paquete";
+    const texto = elegirMensaje([
+      `Hola ${p.alumnoNombre}, ${estadoPaquete} "${p.tipo}" — ¿coordinamos la renovación?`,
+      `${p.alumnoNombre}, ${estadoPaquete} "${p.tipo}". ¿Vemos la renovación para que sigas sin parar?`,
+      `Hola ${p.alumnoNombre}! Tu paquete "${p.tipo}" está por acabarse — ¿renovamos?`,
+      `${p.alumnoNombre}, ${estadoPaquete} "${p.tipo}" — avísame si quieres renovar.`
+    ]);
     const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Ofrecer renovación</a>` : "";
     return `
       <div class="request-card">
@@ -2065,7 +2083,12 @@ function renderCobrosPendientes(wrap, paquetes) {
   wrap.innerHTML = pendientes.map((p) => {
     const alumno = alumnosCache.find((a) => a.id === p.alumnoId);
     const telefono = soloDigitos(alumno?.telefono);
-    const texto = `Hola ${p.alumnoNombre}, te recuerdo que el pago de tu paquete "${p.tipo}" (S/ ${p.monto}) está pendiente.`;
+    const texto = elegirMensaje([
+      `Hola ${p.alumnoNombre}, te recuerdo que el pago de tu paquete "${p.tipo}" (S/ ${p.monto}) está pendiente.`,
+      `${p.alumnoNombre}, cuando puedas me pasas el pago de tu paquete "${p.tipo}" (S/ ${p.monto})? Gracias!`,
+      `Hola ${p.alumnoNombre}! Quedó pendiente el pago de "${p.tipo}" (S/ ${p.monto}) — me avisas cuando lo hagas.`,
+      `${p.alumnoNombre}, te escribo por el pago de tu paquete "${p.tipo}" (S/ ${p.monto}), sigue pendiente.`
+    ]);
     const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Cobrar</a>` : "";
     return `
       <div class="request-card">
@@ -2090,7 +2113,12 @@ function cargarEsperas() {
       .sort((a, b) => (a.creadoEn?.seconds || 0) - (b.creadoEn?.seconds || 0));
     wrap.innerHTML = esperas.map((e) => {
       const telefono = soloDigitos(e.alumnoTelefono);
-      const texto = `Hola ${e.alumnoNombre}, se liberó el horario que esperabas: ${e.pistaNombre}, ${formatearFecha(e.fecha)} ${e.hora} hrs. ¿Lo confirmamos?`;
+      const texto = elegirMensaje([
+        `Hola ${e.alumnoNombre}, se liberó el horario que esperabas: ${e.pistaNombre}, ${formatearFecha(e.fecha)} ${e.hora} hrs. ¿Lo confirmamos?`,
+        `${e.alumnoNombre}, buenas noticias: se abrió el horario que querías — ${e.pistaNombre}, ${formatearFecha(e.fecha)} ${e.hora} hrs. ¿Te lo reservo?`,
+        `Hola ${e.alumnoNombre}! Justo se liberó ${e.pistaNombre} el ${formatearFecha(e.fecha)} a las ${e.hora} hrs — ¿lo tomas?`,
+        `${e.alumnoNombre}, tu horario en ${e.pistaNombre} (${formatearFecha(e.fecha)} ${e.hora} hrs) ya está libre. ¿Confirmamos?`
+      ]);
       const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Avisarle</a>` : "";
       return `
         <div class="request-card">
@@ -2363,14 +2391,25 @@ function renderSugerenciasGrupo() {
     const chips = s.personas.map((i) => {
       const tel = soloDigitos(i.whatsapp);
       const otros = s.personas.length - 1;
-      const texto = `Hola ${i.nombre}, tengo ${otros > 0 ? `${otros} persona${otros === 1 ? "" : "s"} más` : "gente"} interesada en jugar el ${s.dia.toLowerCase()} de ${s.franja} hrs — ¿confirmas que sigues interesado? Si me confirman todos, abro el grupo ya.`;
+      const gente = otros > 0 ? `${otros} persona${otros === 1 ? "" : "s"} más` : "gente";
+      const texto = elegirMensaje([
+        `Hola ${i.nombre}, tengo ${gente} interesada en jugar el ${s.dia.toLowerCase()} de ${s.franja} hrs — ¿confirmas que sigues interesado? Si me confirman todos, abro el grupo ya.`,
+        `${i.nombre}, ya casi cierro un grupo el ${s.dia.toLowerCase()} de ${s.franja} hrs con ${gente} — ¿sigues interesado? Confírmame y lo armamos.`,
+        `Hola ${i.nombre}! Tengo ${gente} para el ${s.dia.toLowerCase()} ${s.franja} hrs — si me confirmas, abrimos el grupo.`,
+        `${i.nombre}, ¿va lo del ${s.dia.toLowerCase()} de ${s.franja} hrs? Tengo ${gente} esperando tu confirmación para abrir el grupo.`
+      ]);
       return tel
         ? `<a class="badge badge-confirmada" target="_blank" rel="noopener" style="text-decoration:none;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">${escapeHtml(i.nombre)}</a>`
         : `<span class="badge badge-confirmada">${escapeHtml(i.nombre)}</span>`;
     }).join(" ");
     const chipsAlumnos = alumnosCoinciden.map((a) => {
       const tel = soloDigitos(a.whatsapp || a.telefono);
-      const texto = `Hola ${a.nombre}, estoy armando un grupo fijo el ${s.dia.toLowerCase()} de ${s.franja} hrs, justo tu horario — ¿te sumas?`;
+      const texto = elegirMensaje([
+        `Hola ${a.nombre}, estoy armando un grupo fijo el ${s.dia.toLowerCase()} de ${s.franja} hrs, justo tu horario — ¿te sumas?`,
+        `${a.nombre}, tengo la oportunidad de armar un grupo fijo el ${s.dia.toLowerCase()} ${s.franja} hrs — calza con tu disponibilidad, ¿te animas?`,
+        `Hola ${a.nombre}! ¿Te interesaría un grupo fijo el ${s.dia.toLowerCase()} de ${s.franja} hrs? Justo es tu horario.`,
+        `${a.nombre}, ¿te sumas a un grupo el ${s.dia.toLowerCase()} ${s.franja} hrs? Encaja con tu disponibilidad.`
+      ]);
       return tel
         ? `<a class="badge badge-pendiente" target="_blank" rel="noopener" style="text-decoration:none;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">${escapeHtml(a.nombre)}</a>`
         : `<span class="badge badge-pendiente">${escapeHtml(a.nombre)}</span>`;
@@ -2427,7 +2466,12 @@ function renderInteresados() {
   visibles.forEach((i) => {
     const telefono = soloDigitos(i.whatsapp);
     const origenTexto = i.turnoNombre ? `el turno "${i.turnoNombre}"` : (i.canchaInteresada ? `jugar en ${i.canchaInteresada}` : "armar grupo");
-    const texto = `Hola ${i.nombre}, soy Gabriel de Academia de Pádel GP. Vi que te interesó ${origenTexto} — ¿coordinamos tu primera clase?`;
+    const texto = elegirMensaje([
+      `Hola ${i.nombre}, soy Gabriel de Academia de Pádel GP. Vi que te interesó ${origenTexto} — ¿coordinamos tu primera clase?`,
+      `${i.nombre}, soy Gabriel de Academia de Pádel GP — vi tu interés en ${origenTexto}. ¿Vemos tu primera clase?`,
+      `Hola ${i.nombre}! Te escribo de Academia de Pádel GP por ${origenTexto} — ¿coordinamos?`,
+      `${i.nombre}, soy Gabriel (Academia de Pádel GP). Me quedé con tu interés en ${origenTexto} — ¿seguimos por acá?`
+    ]);
     const waLink = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Escribirle</a>` : "";
     const chipsDisp = (i.disponibilidad || [])
       .map((x) => `<span class="badge badge-confirmada">${escapeHtml(x.dia)} · ${escapeHtml(x.franja)}</span>`)
@@ -2978,21 +3022,33 @@ document.getElementById("btn-exportar-jugadores").addEventListener("click", () =
 
 // ---- Falta el cuarto ----
 
-let fcUltimoMensajeAuto = "";
+// Varias redacciones del mismo aviso -- se manda uno distinto a cada
+// candidato (ver renderFaltaElCuartoCandidatos) para que WhatsApp no vea
+// el mismo texto saliendo hacia muchos números seguidos.
+let fcVariantesAuto = [];
+
+function construirVariantesFaltaElCuarto(categoria, dia, fechaLarga, hora, lugar) {
+  return [
+    `¡Hola! Nos falta el cuarto para un partido de ${categoria} el ${dia} ${fechaLarga} a las ${hora} en ${lugar}. ¿Te prendés?`,
+    `Hola! Armamos partido de ${categoria} el ${dia} ${fechaLarga}, ${hora} hrs, en ${lugar} — nos falta uno. ¿Te animas?`,
+    `¡Hola! Buscamos un cuarto para jugar ${categoria} este ${dia} ${fechaLarga} a las ${hora} en ${lugar}. ¿Te sumas?`,
+    `Hola, tenemos partido de ${categoria} el ${dia} ${fechaLarga} (${hora} hrs) en ${lugar} y nos falta uno — ¿juegas?`
+  ];
+}
 
 function actualizarMensajeFaltaElCuarto() {
   const categoria = document.getElementById("fc-categoria").value;
   const fecha = document.getElementById("fc-fecha").value;
   const hora = document.getElementById("fc-hora").value;
   const lugar = document.getElementById("fc-lugar").value.trim();
+  const textarea = document.getElementById("fc-mensaje");
+  const eraAuto = textarea.value === "" || fcVariantesAuto.includes(textarea.value);
   if (categoria && fecha && hora && lugar) {
     const dia = diaDeSemana(fecha).toLowerCase();
-    const mensaje = `¡Hola! Nos falta el cuarto para un partido de ${categoria} el ${dia} ${formatearFecha(fecha)} a las ${hora} en ${lugar}. ¿Te prendés?`;
-    const textarea = document.getElementById("fc-mensaje");
-    if (textarea.value === "" || textarea.value === fcUltimoMensajeAuto) {
-      textarea.value = mensaje;
-      fcUltimoMensajeAuto = mensaje;
-    }
+    fcVariantesAuto = construirVariantesFaltaElCuarto(categoria, dia, formatearFecha(fecha), hora, lugar);
+    if (eraAuto) textarea.value = fcVariantesAuto[0];
+  } else {
+    fcVariantesAuto = [];
   }
   renderFaltaElCuartoCandidatos();
 }
@@ -3051,7 +3107,11 @@ function renderFaltaElCuartoCandidatos() {
     if (waBtn) {
       waBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        const mensaje = document.getElementById("fc-mensaje").value;
+        const base = document.getElementById("fc-mensaje").value;
+        // Si el mensaje sigue siendo el autogenerado, cada candidato recibe
+        // una redacción distinta. Si el profesor lo editó a mano, se respeta
+        // su texto tal cual (es su elección, no lo pisamos).
+        const mensaje = fcVariantesAuto.includes(base) ? elegirMensaje(fcVariantesAuto) : base;
         comunidadFilaMarcadas.add(j.id);
         checkbox.checked = true;
         window.open(`https://wa.me/${telDigits}?text=${encodeURIComponent(mensaje)}`, "_blank", "noopener");
@@ -3117,7 +3177,12 @@ function renderComunidadLeads() {
   wrap.innerHTML = "";
   leads.forEach((j) => {
     const telDigits = soloDigitos(j.whatsapp);
-    const texto = `Hola ${j.nombreCompleto}, vi que te interesa tomar clases de pádel. Tenemos la jornada gratuita "¡Conociendo el Pádel!" para que la pruebes sin compromiso — ¿coordinamos?`;
+    const texto = elegirMensaje([
+      `Hola ${j.nombreCompleto}, vi que te interesa tomar clases de pádel. Tenemos la jornada gratuita "¡Conociendo el Pádel!" para que la pruebes sin compromiso — ¿coordinamos?`,
+      `${j.nombreCompleto}, soy Gabriel de Academia de Pádel GP — tenemos una jornada gratis para probar antes de decidir, ¿te animas?`,
+      `Hola ${j.nombreCompleto}! Vi tu interés en pádel — te invito a "¡Conociendo el Pádel!", una clase de prueba gratis, sin compromiso.`,
+      `${j.nombreCompleto}, ¿quieres probar una clase de pádel gratis antes de inscribirte? Coordinamos cuando quieras.`
+    ]);
     const card = document.createElement("div");
     card.className = "court-card";
     card.innerHTML = `

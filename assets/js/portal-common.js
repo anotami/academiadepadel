@@ -252,6 +252,16 @@ export function soloDigitos(telefono) {
   return (telefono || "").replace(/\D/g, "");
 }
 
+// Mensajes de WhatsApp: cuando el mismo tipo de aviso sale varias veces en
+// una sola sesión (uno por cada candidato de "Falta el cuarto", uno por cada
+// alumno con pago pendiente, etc.), mandar siempre el mismo texto hace que
+// WhatsApp lo lea como mensaje masivo/automatizado y puede terminar en un
+// bloqueo de la cuenta. Esta función elige al azar entre varias redacciones
+// de lo mismo, para que cada envío se vea distinto.
+export function elegirMensaje(variantes) {
+  return variantes[Math.floor(Math.random() * variantes.length)];
+}
+
 // ---- Comunidad (directorio de jugadores, "falta el cuarto") ----
 
 // Categorías de pádel estilo Argentina (1ra = nivel más alto), la misma
