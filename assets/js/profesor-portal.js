@@ -11,7 +11,7 @@ import {
   CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD, normalizarTelefonoPeru,
   categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto, elegirMensaje,
   calcularProgresoAlumno
-} from "./portal-common.js?v=24";
+} from "./portal-common.js?v=25";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -1522,6 +1522,7 @@ async function cargarAlumnos() {
     return;
   }
   wrap.innerHTML = "";
+  const subieronNivel = [];
   alumnosCache.forEach((a) => {
     const chipsDisp = (a.disponibilidad || [])
       .map((x) => `<span class="badge badge-confirmada">${x.dia} · ${x.franja}</span>`)
@@ -1529,6 +1530,9 @@ async function cargarAlumnos() {
     const clasesTomadas = Array.from(tiposPorAlumno[a.id] || []);
     const encuestas = encuestasPorAlumno[a.id] || [];
     const progreso = calcularProgresoAlumno(reservasPorAlumno[a.id] || []);
+    if (progreso.nivel > (a.ultimoNivelVisto || 1)) {
+      subieronNivel.push({ alumno: a, progreso });
+    }
     const card = document.createElement("div");
     card.className = "court-card";
     const instagramHandle = escapeHtml((a.instagram || "").replace(/^@/, ""));
@@ -1673,8 +1677,61 @@ async function cargarAlumnos() {
     wrap.appendChild(card);
   });
   activarPausaEnvioMasivo(wrap);
+  renderLogrosRecientes(subieronNivel);
   renderCrucePersonas();
   renderEstadisticas();
+}
+
+// Detecta subidas de nivel comparando el nivel calculado ahora contra
+// usuarios/{id}.ultimoNivelVisto (si no existe, se asume nivel 1 -- así un
+// alumno nuevo en nivel 1 no dispara un aviso falso). No se publica nada
+// solo: el profesor decide si lo menciona en redes y recién ahí se marca
+// como visto, para no repetir el aviso en cada carga del panel.
+function renderLogrosRecientes(subieronNivel) {
+  const wrap = document.getElementById("logros-recientes");
+  if (!wrap) return;
+  if (!subieronNivel.length) { wrap.innerHTML = ""; return; }
+  wrap.innerHTML = subieronNivel.map(({ alumno, progreso }) => {
+    return `
+      <div class="callout" data-logro="${alumno.id}" style="margin-bottom:10px;">
+        <span class="callout-icon">🎉</span>
+        <div style="flex:1;">
+          <p><strong>${escapeHtml(alumno.nombre)}</strong> subió a nivel ${progreso.nivel} — ${escapeHtml(progreso.nombreNivel)}</p>
+          <button class="btn btn-outline btn-small" type="button" data-copiar-logro style="margin-top:6px;">Copiar texto para redes</button>
+          <button class="btn btn-outline btn-small" type="button" data-marcar-visto style="margin-top:6px; margin-left:6px;">Marcar como visto</button>
+          <p class="form-msg" data-logro-msg></p>
+        </div>
+      </div>`;
+  }).join("");
+
+  subieronNivel.forEach(({ alumno, progreso }) => {
+    const bloque = wrap.querySelector(`[data-logro="${alumno.id}"]`);
+    const msg = bloque.querySelector("[data-logro-msg]");
+    bloque.querySelector("[data-copiar-logro]").addEventListener("click", async () => {
+      const textoRedes = elegirMensaje([
+        `🎾 ¡${alumno.nombre} subió a nivel ${progreso.nivel} — ${progreso.nombreNivel} — en Academia de Pádel GP! 💪`,
+        `🏆 ${alumno.nombre} llegó a nivel ${progreso.nivel} (${progreso.nombreNivel}) en la academia. ¡Vamos con todo!`,
+        `🎾 Otro nivel más para ${alumno.nombre}: nivel ${progreso.nivel} — ${progreso.nombreNivel} 🔥`,
+        `💪 ${alumno.nombre} avanzó a nivel ${progreso.nivel} (${progreso.nombreNivel}) — ¡se nota el progreso en cancha!`
+      ]);
+      try {
+        await navigator.clipboard.writeText(textoRedes);
+        msg.textContent = "Copiado.";
+        msg.className = "form-msg ok";
+      } catch {
+        prompt("Copia el texto:", textoRedes);
+      }
+    });
+    bloque.querySelector("[data-marcar-visto]").addEventListener("click", async () => {
+      try {
+        await updateDoc(doc(db, "usuarios", alumno.id), { ultimoNivelVisto: progreso.nivel });
+        bloque.remove();
+      } catch (err) {
+        msg.textContent = "No se pudo actualizar: " + err.message;
+        msg.className = "form-msg error";
+      }
+    });
+  });
 }
 
 // ---- Paquetes de clases ----

@@ -283,14 +283,31 @@ export const NIVELES_JUEGO = [
   { nivel: 10, xp: 1600, nombre: "Maestro de la academia" }
 ];
 
+// Racha más larga (histórica, no necesariamente vigente) de semanas
+// consecutivas con al menos una clase -- semana = bloques de 7 días desde
+// época, no semana calendario, para no complicarse con años/meses.
+function calcularRachaSemanas(fechas) {
+  if (!fechas.length) return 0;
+  const buckets = new Set(fechas.map((f) => Math.floor(new Date(f + "T00:00:00").getTime() / (7 * 86400000))));
+  const ordenados = Array.from(buckets).sort((a, b) => a - b);
+  let maxRacha = 0, actual = 0, anterior = null;
+  for (const b of ordenados) {
+    actual = anterior !== null && b === anterior + 1 ? actual + 1 : 1;
+    maxRacha = Math.max(maxRacha, actual);
+    anterior = b;
+  }
+  return maxRacha;
+}
+
 // reservasAlumno: reservas (ya filtradas por ese alumnoId) tal como vienen
-// de Firestore -- usa solo r.registrada y r.feedback.temas.
+// de Firestore -- usa solo r.registrada, r.fecha y r.feedback.temas.
 export function calcularProgresoAlumno(reservasAlumno) {
   const registradas = (reservasAlumno || []).filter((r) => r.registrada);
   const conteoTemas = {};
   registradas.forEach((r) => {
     (r.feedback?.temas || []).forEach((t) => { conteoTemas[t] = (conteoTemas[t] || 0) + 1; });
   });
+  const rachaSemanas = calcularRachaSemanas(registradas.map((r) => r.fecha).filter(Boolean));
 
   const golpesDesbloqueados = GOLPES_DESBLOQUEABLES.filter((g) => (conteoTemas[g] || 0) >= REPETICIONES_PARA_DESBLOQUEAR);
   const golpesEnProgreso = GOLPES_DESBLOQUEABLES
@@ -316,8 +333,26 @@ export function calcularProgresoAlumno(reservasAlumno) {
     progresoNivelPct,
     golpesDesbloqueados,
     golpesEnProgreso,
-    golpesTotales: GOLPES_DESBLOQUEABLES.length
+    golpesTotales: GOLPES_DESBLOQUEABLES.length,
+    rachaSemanas
   };
+}
+
+// Insignias: derivadas del progreso ya calculado + los paquetes del alumno
+// (clasesUsadas/clasesTotales). Una vez ganada, una insignia queda ganada
+// para siempre -- no depende de una racha vigente, sino de un hito ya
+// alcanzado en el historial.
+export function calcularInsignias(progreso, paquetes = []) {
+  const insignias = [];
+  if (progreso.clasesTomadas >= 1) insignias.push({ id: "primera-clase", nombre: "Primera clase", icono: "🎾" });
+  if (progreso.clasesTomadas >= 10) insignias.push({ id: "diez-clases", nombre: "10 clases tomadas", icono: "📅" });
+  if (progreso.clasesTomadas >= 25) insignias.push({ id: "veinticinco-clases", nombre: "25 clases tomadas", icono: "📆" });
+  if (progreso.golpesDesbloqueados.length >= 1) insignias.push({ id: "primer-golpe", nombre: "Primer golpe desbloqueado", icono: "🥋" });
+  if (progreso.golpesDesbloqueados.length >= 5) insignias.push({ id: "cinco-golpes", nombre: "5 golpes desbloqueados", icono: "🥋🥋" });
+  if (progreso.golpesDesbloqueados.length >= progreso.golpesTotales) insignias.push({ id: "catalogo-completo", nombre: "Catálogo completo de golpes", icono: "🏆" });
+  if ((paquetes || []).some((p) => p.clasesUsadas >= p.clasesTotales)) insignias.push({ id: "paquete-completo", nombre: "Completó un paquete", icono: "📦" });
+  if (progreso.rachaSemanas >= 4) insignias.push({ id: "racha-4", nombre: "4 semanas seguidas entrenando", icono: "🔥" });
+  return insignias;
 }
 
 // Mensajes de WhatsApp: cuando el mismo tipo de aviso sale varias veces en

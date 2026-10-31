@@ -7,8 +7,8 @@ import {
 import {
   HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad,
-  calcularProgresoAlumno, GOLPES_DESBLOQUEABLES
-} from "./portal-common.js?v=24";
+  calcularProgresoAlumno, GOLPES_DESBLOQUEABLES, calcularInsignias
+} from "./portal-common.js?v=25";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -98,12 +98,17 @@ function cargarJugar() {
 }
 
 
-// ---- Mi nivel (XP + golpes desbloqueados, calculado desde el historial) ----
-function renderMiNivel(reservas) {
+// ---- Mi nivel (XP + golpes desbloqueados + insignias, calculado desde el
+// historial de reservas y paquetes) ----
+let reservasCacheNivel = [];
+let paquetesCacheNivel = [];
+
+function renderMiNivel() {
   const wrapNivel = document.getElementById("mi-nivel");
   const wrapGolpes = document.getElementById("mis-golpes");
+  const wrapInsignias = document.getElementById("mis-insignias");
   if (!wrapNivel || !wrapGolpes) return;
-  const p = calcularProgresoAlumno(reservas);
+  const p = calcularProgresoAlumno(reservasCacheNivel);
 
   wrapNivel.innerHTML = `
     <p class="request-title">Nivel ${p.nivel} — ${escapeHtml(p.nombreNivel)}</p>
@@ -126,6 +131,15 @@ function renderMiNivel(reservas) {
           : `<span class="badge" style="opacity:0.5;">🔒 ${escapeHtml(g)}</span>`;
       }).join(" ")}
     </div>`;
+
+  if (wrapInsignias) {
+    const insignias = calcularInsignias(p, paquetesCacheNivel);
+    wrapInsignias.innerHTML = insignias.length
+      ? `<div style="display:flex; flex-wrap:wrap; gap:8px;">
+          ${insignias.map((i) => `<span class="badge badge-confirmada" style="font-size:0.95rem; padding:8px 12px;" title="${escapeHtml(i.nombre)}">${i.icono} ${escapeHtml(i.nombre)}</span>`).join("")}
+        </div>`
+      : '<p class="empty-state">Todavía no tienes insignias — se ganan solas con cada clase.</p>';
+  }
 }
 
 // ---- Mi progreso (línea de tiempo del feedback de sesiones) ----
@@ -135,7 +149,8 @@ function cargarProgreso(uid) {
     query(collection(db, "reservas"), where("alumnoId", "==", uid)),
     (snap) => {
       const todas = snap.docs.map((d) => d.data());
-      renderMiNivel(todas);
+      reservasCacheNivel = todas;
+      renderMiNivel();
       const sesiones = todas
         .filter((r) => r.registrada || r.encuesta)
         .sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -177,6 +192,8 @@ function cargarProgreso(uid) {
 function cargarPaquete(uid) {
   const wrap = document.getElementById("mi-paquete");
   onSnapshot(query(collection(db, "paquetes"), where("alumnoId", "==", uid)), (snap) => {
+    paquetesCacheNivel = snap.docs.map((d) => d.data());
+    renderMiNivel();
     if (snap.empty) {
       wrap.innerHTML = '<p class="empty-state">No tienes un paquete activo. Coordina con tu profesor por WhatsApp para contratar uno.</p>';
       return;
