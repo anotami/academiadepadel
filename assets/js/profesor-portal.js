@@ -109,7 +109,7 @@ document.getElementById("form-nuevo-alumno").addEventListener("submit", async (e
   try {
     await setDoc(doc(collection(db, "usuarios")), {
       rol: "alumno", nombre, telefono, whatsapp, instagram, edad, nivel, programa, observaciones,
-      disponibilidad: [], creadoEn: serverTimestamp()
+      disponibilidad: [], cuentaPropia: false, creadoEn: serverTimestamp()
     });
     e.target.reset();
     msg.textContent = `Alumno "${nombre}" creado — ya aparece en los selectores de abajo.`;
@@ -1490,7 +1490,13 @@ async function cargarAlumnos() {
     getDocs(query(collection(db, "usuarios"), where("rol", "==", "alumno"))),
     getDocs(query(collection(db, "reservas"), where("profesorId", "==", currentUid)))
   ]);
-  alumnosCache = snapAlumnos.docs.map((d) => ({ id: d.id, ...d.data() }));
+  // Un alumno que activó su cuenta (ver activar-cuenta.html) queda duplicado
+  // un instante: el doc viejo (sin cuentaPropia) sigue en Firestore hasta
+  // que tú lo borres a mano, pero el nuevo ya tiene migradoDe apuntando al
+  // viejo -- se oculta el viejo para no mostrar la misma persona dos veces.
+  const todos = snapAlumnos.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const migrados = new Set(todos.map((a) => a.migradoDe).filter(Boolean));
+  alumnosCache = todos.filter((a) => !migrados.has(a.id));
 
   // Qué tipos de clase tomó cada alumno hasta ahora — un alumno no queda
   // encasillado en un solo programa, cada reserva elige el suyo.
@@ -1538,6 +1544,17 @@ async function cargarAlumnos() {
     const linkPedirDisponibilidad = telAlumno
       ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:8px; margin-left:8px;" href="https://wa.me/${telAlumno}?text=${encodeURIComponent(mensajePedirDisponibilidad)}">Pedir disponibilidad</a>`
       : `<button class="btn btn-outline btn-small" type="button" data-copiar-pedir-disp style="margin-top:8px; margin-left:8px;" title="No tiene un teléfono válido para abrir WhatsApp directo — copia el mensaje y pégalo donde le escribas.">Pedir disponibilidad (copiar mensaje)</button>`;
+    // Por defecto se ofrece activar cuenta a todo alumno que no esté
+    // marcado explícitamente como cuentaPropia:true (los que tú das de alta
+    // desde el panel no tienen login real hasta que activan por este link).
+    const linkActivarCuenta = a.cuentaPropia ? "" : (telAlumno
+      ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:8px; margin-left:8px;" href="https://wa.me/${telAlumno}?text=${encodeURIComponent(elegirMensaje([
+          `Hola ${a.nombre}! Ya puedes entrar a tu portal y ver tus clases, feedback y paquete — activa tu cuenta acá: https://academiadepadel.pe/activar-cuenta.html?alumno=${a.id}`,
+          `${a.nombre}, arma tu cuenta del portal para ver tu historial de clases: https://academiadepadel.pe/activar-cuenta.html?alumno=${a.id}`,
+          `Hola ${a.nombre}, te paso el link para activar tu cuenta y ver tu progreso: https://academiadepadel.pe/activar-cuenta.html?alumno=${a.id}`,
+          `${a.nombre}! Te dejo el link para entrar a tu portal: https://academiadepadel.pe/activar-cuenta.html?alumno=${a.id}`
+        ]))}">Activar su cuenta</a>`
+      : "");
     card.innerHTML = `
       <h3>${escapeHtml(a.nombre)}</h3>
       <p class="court-meta">${escapeHtml(a.telefono) || "Sin teléfono"} · Nivel ${escapeHtml(a.nivel) || "—"}</p>
@@ -1552,6 +1569,7 @@ async function cargarAlumnos() {
       <p>${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
       <button class="btn btn-outline btn-small" type="button" data-toggle-editar style="margin-top:8px;">Editar</button>
       ${linkPedirDisponibilidad}
+      ${linkActivarCuenta}
       ${encuestas.length ? `<button class="btn btn-outline btn-small" type="button" data-toggle-evolucion style="margin-top:8px; margin-left:8px;">Ver evolución (${encuestas.length})</button>` : ""}
       <div data-evolucion-panel hidden style="margin-top:10px;">
         ${encuestas.map((en) => `
@@ -2688,6 +2706,7 @@ function renderInteresados() {
           programa: i.turnoNombre || (i.origen === "link_directo" ? "Link de disponibilidad" : ""),
           observaciones: [i.notas, i.canchaInteresada ? `Prefería la cancha ${i.canchaInteresada}.` : ""].filter(Boolean).join(" ") || "Interesado convertido.",
           disponibilidad: i.disponibilidad || [],
+          cuentaPropia: false,
           creadoEn: serverTimestamp()
         });
         await updateDoc(doc(db, "interesados_grupo", i.id), { alumnoId: nuevoRef.id, estado: "contactado" });

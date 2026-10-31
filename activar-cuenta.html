@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.gstatic.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Activar tu cuenta | academiadepadel.pe</title>
+<meta name="description" content="Activa tu cuenta de alumno en academiadepadel.pe para ver el historial de tus clases, feedback y paquete.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=53">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>Academia de Pádel GP</span>
+    </a>
+    <a href="index.html" class="test-back-link">← Volver al sitio</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section portal-section">
+    <div class="container portal-narrow">
+      <p class="eyebrow eyebrow-center">Tu portal de alumno</p>
+      <h1 class="test-title">Activa tu cuenta</h1>
+      <p class="section-sub">Crea tu contraseña para ver el historial de tus clases, feedback y paquete — sin perder nada de lo que ya tienes registrado.</p>
+
+      <div class="portal-card" id="ac-cargando">
+        <p class="empty-state">Cargando...</p>
+      </div>
+
+      <form class="portal-card" id="form-activar" hidden>
+        <p id="ac-nombre" style="font-weight:700; margin-bottom:10px;"></p>
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="ac-email">Tu correo</label>
+            <input type="email" id="ac-email" required autocomplete="email">
+          </div>
+          <div class="field field-full">
+            <label for="ac-password">Crea una contraseña (mínimo 8 caracteres)</label>
+            <input type="password" id="ac-password" minlength="8" required autocomplete="new-password" aria-describedby="ac-password-hint">
+            <p class="field-hint" id="ac-password-hint">Mínimo 8 caracteres.</p>
+          </div>
+        </div>
+        <label class="avail-slot" style="display:inline-flex; margin-top:14px;">
+          <input type="checkbox" id="ac-acepta-privacidad" required>
+          Acepto la <a href="privacidad.html" target="_blank" rel="noopener">política de privacidad</a>
+        </label>
+        <button class="btn btn-primary" type="submit" style="margin-top:18px; width:100%; justify-content:center;">Activar mi cuenta</button>
+        <p class="form-msg" id="ac-msg"></p>
+      </form>
+
+      <div class="portal-card" id="ac-error" hidden>
+        <p class="empty-state" id="ac-error-msg"></p>
+      </div>
+
+      <div class="portal-card" id="ac-ya-activada" hidden style="text-align:center;">
+        <h2>Ya activaste tu cuenta</h2>
+        <p style="margin:10px 0 18px;">Ingresa normal con tu correo y contraseña.</p>
+        <a class="btn btn-primary" href="login.html">Iniciar sesión</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="brand footer-brand">
+      <img src="assets/img/logo.svg" alt="" width="28" height="28">
+      <span>Academia de Pádel GP</span>
+    </div>
+    <p>Lima, Perú · <a href="https://wa.me/51957085531" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://www.instagram.com/academiapadelgp/" target="_blank" rel="noopener">Instagram</a></p>
+    <p class="footer-copy">© <span id="year"></span> academiadepadel.pe. Todos los derechos reservados. · <a href="privacidad.html">Privacidad</a></p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js?v=13"></script>
+<script type="module" src="assets/js/activar-cuenta-page.js?v=1"></script>
+</body>
+</html>

@@ -205,6 +205,7 @@ formSignup.addEventListener("submit", async (e) => {
       email,
       telefono,
       ...datosRol,
+      cuentaPropia: true,
       creadoEn: fb.serverTimestamp()
     });
     try { await fb.sendEmailVerification(cred.user); } catch (e) { /* no bloquea el alta si falla el envío */ }
