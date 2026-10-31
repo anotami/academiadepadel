@@ -573,6 +573,11 @@ function activarPausaEnvioMasivo(contenedor) {
   const enlaces = Array.from(contenedor.querySelectorAll("a.btn-whatsapp, a.badge[href*='wa.me'], [data-abrir-wa]"));
   if (enlaces.length < 2) return;
   enlaces.forEach((el) => {
+    // Idempotente: contenedores que crecen con el tiempo (como #avisos-feedback)
+    // llaman esta función de nuevo en cada elemento nuevo -- no hay que volver
+    // a cablear los que ya tienen el listener puesto.
+    if (el.dataset.pausaWired === "1") return;
+    el.dataset.pausaWired = "1";
     el.addEventListener("click", () => {
       if (el.dataset.pausaActiva === "1") return;
       const espera = Math.floor(18 + Math.random() * 22); // 18–40s, nunca el mismo número
@@ -604,6 +609,70 @@ function activarPausaEnvioMasivo(contenedor) {
   });
 }
 
+// Mismo vocabulario que el banco de ejercicios (ejercicios-padel-data.js) --
+// chips para marcar rápido qué se trabajó, en vez de escribirlo a mano.
+const TEMAS_CLASE = [
+  "Entrada en calor", "Empuñadura", "Posiciones", "Desplazamientos",
+  "Drive", "Revés", "Volea", "Bandeja", "Víbora", "Smash", "Remate",
+  "Saque", "Globo", "Chiquita", "Salida de pared", "Contrapared", "Pared lateral",
+  "Defensa", "Táctica", "Competencia", "Corrección", "Juego"
+];
+
+function chipsTemas() {
+  return TEMAS_CLASE.map((t) =>
+    `<button type="button" class="btn btn-outline btn-small" data-chip-tema data-tema="${t}" style="margin:2px;">${t}</button>`
+  ).join("");
+}
+
+function temasSeleccionados(ambito) {
+  return Array.from(ambito.querySelectorAll("[data-chip-tema].btn-primary")).map((b) => b.dataset.tema);
+}
+
+function wireChipsTemas(ambito) {
+  ambito.querySelectorAll("[data-chip-tema]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      chip.classList.toggle("btn-primary");
+      chip.classList.toggle("btn-outline");
+    });
+  });
+}
+
+// ---- Avisarle al alumno el resumen de su clase por WhatsApp (1 toque) ----
+function mensajeAvisoFeedback(nombre, feedback) {
+  const temasTxt = (feedback.temas || []).length ? feedback.temas.join(", ") : "";
+  const objetivoTxt = feedback.siguienteObjetivo || "";
+  const materialTxt = feedback.materialUrl ? `\n📸 Fotos/videos de la clase: ${feedback.materialUrl}` : "";
+  return elegirMensaje([
+    `Hola ${nombre}! Así quedó tu clase de hoy${temasTxt ? `: trabajamos ${temasTxt}` : ""}.${objetivoTxt ? ` Para la próxima, enfócate en ${objetivoTxt}.` : ""}${materialTxt}`,
+    `${nombre}, resumen de la clase de hoy${temasTxt ? ` — trabajamos ${temasTxt}` : ""}.${objetivoTxt ? ` Lo que sigue: ${objetivoTxt}.` : ""}${materialTxt}`,
+    `Hola ${nombre}! Buena clase hoy${temasTxt ? ` (${temasTxt})` : ""}.${objetivoTxt ? ` Para mejorar: ${objetivoTxt}.` : ""}${materialTxt}`,
+    `${nombre}, dejo el resumen de hoy${temasTxt ? `: ${temasTxt}` : ""}.${objetivoTxt ? ` Próximo foco: ${objetivoTxt}.` : ""}${materialTxt}`
+  ]);
+}
+
+// Vive en un contenedor aparte de la lista "por registrar" a propósito: esa
+// lista se vuelve a dibujar entera apenas se guarda el registro (la reserva
+// deja de aparecer ahí), así que un botón adentro de esa tarjeta
+// desaparecería antes de que el profesor llegue a tocarlo.
+function mostrarAvisoFeedback({ nombre, telefono, feedback }) {
+  const wrap = document.getElementById("avisos-feedback");
+  if (!wrap) return;
+  const tel = soloDigitos(telefono);
+  const card = document.createElement("div");
+  card.className = "request-card";
+  card.innerHTML = `
+    <div class="request-info">
+      <p class="request-title">${escapeHtml(nombre)} — clase registrada</p>
+      ${tel
+        ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent(mensajeAvisoFeedback(nombre, feedback))}">Avisarle por WhatsApp</a>`
+        : '<p class="court-meta">Sin teléfono para avisarle.</p>'}
+      <button class="btn btn-outline btn-small" type="button" data-descartar-aviso style="margin-left:6px;">Ocultar</button>
+    </div>`;
+  card.querySelector("[data-descartar-aviso]").addEventListener("click", () => card.remove());
+  wrap.prepend(card);
+  activarPausaEnvioMasivo(wrap);
+}
+
 function linkPedirOpinion(nombre, telefono) {
   const tel = soloDigitos(telefono);
   if (!tel) return "";
@@ -627,39 +696,52 @@ function construirTarjetaRegistro(r) {
       <label class="avail-slot" style="display:inline-flex; margin:8px 0;">
         <input type="checkbox" checked data-campo="asistio"> Asistió a la clase
       </label>
+      <div class="field field-full">
+        <label>¿Qué trabajaron? (toca los que apliquen)</label>
+        <div data-temas-wrap>${chipsTemas()}</div>
+      </div>
       <div class="form-grid">
         <div class="field">
           <label>Nivel trabajado</label>
           <select data-campo="nivel">${NIVELES.map((n) => `<option>${n}</option>`).join("")}</select>
         </div>
         <div class="field">
-          <label>Próximo objetivo</label>
-          <input type="text" data-campo="objetivo" placeholder="Ej: afirmar la volea">
+          <label>Próximo objetivo / a mejorar</label>
+          <input type="text" data-campo="objetivo" placeholder="Ej: afirmar la volea" list="dl-sugerencias-mejora">
         </div>
         <div class="field field-full">
           <label>Comentario de la sesión</label>
           <input type="text" data-campo="comentario" placeholder="Qué se trabajó, cómo le fue...">
         </div>
+        <div class="field field-full">
+          <label>Link de fotos/videos de la clase (opcional)</label>
+          <input type="url" data-campo="materialUrl" placeholder="Drive, Google Fotos...">
+        </div>
       </div>
-      <button class="btn btn-primary btn-small" type="button" style="margin-top:10px;">Guardar registro</button>
+      <button class="btn btn-primary btn-small" type="button" data-guardar style="margin-top:10px;">Guardar registro</button>
       ${linkPedirOpinion(r.alumnoNombre, r.alumnoTelefono)}
       <p class="form-msg"></p>
     </div>`;
 
+  wireChipsTemas(card);
   const msg = card.querySelector(".form-msg");
-  card.querySelector("button").addEventListener("click", async () => {
+  card.querySelector("[data-guardar]").addEventListener("click", async () => {
     const asistio = card.querySelector('[data-campo="asistio"]').checked;
     const nivelTrabajado = card.querySelector('[data-campo="nivel"]').value;
     const siguienteObjetivo = card.querySelector('[data-campo="objetivo"]').value.trim();
     const comentario = card.querySelector('[data-campo="comentario"]').value.trim();
+    const materialUrl = card.querySelector('[data-campo="materialUrl"]').value.trim();
+    const temas = temasSeleccionados(card);
+    const feedback = { nivelTrabajado, comentario, siguienteObjetivo, temas, materialUrl };
     try {
       await updateDoc(doc(db, "reservas", r.id), {
         registrada: true,
         asistio,
-        feedback: { nivelTrabajado, comentario, siguienteObjetivo }
+        feedback
       });
       msg.textContent = "Registrado. El alumno ya puede verlo.";
       msg.className = "form-msg ok";
+      mostrarAvisoFeedback({ nombre: r.alumnoNombre, telefono: r.alumnoTelefono, feedback });
     } catch (err) {
       msg.textContent = "No se pudo guardar: " + err.message;
       msg.className = "form-msg error";
@@ -685,18 +767,26 @@ function construirTarjetaRegistroGrupal(grupo) {
           <label class="avail-slot" style="display:inline-flex; margin:6px 0;">
             <input type="checkbox" checked data-campo="asistio"> Asistió a la clase
           </label>
+          <div class="field field-full">
+            <label>¿Qué trabajaron? (toca los que apliquen)</label>
+            <div data-temas-wrap>${chipsTemas()}</div>
+          </div>
           <div class="form-grid">
             <div class="field">
               <label>Nivel trabajado</label>
               <select data-campo="nivel">${NIVELES.map((n) => `<option>${n}</option>`).join("")}</select>
             </div>
             <div class="field">
-              <label>Próximo objetivo</label>
-              <input type="text" data-campo="objetivo" placeholder="Ej: afirmar la volea">
+              <label>Próximo objetivo / a mejorar</label>
+              <input type="text" data-campo="objetivo" placeholder="Ej: afirmar la volea" list="dl-sugerencias-mejora">
             </div>
             <div class="field field-full">
               <label>Comentario de la sesión</label>
               <input type="text" data-campo="comentario" placeholder="Qué se trabajó, cómo le fue...">
+            </div>
+            <div class="field field-full">
+              <label>Link de fotos/videos de la clase (opcional)</label>
+              <input type="url" data-campo="materialUrl" placeholder="Drive, Google Fotos...">
             </div>
           </div>
           <button class="btn btn-primary btn-small" type="button" data-guardar style="margin-top:10px;">Guardar registro de ${escapeHtml(r.alumnoNombre)}</button>
@@ -705,6 +795,7 @@ function construirTarjetaRegistroGrupal(grupo) {
         </div>`).join("")}
     </div>`;
 
+  wireChipsTemas(card);
   grupo.forEach((r) => {
     const fila = card.querySelector(`[data-fila="${r.id}"]`);
     const msg = fila.querySelector(".form-msg");
@@ -713,14 +804,18 @@ function construirTarjetaRegistroGrupal(grupo) {
       const nivelTrabajado = fila.querySelector('[data-campo="nivel"]').value;
       const siguienteObjetivo = fila.querySelector('[data-campo="objetivo"]').value.trim();
       const comentario = fila.querySelector('[data-campo="comentario"]').value.trim();
+      const materialUrl = fila.querySelector('[data-campo="materialUrl"]').value.trim();
+      const temas = temasSeleccionados(fila);
+      const feedback = { nivelTrabajado, comentario, siguienteObjetivo, temas, materialUrl };
       try {
         await updateDoc(doc(db, "reservas", r.id), {
           registrada: true,
           asistio,
-          feedback: { nivelTrabajado, comentario, siguienteObjetivo }
+          feedback
         });
         msg.textContent = "Registrado. El alumno ya puede verlo.";
         msg.className = "form-msg ok";
+        mostrarAvisoFeedback({ nombre: r.alumnoNombre, telefono: r.alumnoTelefono, feedback });
       } catch (err) {
         msg.textContent = "No se pudo guardar: " + err.message;
         msg.className = "form-msg error";

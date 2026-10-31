@@ -114,12 +114,15 @@ function cargarProgreso(uid) {
       wrap.innerHTML = sesiones.map((r) => {
         const f = r.feedback || {};
         const en = r.encuesta || null;
+        const temas = (f.temas || []).map((t) => `<span class="badge badge-confirmada">${escapeHtml(t)}</span>`).join(" ");
         return `
           <div class="request-card">
             <div class="request-info">
-              <p class="request-title">${formatearFecha(r.fecha)}${f.nivelTrabajado ? ` · <span class="badge badge-confirmada">${f.nivelTrabajado}</span>` : ""}</p>
+              <p class="request-title">${formatearFecha(r.fecha)}${f.nivelTrabajado ? ` · <span class="badge badge-confirmada">${escapeHtml(f.nivelTrabajado)}</span>` : ""}</p>
+              ${temas ? `<p style="margin:4px 0;">${temas}</p>` : ""}
               ${f.comentario ? `<p>${escapeHtml(f.comentario)}</p>` : ""}
-              ${f.siguienteObjetivo ? `<p><em>Próximo objetivo: ${escapeHtml(f.siguienteObjetivo)}</em></p>` : ""}
+              ${f.siguienteObjetivo ? `<p><em>Para mejorar: ${escapeHtml(f.siguienteObjetivo)}</em></p>` : ""}
+              ${f.materialUrl ? `<p><a href="${escapeHtml(f.materialUrl)}" target="_blank" rel="noopener">📸 Ver fotos/videos de la clase</a></p>` : ""}
               ${en ? `
                 <div class="callout" style="margin-top:8px;">
                   <span class="callout-icon">🗒️</span>
@@ -522,12 +525,15 @@ function bloqueFeedback(r) {
     return '<p class="court-meta">No se registró asistencia en esta clase.</p>';
   }
   const f = r.feedback || {};
+  const temas = (f.temas || []).map((t) => `<span class="badge badge-confirmada">${escapeHtml(t)}</span>`).join(" ");
   return `
-    <div class="callout" style="margin:10px 0 0;">
-      <span class="callout-icon">📝</span>
+    <div class="callout" style="margin:10px 0 0; flex-direction:column; align-items:stretch;">
       <p>
-        <strong>${f.nivelTrabajado || ""}</strong>${f.comentario ? " — " + f.comentario : ""}
-        ${f.siguienteObjetivo ? `<br><em>Próximo objetivo: ${f.siguienteObjetivo}</em>` : ""}
+        <span class="callout-icon">📝</span>
+        <strong>${escapeHtml(f.nivelTrabajado || "")}</strong>${f.comentario ? " — " + escapeHtml(f.comentario) : ""}
+        ${f.siguienteObjetivo ? `<br><em>Para mejorar: ${escapeHtml(f.siguienteObjetivo)}</em>` : ""}
       </p>
+      ${temas ? `<p style="margin-top:6px;">${temas}</p>` : ""}
+      ${f.materialUrl ? `<p style="margin-top:6px;"><a href="${escapeHtml(f.materialUrl)}" target="_blank" rel="noopener">📸 Ver fotos/videos de la clase</a></p>` : ""}
     </div>`;
 }
