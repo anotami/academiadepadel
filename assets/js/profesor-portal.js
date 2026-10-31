@@ -347,6 +347,28 @@ async function descontarClaseDePaquete(reservaId, alumnoId) {
   await updateDoc(doc(db, "reservas", reservaId), { paqueteId: paquete.id });
 }
 
+// Las clases de un Grupo fijo se autogeneran directamente como "confirmada"
+// con cobro suelto (generarReservasDeGrupos no sabe si el alumno tiene
+// paquete) -- esto recién decide, al registrar la clase ya dictada, si
+// había un paquete activo para usar en vez de cobrarla aparte. Se limita a
+// reservas con grupoId (vienen del generador) sin tocar las que ya tienen
+// paqueteId (confirmadas por el flujo normal) ni las que el profesor marcó
+// a propósito como sueltas desde "Registrar clase ya dictada" (esas no
+// tienen grupoId).
+async function vincularAPaqueteSiCorresponde(r) {
+  if (!r.grupoId || r.paqueteId || !esProgramaRegular(r.tipoClase)) return;
+  const snap = await getDocs(query(collection(db, "paquetes"), where("alumnoId", "==", r.alumnoId)));
+  const activos = snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((p) => p.clasesUsadas < p.clasesTotales)
+    .sort((a, b) => (a.creadoEn?.seconds || 0) - (b.creadoEn?.seconds || 0));
+  if (activos.length === 0) return;
+
+  const paquete = activos[0];
+  await updateDoc(doc(db, "paquetes", paquete.id), { clasesUsadas: paquete.clasesUsadas + 1 });
+  await updateDoc(doc(db, "reservas", r.id), { paqueteId: paquete.id, montoCobrado: null });
+}
+
 async function rechazar(reservaId) {
   await updateDoc(doc(db, "reservas", reservaId), { estado: "rechazada" });
 }
@@ -740,6 +762,7 @@ function construirTarjetaRegistro(r) {
         asistio,
         feedback
       });
+      if (asistio) await vincularAPaqueteSiCorresponde(r);
       msg.textContent = "Registrado. El alumno ya puede verlo.";
       msg.className = "form-msg ok";
       mostrarAvisoFeedback({ nombre: r.alumnoNombre, telefono: r.alumnoTelefono, feedback });
@@ -814,6 +837,7 @@ function construirTarjetaRegistroGrupal(grupo) {
           asistio,
           feedback
         });
+        if (asistio) await vincularAPaqueteSiCorresponde(r);
         msg.textContent = "Registrado. El alumno ya puede verlo.";
         msg.className = "form-msg ok";
         mostrarAvisoFeedback({ nombre: r.alumnoNombre, telefono: r.alumnoTelefono, feedback });
@@ -1985,8 +2009,11 @@ async function calcularRentabilidad(wrap, reservas) {
   const paquetesPagados = paquetesSnap.docs.map((d) => d.data()).filter((p) => p.pagado);
 
   // Clases sueltas registradas con su propio monto (ej. "Registrar clase ya
-  // dictada"), que no pertenecen a ningún paquete — cuentan aparte.
-  const reservasSueltas = reservas.filter((r) => r.estado === "confirmada" && !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0);
+  // dictada"), que no pertenecen a ningún paquete — cuentan aparte. Solo
+  // clases que ya pasaron: una clase de un Grupo fijo se autogenera hasta
+  // 4 semanas por adelantado con su monto ya cargado, así que sin este
+  // filtro aparecían como "ingreso ya ganado" clases que ni se dictaron.
+  const reservasSueltas = reservas.filter((r) => r.estado === "confirmada" && !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0 && fechaYaPaso(r.fecha));
 
   if (paquetesPagados.length === 0 && reservasSueltas.length === 0) {
     wrap.innerHTML = '<p class="empty-state">Todavía no hay paquetes pagados ni clases sueltas con monto cargado para calcular rentabilidad.</p>';
