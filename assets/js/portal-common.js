@@ -252,6 +252,74 @@ export function soloDigitos(telefono) {
   return (telefono || "").replace(/\D/g, "");
 }
 
+// ---- Nivel del alumno (juego): XP, niveles y golpes desbloqueados ----
+// Todo se calcula a partir de datos que el profesor ya registra (reservas
+// con registrada:true y feedback.temas) -- no agrega ningún campo nuevo a
+// Firestore ni cambia las rules: es una capa de presentación sobre el
+// historial existente, recalculada cada vez que se carga la página.
+
+// Subconjunto de TEMAS_CLASE que son golpes/técnicas reales (se excluyen
+// categorías generales como "Táctica" o "Entrada en calor" del árbol de
+// golpes, aunque sí suman XP como cualquier otro tema trabajado).
+export const GOLPES_DESBLOQUEABLES = [
+  "Empuñadura", "Drive", "Revés", "Volea", "Bandeja", "Víbora", "Smash", "Remate",
+  "Saque", "Globo", "Chiquita", "Salida de pared", "Contrapared", "Pared lateral", "Defensa"
+];
+
+const REPETICIONES_PARA_DESBLOQUEAR = 3;
+const XP_POR_CLASE = 10;
+const XP_POR_GOLPE_DESBLOQUEADO = 25;
+
+export const NIVELES_JUEGO = [
+  { nivel: 1, xp: 0, nombre: "Primeros pasos" },
+  { nivel: 2, xp: 50, nombre: "Agarrando el ritmo" },
+  { nivel: 3, xp: 120, nombre: "Pegando con confianza" },
+  { nivel: 4, xp: 220, nombre: "Jugador de red" },
+  { nivel: 5, xp: 350, nombre: "Táctico" },
+  { nivel: 6, xp: 500, nombre: "Sólido" },
+  { nivel: 7, xp: 700, nombre: "Competitivo" },
+  { nivel: 8, xp: 950, nombre: "Avanzado" },
+  { nivel: 9, xp: 1250, nombre: "Casi maestro" },
+  { nivel: 10, xp: 1600, nombre: "Maestro de la academia" }
+];
+
+// reservasAlumno: reservas (ya filtradas por ese alumnoId) tal como vienen
+// de Firestore -- usa solo r.registrada y r.feedback.temas.
+export function calcularProgresoAlumno(reservasAlumno) {
+  const registradas = (reservasAlumno || []).filter((r) => r.registrada);
+  const conteoTemas = {};
+  registradas.forEach((r) => {
+    (r.feedback?.temas || []).forEach((t) => { conteoTemas[t] = (conteoTemas[t] || 0) + 1; });
+  });
+
+  const golpesDesbloqueados = GOLPES_DESBLOQUEABLES.filter((g) => (conteoTemas[g] || 0) >= REPETICIONES_PARA_DESBLOQUEAR);
+  const golpesEnProgreso = GOLPES_DESBLOQUEABLES
+    .filter((g) => !golpesDesbloqueados.includes(g) && (conteoTemas[g] || 0) > 0)
+    .map((g) => ({ nombre: g, veces: conteoTemas[g], faltan: REPETICIONES_PARA_DESBLOQUEAR - conteoTemas[g] }));
+
+  const xp = registradas.length * XP_POR_CLASE + golpesDesbloqueados.length * XP_POR_GOLPE_DESBLOQUEADO;
+
+  let actual = NIVELES_JUEGO[0];
+  let siguiente = NIVELES_JUEGO[1] || null;
+  for (let i = 0; i < NIVELES_JUEGO.length; i++) {
+    if (xp >= NIVELES_JUEGO[i].xp) { actual = NIVELES_JUEGO[i]; siguiente = NIVELES_JUEGO[i + 1] || null; }
+  }
+  const xpParaSiguiente = siguiente ? siguiente.xp - actual.xp : null;
+  const progresoNivelPct = xpParaSiguiente ? Math.min(100, Math.round(((xp - actual.xp) / xpParaSiguiente) * 100)) : 100;
+
+  return {
+    xp,
+    clasesTomadas: registradas.length,
+    nivel: actual.nivel,
+    nombreNivel: actual.nombre,
+    siguienteNivel: siguiente ? { nivel: siguiente.nivel, nombre: siguiente.nombre, xpFaltante: siguiente.xp - xp } : null,
+    progresoNivelPct,
+    golpesDesbloqueados,
+    golpesEnProgreso,
+    golpesTotales: GOLPES_DESBLOQUEABLES.length
+  };
+}
+
 // Mensajes de WhatsApp: cuando el mismo tipo de aviso sale varias veces en
 // una sola sesión (uno por cada candidato de "Falta el cuarto", uno por cada
 // alumno con pago pendiente, etc.), mandar siempre el mismo texto hace que

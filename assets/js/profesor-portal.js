@@ -9,8 +9,9 @@ import {
   DIAS, FRANJAS, NIVELES, TIPOS_PAQUETE, TIPOS_CLASE, PRECIOS_CLASE_SUELTA, HORAS_RESERVA, esProgramaRegular, soloDigitos,
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad,
   CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD, normalizarTelefonoPeru,
-  categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto, elegirMensaje
-} from "./portal-common.js?v=23";
+  categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto, elegirMensaje,
+  calcularProgresoAlumno
+} from "./portal-common.js?v=24";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -1502,11 +1503,13 @@ async function cargarAlumnos() {
   // encasillado en un solo programa, cada reserva elige el suyo.
   const tiposPorAlumno = {};
   const encuestasPorAlumno = {};
+  const reservasPorAlumno = {};
   snapReservas.docs.forEach((d) => {
     const r = d.data();
     if (!r.alumnoId) return;
     if (r.tipoClase) (tiposPorAlumno[r.alumnoId] ||= new Set()).add(r.tipoClase);
     if (r.encuesta) (encuestasPorAlumno[r.alumnoId] ||= []).push({ fecha: r.fecha, ...r.encuesta });
+    (reservasPorAlumno[r.alumnoId] ||= []).push(r);
   });
   Object.values(encuestasPorAlumno).forEach((lista) => lista.sort((a, b) => b.fecha.localeCompare(a.fecha)));
 
@@ -1525,6 +1528,7 @@ async function cargarAlumnos() {
       .join(" ");
     const clasesTomadas = Array.from(tiposPorAlumno[a.id] || []);
     const encuestas = encuestasPorAlumno[a.id] || [];
+    const progreso = calcularProgresoAlumno(reservasPorAlumno[a.id] || []);
     const card = document.createElement("div");
     card.className = "court-card";
     const instagramHandle = escapeHtml((a.instagram || "").replace(/^@/, ""));
@@ -1556,7 +1560,8 @@ async function cargarAlumnos() {
         ]))}">Activar su cuenta</a>`
       : "");
     card.innerHTML = `
-      <h3>${escapeHtml(a.nombre)}</h3>
+      <h3>${escapeHtml(a.nombre)} <span class="badge badge-confirmada" title="${progreso.xp} XP · ${progreso.clasesTomadas} clases">Nv. ${progreso.nivel} — ${escapeHtml(progreso.nombreNivel)}</span></h3>
+      <p class="court-meta">🔓 ${progreso.golpesDesbloqueados.length}/${progreso.golpesTotales} golpes</p>
       <p class="court-meta">${escapeHtml(a.telefono) || "Sin teléfono"} · Nivel ${escapeHtml(a.nivel) || "—"}</p>
       ${a.whatsapp ? `<p class="court-meta">WhatsApp: ${escapeHtml(a.whatsapp)}</p>` : ""}
       ${instagramLink ? `<p class="court-meta">Instagram: ${instagramLink}</p>` : ""}

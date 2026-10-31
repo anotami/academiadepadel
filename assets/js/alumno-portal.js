@@ -6,8 +6,9 @@ import {
 } from "./firebase-app.js?v=18";
 import {
   HORAS_RESERVA, TIPOS_CLASE,
-  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad
-} from "./portal-common.js?v=22";
+  formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad,
+  calcularProgresoAlumno, GOLPES_DESBLOQUEABLES
+} from "./portal-common.js?v=24";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -97,14 +98,45 @@ function cargarJugar() {
 }
 
 
+// ---- Mi nivel (XP + golpes desbloqueados, calculado desde el historial) ----
+function renderMiNivel(reservas) {
+  const wrapNivel = document.getElementById("mi-nivel");
+  const wrapGolpes = document.getElementById("mis-golpes");
+  if (!wrapNivel || !wrapGolpes) return;
+  const p = calcularProgresoAlumno(reservas);
+
+  wrapNivel.innerHTML = `
+    <p class="request-title">Nivel ${p.nivel} — ${escapeHtml(p.nombreNivel)}</p>
+    <p class="field-hint">${p.clasesTomadas} clase${p.clasesTomadas === 1 ? "" : "s"} tomada${p.clasesTomadas === 1 ? "" : "s"} · ${p.xp} XP</p>
+    <div style="background:var(--border); border-radius:999px; height:10px; margin-top:8px; overflow:hidden;">
+      <div style="background:var(--accent, #1a7a3c); height:100%; width:${p.progresoNivelPct}%;"></div>
+    </div>
+    ${p.siguienteNivel
+      ? `<p class="field-hint" style="margin-top:6px;">Te faltan ${p.siguienteNivel.xpFaltante} XP para nivel ${p.siguienteNivel.nivel} — ${escapeHtml(p.siguienteNivel.nombre)}.</p>`
+      : `<p class="field-hint" style="margin-top:6px;">¡Nivel máximo! 🏆</p>`}`;
+
+  wrapGolpes.innerHTML = `
+    <p class="field-hint" style="margin-bottom:8px;">${p.golpesDesbloqueados.length}/${p.golpesTotales} golpes desbloqueados</p>
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+      ${GOLPES_DESBLOQUEABLES.map((g) => {
+        if (p.golpesDesbloqueados.includes(g)) return `<span class="badge badge-confirmada">🔓 ${escapeHtml(g)}</span>`;
+        const enProgreso = p.golpesEnProgreso.find((x) => x.nombre === g);
+        return enProgreso
+          ? `<span class="badge badge-pendiente" title="Te falta${enProgreso.faltan === 1 ? "" : "n"} ${enProgreso.faltan} clase${enProgreso.faltan === 1 ? "" : "s"} más">🔒 ${escapeHtml(g)} (${enProgreso.veces}/3)</span>`
+          : `<span class="badge" style="opacity:0.5;">🔒 ${escapeHtml(g)}</span>`;
+      }).join(" ")}
+    </div>`;
+}
+
 // ---- Mi progreso (línea de tiempo del feedback de sesiones) ----
 function cargarProgreso(uid) {
   const wrap = document.getElementById("mi-progreso");
   onSnapshot(
     query(collection(db, "reservas"), where("alumnoId", "==", uid)),
     (snap) => {
-      const sesiones = snap.docs
-        .map((d) => d.data())
+      const todas = snap.docs.map((d) => d.data());
+      renderMiNivel(todas);
+      const sesiones = todas
         .filter((r) => r.registrada || r.encuesta)
         .sort((a, b) => a.fecha.localeCompare(b.fecha));
       if (!sesiones.length) {
