@@ -650,6 +650,15 @@ function chipsTemas() {
   ).join("");
 }
 
+// Igual que chipsTemas() pero arrancando con algunos ya marcados -- para
+// reabrir el feedback de una clase ya registrada y corregirlo.
+function chipsTemasConSeleccion(seleccionados) {
+  return TEMAS_CLASE.map((t) => {
+    const activo = seleccionados.includes(t);
+    return `<button type="button" class="btn ${activo ? "btn-primary" : "btn-outline"} btn-small" data-chip-tema data-tema="${t}" style="margin:2px;">${t}</button>`;
+  }).join("");
+}
+
 function temasSeleccionados(ambito) {
   return Array.from(ambito.querySelectorAll("[data-chip-tema].btn-primary")).map((b) => b.dataset.tema);
 }
@@ -920,9 +929,28 @@ function renderHistorial() {
     wrap.innerHTML = '<p class="empty-state">No hay clases registradas ese mes.</p>';
     return;
   }
-  agruparPorSesion(reservas).forEach((grupo) => wrap.appendChild(
+  // La consulta trae fecha desc, así que las clases de un Grupo fijo
+  // generadas para 3-4 semanas adelante quedaban arriba de todo, tapando la
+  // última clase realmente dictada. Separar deja lo ya dictado primero
+  // (más reciente primero) y lo que falta, aparte y pintado distinto.
+  const grupos = agruparPorSesion(reservas);
+  const pasadas = grupos.filter((g) => fechaYaPaso(g[0].fecha));
+  const futuras = grupos.filter((g) => !fechaYaPaso(g[0].fecha))
+    .sort((a, b) => a[0].fecha.localeCompare(b[0].fecha) || a[0].hora.localeCompare(b[0].hora));
+
+  pasadas.forEach((grupo) => wrap.appendChild(
     grupo.length > 1 ? construirTarjetaHistorialGrupal(grupo) : construirTarjetaHistorial(grupo[0])
   ));
+
+  if (futuras.length) {
+    const divisor = document.createElement("h3");
+    divisor.textContent = `Próximas — aún no suceden (${futuras.length})`;
+    divisor.style.cssText = "margin-top:22px; padding-top:14px; border-top:2px solid var(--border);";
+    wrap.appendChild(divisor);
+    futuras.forEach((grupo) => wrap.appendChild(
+      grupo.length > 1 ? construirTarjetaHistorialGrupal(grupo) : construirTarjetaHistorial(grupo[0])
+    ));
+  }
 }
 
 let historialSesionesCache = [];
@@ -1049,11 +1077,13 @@ async function vincularReservaAPaquete(r, paqueteIdNuevo, msg) {
 
 function construirTarjetaHistorial(r) {
   const card = document.createElement("div");
+  const esFutura = !fechaYaPaso(r.fecha);
   card.className = "request-card";
+  if (esFutura) card.style.cssText = "background:var(--card-futura-bg, #fff8e6); border:1px solid var(--card-futura-border, #e6c766);";
   const estadoLabel = { confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado;
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)}</p>
+      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)} ${esFutura ? '<span class="badge badge-pendiente">Próxima — aún no sucede</span>' : ""}</p>
       <p>${r.pistaNombre || ""} · ${formatearFecha(r.fecha)} · ${r.hora} hrs
         ${r.modalidad ? "· " + r.modalidad : ""}
         ${typeof r.montoCobrado === "number" ? `· cobrado S/ ${r.montoCobrado}` : ""}
@@ -1086,6 +1116,37 @@ function construirTarjetaHistorial(r) {
           </select>
         </div>
         <button class="btn btn-primary btn-small" type="button" data-guardar-historial>Guardar</button>
+        ${!esFutura ? `
+        <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+          <label>Feedback de la clase</label>
+          <label class="avail-slot" style="display:inline-flex; margin:6px 0;">
+            <input type="checkbox" data-campo="asistio" ${r.asistio === false ? "" : "checked"}> Asistió a la clase
+          </label>
+          <div class="form-grid" style="margin-top:0;">
+            <div class="field">
+              <label>Nivel trabajado</label>
+              <select data-campo="nivel">${NIVELES.map((n) => `<option ${n === r.feedback?.nivelTrabajado ? "selected" : ""}>${n}</option>`).join("")}</select>
+            </div>
+            <div class="field">
+              <label>Próximo objetivo / a mejorar</label>
+              <input type="text" data-campo="objetivo" value="${escapeHtml(r.feedback?.siguienteObjetivo || "")}" list="dl-sugerencias-mejora">
+            </div>
+            <div class="field field-full">
+              <label>Comentario de la sesión</label>
+              <input type="text" data-campo="comentario" value="${escapeHtml(r.feedback?.comentario || "")}">
+            </div>
+            <div class="field field-full">
+              <label>Link de fotos/videos (opcional)</label>
+              <input type="url" data-campo="materialUrl" value="${escapeHtml(r.feedback?.materialUrl || "")}">
+            </div>
+            <div class="field field-full">
+              <label>¿Qué trabajaron?</label>
+              <div data-temas-wrap>${chipsTemasConSeleccion(r.feedback?.temas || [])}</div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-small" type="button" data-guardar-feedback style="margin-top:8px;">Guardar feedback</button>
+          <p class="field-hint">${r.registrada ? "Ya estaba registrada — esto corrige lo que quedó cargado." : "Todavía no se había registrado esta clase."}</p>
+        </div>` : ""}
         <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
           <label>Unir esta clase a otra sesión ya registrada</label>
           <select data-mover-sesion>${opcionesMoverSesion(claveSesion(r))}</select>
@@ -1108,6 +1169,7 @@ function construirTarjetaHistorial(r) {
     </div>`;
 
   const form = card.querySelector("[data-editar-form]");
+  wireChipsTemas(form);
   card.querySelector("[data-toggle-editar-historial]").addEventListener("click", () => {
     form.hidden = !form.hidden;
   });
@@ -1116,6 +1178,24 @@ function construirTarjetaHistorial(r) {
   card.querySelector("[data-guardar-vincular]").addEventListener("click", () => {
     const paqueteId = form.querySelector("[data-vincular-paquete]").value;
     vincularReservaAPaquete(r, paqueteId || null, msg);
+  });
+  card.querySelector("[data-guardar-feedback]")?.addEventListener("click", async () => {
+    const asistio = form.querySelector('[data-campo="asistio"]').checked;
+    const nivelTrabajado = form.querySelector('[data-campo="nivel"]').value;
+    const siguienteObjetivo = form.querySelector('[data-campo="objetivo"]').value.trim();
+    const comentario = form.querySelector('[data-campo="comentario"]').value.trim();
+    const materialUrl = form.querySelector('[data-campo="materialUrl"]').value.trim();
+    const temas = temasSeleccionados(form);
+    const feedback = { nivelTrabajado, comentario, siguienteObjetivo, temas, materialUrl };
+    try {
+      await updateDoc(doc(db, "reservas", r.id), { registrada: true, asistio, feedback });
+      if (asistio) await vincularAPaqueteSiCorresponde({ ...r, asistio });
+      msg.textContent = "Feedback actualizado.";
+      msg.className = "form-msg ok";
+    } catch (err) {
+      msg.textContent = "No se pudo guardar el feedback: " + err.message;
+      msg.className = "form-msg error";
+    }
   });
   card.querySelector("[data-guardar-historial]").addEventListener("click", async () => {
     const modalidad = form.querySelector('[data-campo="modalidad"]').value;
@@ -1162,12 +1242,14 @@ function construirTarjetaHistorial(r) {
 // distinto o se le canceló solo a él), pero comparten la tarjeta.
 function construirTarjetaHistorialGrupal(grupo) {
   const base = grupo[0];
+  const esFutura = !fechaYaPaso(base.fecha);
   const card = document.createElement("div");
   card.className = "request-card";
+  if (esFutura) card.style.cssText = "background:var(--card-futura-bg, #fff8e6); border:1px solid var(--card-futura-border, #e6c766);";
   const estadoLabel = (r) => ({ confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado);
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos)</p>
+      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos) ${esFutura ? '<span class="badge badge-pendiente">Próxima — aún no sucede</span>' : ""}</p>
       <p>${base.pistaNombre || ""} · ${formatearFecha(base.fecha)} · ${base.hora} hrs ${base.modalidad ? "· " + base.modalidad : ""}</p>
       <div class="form-grid" style="margin-top:8px;">
         <div class="field">
@@ -1215,6 +1297,36 @@ function construirTarjetaHistorialGrupal(grupo) {
               </select>
             </div>
             <button class="btn btn-primary btn-small" type="button" data-guardar>Guardar</button>
+            ${!esFutura ? `
+            <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+              <label>Feedback de ${escapeHtml(r.alumnoNombre)}</label>
+              <label class="avail-slot" style="display:inline-flex; margin:6px 0;">
+                <input type="checkbox" data-campo="asistio" ${r.asistio === false ? "" : "checked"}> Asistió a la clase
+              </label>
+              <div class="form-grid" style="margin-top:0;">
+                <div class="field">
+                  <label>Nivel trabajado</label>
+                  <select data-campo="nivel">${NIVELES.map((n) => `<option ${n === r.feedback?.nivelTrabajado ? "selected" : ""}>${n}</option>`).join("")}</select>
+                </div>
+                <div class="field">
+                  <label>Próximo objetivo / a mejorar</label>
+                  <input type="text" data-campo="objetivo" value="${escapeHtml(r.feedback?.siguienteObjetivo || "")}" list="dl-sugerencias-mejora">
+                </div>
+                <div class="field field-full">
+                  <label>Comentario de la sesión</label>
+                  <input type="text" data-campo="comentario" value="${escapeHtml(r.feedback?.comentario || "")}">
+                </div>
+                <div class="field field-full">
+                  <label>Link de fotos/videos (opcional)</label>
+                  <input type="url" data-campo="materialUrl" value="${escapeHtml(r.feedback?.materialUrl || "")}">
+                </div>
+                <div class="field field-full">
+                  <label>¿Qué trabajaron?</label>
+                  <div data-temas-wrap>${chipsTemasConSeleccion(r.feedback?.temas || [])}</div>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-small" type="button" data-guardar-feedback style="margin-top:8px;">Guardar feedback</button>
+            </div>` : ""}
             <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
               <label>Sacar a ${escapeHtml(r.alumnoNombre)} de esta clase y unir su reserva a otra clase ya registrada</label>
               <select data-mover-sesion>${opcionesMoverSesion(claveSesion(r))}</select>
@@ -1235,12 +1347,31 @@ function construirTarjetaHistorialGrupal(grupo) {
   grupo.forEach((r) => {
     const fila = card.querySelector(`[data-fila="${r.id}"]`);
     const form = fila.querySelector("[data-editar-form]");
+    wireChipsTemas(form);
     const msg = fila.querySelector(".form-msg");
     fila.querySelector("[data-toggle-editar]").addEventListener("click", () => { form.hidden = !form.hidden; });
     fila.querySelector("[data-borrar-fila]").addEventListener("click", () => borrarReservaHistorial(r, msg));
     fila.querySelector("[data-guardar-vincular]").addEventListener("click", () => {
       const paqueteId = form.querySelector("[data-vincular-paquete]").value;
       vincularReservaAPaquete(r, paqueteId || null, msg);
+    });
+    fila.querySelector("[data-guardar-feedback]")?.addEventListener("click", async () => {
+      const asistio = form.querySelector('[data-campo="asistio"]').checked;
+      const nivelTrabajado = form.querySelector('[data-campo="nivel"]').value;
+      const siguienteObjetivo = form.querySelector('[data-campo="objetivo"]').value.trim();
+      const comentario = form.querySelector('[data-campo="comentario"]').value.trim();
+      const materialUrl = form.querySelector('[data-campo="materialUrl"]').value.trim();
+      const temas = temasSeleccionados(form);
+      const feedback = { nivelTrabajado, comentario, siguienteObjetivo, temas, materialUrl };
+      try {
+        await updateDoc(doc(db, "reservas", r.id), { registrada: true, asistio, feedback });
+        if (asistio) await vincularAPaqueteSiCorresponde({ ...r, asistio });
+        msg.textContent = "Feedback actualizado.";
+        msg.className = "form-msg ok";
+      } catch (err) {
+        msg.textContent = "No se pudo guardar el feedback: " + err.message;
+        msg.className = "form-msg error";
+      }
     });
     fila.querySelector("[data-guardar]").addEventListener("click", async () => {
       const modalidad = form.querySelector('[data-campo="modalidad"]').value;
@@ -2069,7 +2200,9 @@ async function calcularRentabilidad(wrap, reservas) {
   // cuenta de más por cada alumno de paquete (antes se cobraba la tarifa
   // completa de la pista por cada uno, sin dividir) y tu hora de profesor
   // se cuenta UNA sola vez por sesión, no una vez por alumno.
-  const confirmadas = reservas.filter((r) => r.estado === "confirmada");
+  // Solo clases que ya pasaron -- igual que Ingreso, una sesión de Grupo
+  // fijo autogenerada para dentro de 3 semanas no te cuesta nada todavía.
+  const confirmadas = reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha));
   const sesiones = new Map();
   confirmadas.forEach((r) => {
     const clave = `${r.pistaId}|${r.fecha}|${r.hora}`;
