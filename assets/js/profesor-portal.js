@@ -2199,8 +2199,8 @@ async function calcularRentabilidad(wrap, reservas) {
   reservasSueltas.forEach((r) => {
     ingresoTotal += r.montoCobrado;
     cobradoEfectivoTotal += r.montoCobrado;
-    detalleIngreso.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado });
-    detalleCobrado.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado });
+    detalleIngreso.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado, fecha: r.fecha });
+    detalleCobrado.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado, fecha: r.fecha });
   });
 
   // Costo: TODAS las clases confirmadas, vengan de un paquete o sueltas,
@@ -2225,11 +2225,11 @@ async function calcularRentabilidad(wrap, reservas) {
         ? r.costoCanchaPagado
         : (pista ? pista.costoHoraSinLuz || 0 : costoPromedioPistas);
       costoTotal += costoCancha;
-      detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha, tipo: "cancha" });
+      detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha, tipo: "cancha", fecha: r.fecha });
     });
     costoTotal += costoProfesorHora;
     const primera = reservasDeLaSesion[0];
-    detalleCosto.push({ concepto: `${formatearFecha(primera.fecha)} ${primera.hora} — tu hora de clase`, monto: costoProfesorHora, tipo: "hora" });
+    detalleCosto.push({ concepto: `${formatearFecha(primera.fecha)} ${primera.hora} — tu hora de clase`, monto: costoProfesorHora, tipo: "hora", fecha: primera.fecha });
   });
 
   const margenTotal = ingresoTotal - costoTotal;
@@ -2262,8 +2262,17 @@ function mostrarDetalleRentabilidad(tipo, cardEl) {
   wrap.dataset.tipo = tipo;
   document.querySelectorAll(`#rentabilidad [data-detalle-rent="${tipo}"]`).forEach((c) => c.classList.add("activa"));
   const { ingreso, costo, cobrado, ingresoTotal, costoTotal, cobradoEfectivoTotal, margenTotal, margenPct } = rentabilidadDetalleCache;
+  // Los resúmenes de paquete (sin una fecha puntual) van primero; el resto,
+  // ordenado por fecha (más reciente arriba) en vez del orden en que
+  // llegaron de Firestore, que salía salteado.
+  const ordenarPorFecha = (filas) => [...filas].sort((a, b) => {
+    if (!a.fecha && !b.fecha) return 0;
+    if (!a.fecha) return -1;
+    if (!b.fecha) return 1;
+    return b.fecha.localeCompare(a.fecha);
+  });
   const tabla = (filas) => filas.length
-    ? `<table class="detalle-table"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>${filas.map((f) => `<tr class="${f.tipo ? `fila-${f.tipo}` : ""}"><td>${f.concepto}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("")}</tbody></table>`
+    ? `<table class="detalle-table"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>${ordenarPorFecha(filas).map((f) => `<tr class="${f.tipo ? `fila-${f.tipo}` : ""}"><td>${f.concepto}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("")}</tbody></table>`
     : '<p class="empty-state">Sin datos.</p>';
 
   if (tipo === "ingreso") {
