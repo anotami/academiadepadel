@@ -140,12 +140,15 @@ function renderPaquetesPorAlumnoClaseDictada() {
     if (!activos.length) {
       return `<p class="field-hint" style="margin:0;"><strong>${escapeHtml(alumno.nombre)}</strong>: cobra esta clase (sin paquete activo).</p>`;
     }
+    // Por defecto usa su paquete activo (el más antiguo) si tiene uno --
+    // antes quedaba seleccionado "suelto" aunque el alumno ya tuviera
+    // paquete, y había que acordarse de cambiarlo cada vez.
     return `
       <div class="field" style="margin:0;">
         <label>${escapeHtml(alumno.nombre)}</label>
         <select data-cd-paquete="${id}">
+          ${activos.map((p, i) => `<option value="${p.id}" ${i === 0 ? "selected" : ""}>Usa su paquete "${escapeHtml(p.tipo)}" (${p.clasesUsadas}/${p.clasesTotales} usadas)</option>`).join("")}
           <option value="">Cobra esta clase (suelto)</option>
-          ${activos.map((p) => `<option value="${p.id}">Usa su paquete "${escapeHtml(p.tipo)}" (${p.clasesUsadas}/${p.clasesTotales} usadas)</option>`).join("")}
         </select>
       </div>`;
   }).join("");
