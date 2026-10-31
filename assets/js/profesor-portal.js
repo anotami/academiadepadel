@@ -2060,12 +2060,17 @@ async function cargarMetricas(uid) {
     const reservas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     metricasReservasCache = reservas;
 
-    const confirmadas = reservas.filter((r) => r.estado === "confirmada").length;
+    // "Confirmada" es el estado de la reserva, no si ya sucedió -- un Grupo
+    // fijo tiene semanas adelante ya confirmadas. Separarlas para que
+    // "dictadas" sea de verdad lo ya dado, no una mezcla con lo que falta.
+    const confirmadasTodas = reservas.filter((r) => r.estado === "confirmada");
+    const dictadas = confirmadasTodas.filter((r) => fechaYaPaso(r.fecha)).length;
+    const proximas = confirmadasTodas.filter((r) => !fechaYaPaso(r.fecha)).length;
     const rechazadas = reservas.filter((r) => r.estado === "rechazada").length;
     const pendientes = reservas.filter((r) => r.estado === "pendiente").length;
 
     const conteoPistas = {};
-    reservas.filter((r) => r.estado === "confirmada").forEach((r) => {
+    confirmadasTodas.filter((r) => fechaYaPaso(r.fecha)).forEach((r) => {
       conteoPistas[r.pistaNombre] = (conteoPistas[r.pistaNombre] || 0) + 1;
     });
     const pistaTop = Object.entries(conteoPistas).sort((a, b) => b[1] - a[1])[0];
@@ -2075,15 +2080,16 @@ async function cargarMetricas(uid) {
       ? (conNps.reduce((sum, r) => sum + r.nps, 0) / conNps.length).toFixed(1)
       : "—";
 
-    const alumnosActivos = new Set(reservas.filter((r) => r.estado === "confirmada").map((r) => r.alumnoId)).size;
+    const alumnosActivos = new Set(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha)).map((r) => r.alumnoId)).size;
 
     wrap.innerHTML = `
-      <div class="card clickable" data-detalle-metrica="confirmadas"><div class="card-icon">✅</div><h3>${confirmadas}</h3><p>Clases confirmadas</p></div>
+      <div class="card clickable" data-detalle-metrica="dictadas"><div class="card-icon">✅</div><h3>${dictadas}</h3><p>Clases dictadas</p></div>
+      <div class="card clickable" data-detalle-metrica="proximas"><div class="card-icon">📅</div><h3>${proximas}</h3><p>Próximas confirmadas</p></div>
       <div class="card clickable" data-detalle-metrica="rechazadas"><div class="card-icon">🚫</div><h3>${rechazadas}</h3><p>Rechazadas</p></div>
       <div class="card clickable" data-detalle-metrica="pendientes"><div class="card-icon">⏳</div><h3>${pendientes}</h3><p>Pendientes ahora</p></div>
       <div class="card clickable" data-detalle-metrica="pistas"><div class="card-icon">📍</div><h3>${pistaTop ? pistaTop[0] : "—"}</h3><p>Pista más usada${pistaTop ? ` (${pistaTop[1]})` : ""}</p></div>
       <div class="card clickable" data-detalle-metrica="nps"><div class="card-icon">⭐</div><h3>${npsPromedio}</h3><p>NPS promedio (${conNps.length} respuestas)</p></div>
-      <div class="card clickable" data-detalle-metrica="alumnos"><div class="card-icon">👥</div><h3>${alumnosActivos}</h3><p>Alumnos con clase confirmada</p></div>
+      <div class="card clickable" data-detalle-metrica="alumnos"><div class="card-icon">👥</div><h3>${alumnosActivos}</h3><p>Alumnos con clase dictada</p></div>
     `;
     wrap.querySelectorAll("[data-detalle-metrica]").forEach((card) => {
       card.addEventListener("click", () => mostrarDetalleMetrica(card.dataset.detalleMetrica, card));
@@ -2107,18 +2113,21 @@ function mostrarDetalleMetrica(tipo, cardEl) {
   const reservas = metricasReservasCache || [];
   const filaReserva = (r) => `<tr><td>${formatearFecha(r.fecha)} · ${r.hora}</td><td>${escapeHtml(r.alumnoNombre || "")}</td><td>${escapeHtml(r.pistaNombre || "")}</td></tr>`;
 
-  if (tipo === "confirmadas" || tipo === "rechazadas" || tipo === "pendientes") {
-    const estado = { confirmadas: "confirmada", rechazadas: "rechazada", pendientes: "pendiente" }[tipo];
-    const filtradas = reservas.filter((r) => r.estado === estado).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  if (tipo === "dictadas" || tipo === "proximas" || tipo === "rechazadas" || tipo === "pendientes") {
+    let filtradas;
+    if (tipo === "dictadas") filtradas = reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha));
+    else if (tipo === "proximas") filtradas = reservas.filter((r) => r.estado === "confirmada" && !fechaYaPaso(r.fecha));
+    else filtradas = reservas.filter((r) => r.estado === { rechazadas: "rechazada", pendientes: "pendiente" }[tipo]);
+    filtradas = filtradas.sort((a, b) => tipo === "proximas" ? a.fecha.localeCompare(b.fecha) : b.fecha.localeCompare(a.fecha));
     wrap.innerHTML = filtradas.length
-      ? `<table class="detalle-table"><thead><tr><th>Fecha</th><th>Alumno</th><th>Pista</th></tr></thead><tbody>${filtradas.slice(0, 50).map(filaReserva).join("")}</tbody></table>${filtradas.length > 50 ? `<p class="field-hint">Mostrando las 50 más recientes de ${filtradas.length}.</p>` : ""}`
+      ? `<table class="detalle-table"><thead><tr><th>Fecha</th><th>Alumno</th><th>Pista</th></tr></thead><tbody>${filtradas.slice(0, 50).map(filaReserva).join("")}</tbody></table>${filtradas.length > 50 ? `<p class="field-hint">Mostrando las 50 ${tipo === "proximas" ? "más próximas" : "más recientes"} de ${filtradas.length}.</p>` : ""}`
       : '<p class="empty-state">Sin registros.</p>';
   } else if (tipo === "pistas") {
     const conteo = {};
-    reservas.filter((r) => r.estado === "confirmada").forEach((r) => { conteo[r.pistaNombre] = (conteo[r.pistaNombre] || 0) + 1; });
+    reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha)).forEach((r) => { conteo[r.pistaNombre] = (conteo[r.pistaNombre] || 0) + 1; });
     const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
     wrap.innerHTML = filas.length
-      ? `<table class="detalle-table"><thead><tr><th>Pista</th><th>Clases confirmadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
+      ? `<table class="detalle-table"><thead><tr><th>Pista</th><th>Clases dictadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
       : '<p class="empty-state">Sin registros.</p>';
   } else if (tipo === "nps") {
     const conNps = reservas.filter((r) => typeof r.nps === "number").sort((a, b) => b.fecha.localeCompare(a.fecha));
@@ -2127,10 +2136,10 @@ function mostrarDetalleMetrica(tipo, cardEl) {
       : '<p class="empty-state">Todavía no hay respuestas de NPS.</p>';
   } else if (tipo === "alumnos") {
     const conteo = {};
-    reservas.filter((r) => r.estado === "confirmada").forEach((r) => { conteo[r.alumnoNombre] = (conteo[r.alumnoNombre] || 0) + 1; });
+    reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha)).forEach((r) => { conteo[r.alumnoNombre] = (conteo[r.alumnoNombre] || 0) + 1; });
     const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
     wrap.innerHTML = filas.length
-      ? `<table class="detalle-table"><thead><tr><th>Alumno</th><th>Clases confirmadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
+      ? `<table class="detalle-table"><thead><tr><th>Alumno</th><th>Clases dictadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
       : '<p class="empty-state">Sin registros.</p>';
   }
   wrap.hidden = false;
