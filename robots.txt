@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /informe.html
 
 Sitemap: https://academiadepadel.pe/sitemap.xml

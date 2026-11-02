@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.gstatic.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.gstatic.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://drive.google.com https://*.googleusercontent.com; connect-src 'self' https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com; frame-src https://www.google.com https://drive.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Panel del profesor | academiadepadel.pe</title>
 <meta name="robots" content="noindex">
@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=53">
+<link rel="stylesheet" href="assets/css/style.css?v=54">
 </head>
 <body>
 
@@ -41,6 +41,7 @@
       <nav class="portal-tabs" role="tablist" aria-label="Secciones del panel">
         <button class="portal-tab" type="button" role="tab" data-tab="hoy">Hoy</button>
         <button class="portal-tab" type="button" role="tab" data-tab="clases">Mis clases</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="informes">Informes<span id="inf-badge"></span></button>
         <button class="portal-tab" type="button" role="tab" data-tab="alumnos">Alumnos y pagos</button>
         <button class="portal-tab" type="button" role="tab" data-tab="mkt">MKT</button>
         <button class="portal-tab" type="button" role="tab" data-tab="datos">Mis datos</button>
@@ -637,6 +638,25 @@
         </div>
       </div>
 
+      <!-- INFORMES DE CLASE (video + análisis) -->
+      <div data-tabpanel="informes" hidden>
+        <div class="portal-card">
+          <h2>Clases por revisar</h2>
+          <p class="field-hint">Cada noche a las 23:00 la laptop baja el video de Beelup y lo analiza. Acá decís quién es cada persona: el sistema nunca lo adivina por la reserva.</p>
+          <datalist id="inf-alumnos-lista"></datalist>
+          <div id="inf-clases"><p class="empty-state">Cargando...</p></div>
+        </div>
+        <div class="portal-card">
+          <h2>Informes</h2>
+          <p class="field-hint">Revisá el informe, ajustá el texto y marcalo listo. El mensaje de WhatsApp lo mandás vos.</p>
+          <div id="inf-informes"><p class="empty-state">Cargando...</p></div>
+        </div>
+        <div class="portal-card">
+          <h2>Avances por alumno</h2>
+          <div id="inf-avances"><p class="empty-state">Cargando...</p></div>
+        </div>
+      </div>
+
       <!-- MIS DATOS -->
       <div data-tabpanel="datos" hidden>
         <div class="portal-card">
@@ -692,5 +712,6 @@
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
 <script type="module" src="assets/js/profesor-portal.js?v=69"></script>
+<script type="module" src="assets/js/informes-profesor.js?v=1"></script>
 </body>
 </html>
