@@ -10,8 +10,8 @@ import {
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad,
   CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD, normalizarTelefonoPeru,
   categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto, elegirMensaje,
-  calcularProgresoAlumno
-} from "./portal-common.js?v=25";
+  calcularProgresoAlumno, esPistaBeelup, CANCHAS_BEELUP, DURACIONES_CLASE, videoClaseHtml
+} from "./portal-common.js?v=26";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -90,11 +90,23 @@ function poblarSelectsClase() {
   document.getElementById("cd-hora").innerHTML = HORAS_RESERVA.map((h) => `<option value="${h}">${h}</option>`).join("");
 
   document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA["Particular"];
+
+  document.getElementById("cd-cancha-beelup").innerHTML = CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === "2" ? "selected" : ""}>${c}</option>`).join("");
+  document.getElementById("cd-duracion").innerHTML = DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === 90 ? "selected" : ""}>${d}</option>`).join("");
+  actualizarVisibilidadCanchaBeelup();
 }
 
 document.getElementById("cd-modalidad").addEventListener("change", (e) => {
   document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA[e.target.value] ?? "";
 });
+
+// Solo tiene sentido elegir la cancha de Beelup si la pista es Club Pádel
+// Lima (las demás sedes no están conectadas a Beelup).
+function actualizarVisibilidadCanchaBeelup() {
+  const pista = pistasCache.find((p) => p.id === document.getElementById("cd-pista").value);
+  document.getElementById("cd-cancha-beelup-wrap").hidden = !esPistaBeelup(pista ? `${pista.nombre} — ${pista.distrito}` : "");
+}
+document.getElementById("cd-pista").addEventListener("change", actualizarVisibilidadCanchaBeelup);
 
 document.getElementById("form-nuevo-alumno").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -168,6 +180,9 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
   const costoCanchaPagadoRaw = document.getElementById("cd-cancha-pagada").value;
   const costoCanchaTotal = costoCanchaPagadoRaw === "" ? null : Number(costoCanchaPagadoRaw);
   const pista = pistasCache.find((p) => p.id === pistaId);
+  const pistaNombre = pista ? `${pista.nombre} — ${pista.distrito}` : "";
+  const duracionMin = Number(document.getElementById("cd-duracion").value) || 90;
+  const canchaBeelup = esPistaBeelup(pistaNombre) ? document.getElementById("cd-cancha-beelup").value : null;
   const alumnosSeleccionados = alumnoIds.map((id) => alumnosCache.find((a) => a.id === id)).filter(Boolean);
 
   if (!alumnosSeleccionados.length || !pista) {
@@ -190,11 +205,13 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
       const datos = {
         alumnoId: alumno.id, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
         profesorId: currentUid, profesorNombre: currentPerfil.nombre,
-        tipoClase, pistaId, pistaNombre: `${pista.nombre} — ${pista.distrito}`,
+        tipoClase, pistaId, pistaNombre,
         fecha, hora, estado: "confirmada",
         modalidad, costoCanchaPagado: costoCanchaPorAlumno,
+        duracionMin,
         creadoEn: serverTimestamp()
       };
+      if (canchaBeelup) datos.canchaBeelup = canchaBeelup;
       if (paqueteId) {
         // Ya está pagada dentro del paquete -- no se cobra aparte.
         datos.montoCobrado = null;
@@ -211,6 +228,9 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
     e.target.reset();
     document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA["Particular"];
     document.getElementById("cd-paquetes-alumno").innerHTML = "";
+    document.getElementById("cd-cancha-beelup").value = "2";
+    document.getElementById("cd-duracion").value = "90";
+    actualizarVisibilidadCanchaBeelup();
     const nombres = alumnosSeleccionados.map((a) => a.nombre).join(", ");
     msg.textContent = `Clase registrada para ${nombres} — ve a "Hoy" → "Clases por registrar" para marcar asistencia y feedback.`;
     msg.className = "form-msg ok";
@@ -328,7 +348,9 @@ async function confirmar(reservaId, reserva) {
     alert("Esa pista ya tiene otra clase confirmada en ese mismo horario. Rechaza esta o coordina otro horario con el alumno.");
     return;
   }
-  await updateDoc(doc(db, "reservas", reservaId), { estado: "confirmada" });
+  const cambiosConfirmar = { estado: "confirmada", duracionMin: reserva.duracionMin ?? 90 };
+  if (esPistaBeelup(reserva.pistaNombre) && !reserva.canchaBeelup) cambiosConfirmar.canchaBeelup = "2";
+  await updateDoc(doc(db, "reservas", reservaId), cambiosConfirmar);
 
   if (esProgramaRegular(reserva.tipoClase)) {
     await descontarClaseDePaquete(reservaId, reserva.alumnoId);
@@ -1000,6 +1022,10 @@ function construirFormAgregarAlumno(base) {
         tipoClase: base.tipoClase, pistaId: base.pistaId, pistaNombre: base.pistaNombre,
         fecha: base.fecha, hora: base.hora, estado: "confirmada",
         modalidad: "Grupal (2-4 personas)", montoCobrado, costoCanchaPagado: null,
+        // Misma sesión (pista/fecha/hora) que `base` -- hereda su cancha/duración
+        // en vez de volver a preguntarlas.
+        duracionMin: base.duracionMin ?? 90,
+        ...(base.canchaBeelup !== undefined ? { canchaBeelup: base.canchaBeelup } : {}),
         creadoEn: serverTimestamp()
       });
       msg.textContent = `${alumno.nombre} agregado a esta clase.`;
@@ -1089,6 +1115,7 @@ function construirTarjetaHistorial(r) {
         ${typeof r.montoCobrado === "number" ? `· cobrado S/ ${r.montoCobrado}` : ""}
         ${typeof r.costoCanchaPagado === "number" ? `· cancha S/ ${r.costoCanchaPagado.toFixed(2)}` : ""}
       </p>
+      ${!esFutura ? `<p>${videoClaseHtml(r)}</p>` : ""}
       <div class="form-grid" data-editar-form hidden style="margin-top:8px;">
         <div class="field">
           <label>Modalidad</label>
@@ -1114,6 +1141,15 @@ function construirTarjetaHistorial(r) {
             <option value="confirmada" ${r.estado === "confirmada" ? "selected" : ""}>Confirmada</option>
             <option value="cancelada" ${r.estado === "cancelada" ? "selected" : ""}>Cancelada</option>
           </select>
+        </div>
+        ${esPistaBeelup(r.pistaNombre) ? `
+        <div class="field">
+          <label>Cancha (video Beelup)</label>
+          <select data-campo="canchaBeelup">${CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === (r.canchaBeelup || "2") ? "selected" : ""}>${c}</option>`).join("")}</select>
+        </div>` : ""}
+        <div class="field">
+          <label>Duración (min)</label>
+          <select data-campo="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (r.duracionMin ?? 90) ? "selected" : ""}>${d}</option>`).join("")}</select>
         </div>
         <button class="btn btn-primary btn-small" type="button" data-guardar-historial>Guardar</button>
         ${!esFutura ? `
@@ -1202,13 +1238,18 @@ function construirTarjetaHistorial(r) {
     const montoCobrado = r.paqueteId ? null : (Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0);
     const costoCanchaRaw = form.querySelector('[data-campo="costoCanchaPagado"]').value;
     const estado = form.querySelector('[data-campo="estado"]').value;
+    const duracionMin = Number(form.querySelector('[data-campo="duracionMin"]').value) || 90;
+    const campoCancha = form.querySelector('[data-campo="canchaBeelup"]');
     try {
-      await updateDoc(doc(db, "reservas", r.id), {
+      const cambios = {
         modalidad,
         montoCobrado,
         costoCanchaPagado: costoCanchaRaw === "" ? null : Number(costoCanchaRaw),
-        estado
-      });
+        estado,
+        duracionMin
+      };
+      if (campoCancha) cambios.canchaBeelup = campoCancha.value;
+      await updateDoc(doc(db, "reservas", r.id), cambios);
       msg.textContent = "Actualizado.";
       msg.className = "form-msg ok";
     } catch (err) {
@@ -1251,6 +1292,7 @@ function construirTarjetaHistorialGrupal(grupo) {
     <div class="request-info" style="flex:1 1 100%;">
       <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos) ${esFutura ? '<span class="badge badge-pendiente">Próxima — aún no sucede</span>' : ""}</p>
       <p>${base.pistaNombre || ""} · ${formatearFecha(base.fecha)} · ${base.hora} hrs ${base.modalidad ? "· " + base.modalidad : ""}</p>
+      ${!esFutura ? `<p>${videoClaseHtml(base)}</p>` : ""}
       <div class="form-grid" style="margin-top:8px;">
         <div class="field">
           <label>Costo total de esta sesión (cancha + otros, S/)</label>
@@ -1259,6 +1301,19 @@ function construirTarjetaHistorialGrupal(grupo) {
         <button class="btn btn-outline btn-small" type="button" data-dividir-costo-sesion>Dividir entre los ${grupo.length} alumnos</button>
         <p class="field-hint">Pon el costo total de la sesión (cancha + lo que gastaste) y lo reparte por igual entre los ${grupo.length} alumnos de esta clase — reemplaza lo que tenía cargado cada uno.</p>
       </div>
+      <div class="form-grid" style="margin-top:8px;">
+        ${esPistaBeelup(base.pistaNombre) ? `
+        <div class="field">
+          <label>Cancha (video Beelup) de esta sesión</label>
+          <select data-campo-sesion="canchaBeelup">${CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === (base.canchaBeelup || "2") ? "selected" : ""}>${c}</option>`).join("")}</select>
+        </div>` : ""}
+        <div class="field">
+          <label>Duración (min) de esta sesión</label>
+          <select data-campo-sesion="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (base.duracionMin ?? 90) ? "selected" : ""}>${d}</option>`).join("")}</select>
+        </div>
+        <button class="btn btn-outline btn-small" type="button" data-guardar-cancha-sesion>Guardar para toda la sesión</button>
+      </div>
+      <p class="form-msg" data-msg-cancha-sesion></p>
       <p class="form-msg" data-msg-dividir-costo></p>
       ${grupo.map((r) => `
         <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:10px;" data-fila="${r.id}">
@@ -1430,6 +1485,22 @@ function construirTarjetaHistorialGrupal(grupo) {
     }
   });
 
+  card.querySelector("[data-guardar-cancha-sesion]")?.addEventListener("click", async () => {
+    const msgCancha = card.querySelector("[data-msg-cancha-sesion]");
+    const duracionMin = Number(card.querySelector('[data-campo-sesion="duracionMin"]').value) || 90;
+    const campoCanchaSesion = card.querySelector('[data-campo-sesion="canchaBeelup"]');
+    const cambios = { duracionMin };
+    if (campoCanchaSesion) cambios.canchaBeelup = campoCanchaSesion.value;
+    try {
+      await Promise.all(grupo.map((r) => updateDoc(doc(db, "reservas", r.id), cambios)));
+      msgCancha.textContent = "Guardado para toda la sesión.";
+      msgCancha.className = "form-msg ok";
+    } catch (err) {
+      msgCancha.textContent = "No se pudo guardar: " + err.message;
+      msgCancha.className = "form-msg error";
+    }
+  });
+
   card.querySelector(".request-info").appendChild(construirFormAgregarAlumno(base));
 
   return card;
@@ -1455,7 +1526,17 @@ function poblarSelectsGrupo() {
   document.getElementById("gr-dia").innerHTML = DIAS.map((d) => `<option>${d}</option>`).join("");
   document.getElementById("gr-hora").innerHTML = HORAS_RESERVA.map((h) => `<option value="${h}">${h}</option>`).join("");
   document.getElementById("gr-monto").value = PRECIOS_CLASE_SUELTA["Grupal (2-4 personas)"];
+
+  document.getElementById("gr-cancha-beelup").innerHTML = CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === "2" ? "selected" : ""}>${c}</option>`).join("");
+  document.getElementById("gr-duracion").innerHTML = DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === 90 ? "selected" : ""}>${d}</option>`).join("");
+  actualizarVisibilidadCanchaBeelupGrupo();
 }
+
+function actualizarVisibilidadCanchaBeelupGrupo() {
+  const pista = pistasCache.find((p) => p.id === document.getElementById("gr-pista").value);
+  document.getElementById("gr-cancha-beelup-wrap").hidden = !esPistaBeelup(pista ? `${pista.nombre} — ${pista.distrito}` : "");
+}
+document.getElementById("gr-pista").addEventListener("change", actualizarVisibilidadCanchaBeelupGrupo);
 
 document.getElementById("form-grupo").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1467,15 +1548,23 @@ document.getElementById("form-grupo").addEventListener("submit", async (e) => {
   const hora = document.getElementById("gr-hora").value;
   const montoCobrado = Number(document.getElementById("gr-monto").value) || 0;
   const cupoMaximo = Number(document.getElementById("gr-cupo").value) || 1;
+  const pistaNombre = `${pista?.nombre || ""} — ${pista?.distrito || ""}`;
+  const duracionMin = Number(document.getElementById("gr-duracion").value) || 90;
+  const canchaBeelup = pista && esPistaBeelup(pistaNombre) ? document.getElementById("gr-cancha-beelup").value : null;
   if (!pista) { msg.textContent = "Elige una pista válida."; msg.className = "form-msg error"; return; }
   try {
-    await addDoc(collection(db, "grupos"), {
-      nombre, tipoClase, pistaId: pista.id, pistaNombre: `${pista.nombre} — ${pista.distrito}`,
-      dia, hora, montoCobrado, cupoMaximo, miembroIds: [], activo: true, creadoEn: serverTimestamp()
-    });
+    const datosGrupo = {
+      nombre, tipoClase, pistaId: pista.id, pistaNombre,
+      dia, hora, montoCobrado, cupoMaximo, duracionMin, miembroIds: [], activo: true, creadoEn: serverTimestamp()
+    };
+    if (canchaBeelup) datosGrupo.canchaBeelup = canchaBeelup;
+    await addDoc(collection(db, "grupos"), datosGrupo);
     e.target.reset();
     document.getElementById("gr-cupo").value = 4;
     document.getElementById("gr-monto").value = PRECIOS_CLASE_SUELTA["Grupal (2-4 personas)"];
+    document.getElementById("gr-cancha-beelup").value = "2";
+    document.getElementById("gr-duracion").value = "90";
+    actualizarVisibilidadCanchaBeelupGrupo();
     msg.textContent = "Grupo creado — ahora asígnale alumnos desde \"Tus alumnos\".";
     msg.className = "form-msg ok";
   } catch (err) {
@@ -1512,7 +1601,7 @@ function renderGrupos() {
     card.innerHTML = `
       <h3>${escapeHtml(g.nombre)} ${g.activo === false ? '<span class="badge badge-rechazada">Pausado</span>' : '<span class="badge badge-confirmada">Activo</span>'}</h3>
       <p class="court-meta">${escapeHtml(g.dia)} · ${escapeHtml(g.hora)} hrs · ${escapeHtml(g.pistaNombre)}</p>
-      <p class="court-meta">${escapeHtml(g.tipoClase)} · S/ ${g.montoCobrado} por persona</p>
+      <p class="court-meta">${escapeHtml(g.tipoClase)} · S/ ${g.montoCobrado} por persona · ${g.duracionMin ?? 90} min${esPistaBeelup(g.pistaNombre) ? ` · Cancha ${escapeHtml(g.canchaBeelup || "2")}` : ""}</p>
       <p><span class="badge ${miembros.length >= g.cupoMaximo ? "badge-pendiente" : "badge-confirmada"}">${miembros.length}/${g.cupoMaximo} cupos</span></p>
       <p>${miembros.length ? miembros.map((a) => `<span class="badge badge-confirmada">${escapeHtml(a.nombre)}</span>`).join(" ") : '<span class="court-meta">Sin alumnos todavía — asígnalos desde "Tus alumnos".</span>'}</p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
@@ -1526,6 +1615,13 @@ function renderGrupos() {
         <div class="field"><label>Hora</label><select data-campo="hora">${HORAS_RESERVA.map((h) => `<option value="${h}" ${h === g.hora ? "selected" : ""}>${h}</option>`).join("")}</select></div>
         <div class="field"><label>Monto por persona (S/)</label><input type="number" min="0" step="1" data-campo="montoCobrado" value="${g.montoCobrado}"></div>
         <div class="field"><label>Cupo máximo</label><input type="number" min="1" data-campo="cupoMaximo" value="${g.cupoMaximo}"></div>
+        ${esPistaBeelup(g.pistaNombre) ? `
+        <div class="field"><label>Cancha (video Beelup)</label>
+          <select data-campo="canchaBeelup">${CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === (g.canchaBeelup || "2") ? "selected" : ""}>${c}</option>`).join("")}</select>
+        </div>` : ""}
+        <div class="field"><label>Duración (min)</label>
+          <select data-campo="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (g.duracionMin ?? 90) ? "selected" : ""}>${d}</option>`).join("")}</select>
+        </div>
         <button class="btn btn-primary btn-small" type="button" data-guardar>Guardar</button>
         <p class="field-hint">Cambiar día/hora/pista acá NO mueve las clases que ya se generaron — reprográmalas desde "Mis clases" si hace falta.</p>
       </div>
@@ -1539,13 +1635,17 @@ function renderGrupos() {
     card.querySelector("[data-toggle-editar]").addEventListener("click", () => { form.hidden = !form.hidden; });
     card.querySelector("[data-guardar]").addEventListener("click", async () => {
       try {
-        await updateDoc(doc(db, "grupos", g.id), {
+        const cambios = {
           nombre: form.querySelector('[data-campo="nombre"]').value.trim(),
           dia: form.querySelector('[data-campo="dia"]').value,
           hora: form.querySelector('[data-campo="hora"]').value,
           montoCobrado: Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0,
-          cupoMaximo: Number(form.querySelector('[data-campo="cupoMaximo"]').value) || 1
-        });
+          cupoMaximo: Number(form.querySelector('[data-campo="cupoMaximo"]').value) || 1,
+          duracionMin: Number(form.querySelector('[data-campo="duracionMin"]').value) || 90
+        };
+        const campoCancha = form.querySelector('[data-campo="canchaBeelup"]');
+        if (campoCancha) cambios.canchaBeelup = campoCancha.value;
+        await updateDoc(doc(db, "grupos", g.id), cambios);
         msg.textContent = "Guardado."; msg.className = "form-msg ok";
       } catch (err) { msg.textContent = "No se pudo guardar: " + err.message; msg.className = "form-msg error"; }
     });
@@ -1616,15 +1716,18 @@ async function generarReservasDeGrupos() {
         const alumno = alumnosCache.find((a) => a.id === alumnoId);
         if (!alumno) continue;
         try {
-          await addDoc(collection(db, "reservas"), {
+          const datosReserva = {
             alumnoId: alumno.id, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
             profesorId: currentUid, profesorNombre: currentPerfil.nombre,
             tipoClase: g.tipoClase, pistaId: g.pistaId, pistaNombre: g.pistaNombre,
             fecha, hora: g.hora, estado: "confirmada",
             modalidad: "Grupal (2-4 personas)", montoCobrado: g.montoCobrado, costoCanchaPagado: null,
             grupoId: g.id,
+            duracionMin: g.duracionMin ?? 90,
             creadoEn: serverTimestamp()
-          });
+          };
+          if (g.canchaBeelup) datosReserva.canchaBeelup = g.canchaBeelup;
+          await addDoc(collection(db, "reservas"), datosReserva);
           creadas++;
         } catch {
           // Si falla una reserva puntual, sigue con el resto del grupo.
@@ -1691,6 +1794,10 @@ async function cargarAlumnos() {
     if (progreso.nivel > (a.ultimoNivelVisto || 1)) {
       subieronNivel.push({ alumno: a, progreso });
     }
+    const clasesRecientes = (reservasPorAlumno[a.id] || [])
+      .filter((r) => fechaYaPaso(r.fecha))
+      .sort((x, y) => y.fecha.localeCompare(x.fecha) || y.hora.localeCompare(x.hora))
+      .slice(0, 10);
     const card = document.createElement("div");
     card.className = "court-card";
     const instagramHandle = escapeHtml((a.instagram || "").replace(/^@/, ""));
@@ -1749,6 +1856,16 @@ async function cargarAlumnos() {
             </div>
           </div>`).join("")}
       </div>
+      ${clasesRecientes.length ? `<button class="btn btn-outline btn-small" type="button" data-toggle-clases style="margin-top:8px; margin-left:8px;">Ver clases (${clasesRecientes.length})</button>` : ""}
+      <div data-clases-panel hidden style="margin-top:10px;">
+        ${clasesRecientes.map((cl) => `
+          <div class="request-card" style="margin-bottom:8px;">
+            <div class="request-info">
+              <p class="request-title">${formatearFecha(cl.fecha)} · ${cl.hora} hrs ${cl.pistaNombre ? "· " + escapeHtml(cl.pistaNombre) : ""}</p>
+              <p>${videoClaseHtml(cl)}</p>
+            </div>
+          </div>`).join("")}
+      </div>
       <div class="form-grid" data-editar-form hidden style="margin:10px 0;">
         <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" value="${a.nombre || ""}"></div>
         <div class="field"><label>Teléfono</label><input type="tel" data-campo="telefono" value="${a.telefono || ""}"></div>
@@ -1784,6 +1901,10 @@ async function cargarAlumnos() {
     let dispGridAlumno = null;
     card.querySelector("[data-toggle-evolucion]")?.addEventListener("click", () => {
       const panel = card.querySelector("[data-evolucion-panel]");
+      panel.hidden = !panel.hidden;
+    });
+    card.querySelector("[data-toggle-clases]")?.addEventListener("click", () => {
+      const panel = card.querySelector("[data-clases-panel]");
       panel.hidden = !panel.hidden;
     });
     card.querySelector("[data-copiar-pedir-disp]")?.addEventListener("click", async (e) => {

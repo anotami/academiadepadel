@@ -66,7 +66,12 @@ service cloud.firestore {
         ) ||
         get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor'
       );
-      allow update: if request.auth != null;
+      // videoUrl/videoTramos/videoActualizado los escribe de noche un script
+      // externo con Admin SDK (bypassa estas reglas) -- esta excepción es
+      // por si alguien intenta escribirlos desde la consola del navegador
+      // o llamando a Firestore directo, nunca por cómo los escribe el script.
+      allow update: if request.auth != null &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['videoUrl', 'videoTramos', 'videoActualizado']);
       // Solo el profesor puede borrar una reserva (ej. historial cargado
       // por error) — un alumno no debe poder borrarse una clase propia.
       allow delete: if request.auth != null &&

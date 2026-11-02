@@ -1,5 +1,7 @@
 // Constantes compartidas por todo el portal (login, alumno, profesor, setup).
 
+import { escapeHtml } from "./utils.js";
+
 export const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 export const DIAS_CORTO = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -429,5 +431,50 @@ export function detectarGeneroEnTexto(texto) {
   const t = (texto || "").toLowerCase();
   if (/\b(femenino|mujer|dama|fem\.?)\b/.test(t)) return "Femenino";
   if (/\b(masculino|var[oó]n|hombre|masc\.?)\b/.test(t)) return "Masculino";
+  return "";
+}
+
+// ---- Videos de clase (Beelup) ----
+// Un script externo (Admin SDK, de noche) escribe videoUrl/videoTramos en
+// las reservas de "Club Pádel Lima" -- los campos canchaBeelup/duracionMin
+// que el profesor carga en el panel son los que ese script lee para saber
+// qué grabación corresponde a cada reserva.
+
+// Las carpetas de Drive son privadas, así que el alumno no puede verlas
+// todavía -- queda listo detrás de esta constante para cuando se resuelva
+// el acceso (compartir la carpeta, o servir el video por otro medio).
+export const MOSTRAR_VIDEO_ALUMNO = false;
+
+export const CANCHAS_BEELUP = ["1", "2", "3"];
+export const DURACIONES_CLASE = [60, 90, 120];
+
+// Solo las clases en esta sede quedan grabadas por Beelup.
+export function esPistaBeelup(pistaNombre) {
+  return (pistaNombre || "").toLowerCase().includes("pádel lima");
+}
+
+// Días transcurridos desde "YYYY-MM-DD" hasta hoy (puede ser negativo si es futura).
+export function diasDesdeFecha(fechaStr) {
+  const [y, m, d] = fechaStr.split("-").map(Number);
+  const fecha = new Date(y, m - 1, d);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  return Math.round((hoy - fecha) / 86400000);
+}
+
+// HTML del bloque de video de una reserva: botón si ya hay video, aviso
+// "en proceso" durante la primera semana tras la clase, o nada. No confía
+// en videoUrl a ciegas -- lo valida porque, aunque solo el Admin SDK puede
+// escribirlo, sigue siendo un dato externo que termina en un enlace real.
+export function videoClaseHtml(r) {
+  const urlValida = typeof r.videoUrl === "string" && r.videoUrl.startsWith("https://drive.google.com/");
+  if (urlValida) {
+    const tramos = Number(r.videoTramos) || 0;
+    return `<a class="btn btn-outline btn-small" target="_blank" rel="noopener" href="${escapeHtml(r.videoUrl)}">🎥 Ver video</a>` +
+      (tramos ? ` <span class="court-meta">${tramos} tramo${tramos === 1 ? "" : "s"}</span>` : "");
+  }
+  if (esPistaBeelup(r.pistaNombre) && fechaYaPaso(r.fecha) && diasDesdeFecha(r.fecha) <= 7) {
+    return '<span class="badge badge-pendiente">Video en proceso</span>';
+  }
   return "";
 }

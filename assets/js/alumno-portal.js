@@ -7,8 +7,8 @@ import {
 import {
   HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad,
-  calcularProgresoAlumno, GOLPES_DESBLOQUEABLES, calcularInsignias
-} from "./portal-common.js?v=25";
+  calcularProgresoAlumno, GOLPES_DESBLOQUEABLES, calcularInsignias, MOSTRAR_VIDEO_ALUMNO, videoClaseHtml
+} from "./portal-common.js?v=26";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -170,6 +170,7 @@ function cargarProgreso(uid) {
               ${f.comentario ? `<p>${escapeHtml(f.comentario)}</p>` : ""}
               ${f.siguienteObjetivo ? `<p><em>Para mejorar: ${escapeHtml(f.siguienteObjetivo)}</em></p>` : ""}
               ${f.materialUrl ? `<p><a href="${escapeHtml(f.materialUrl)}" target="_blank" rel="noopener">📸 Ver fotos/videos de la clase</a></p>` : ""}
+              ${MOSTRAR_VIDEO_ALUMNO ? `<p>${videoClaseHtml(r)}</p>` : ""}
               ${en ? `
                 <div class="callout" style="margin-top:8px;">
                   <span class="callout-icon">🗒️</span>
