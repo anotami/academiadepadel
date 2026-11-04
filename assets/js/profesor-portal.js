@@ -55,8 +55,6 @@ onAuthStateChanged(auth, async (user) => {
   cargarPaquetes();
   poblarSelectPaquete();
   poblarSelectsClase();
-  poblarSelectsAnalisisVideo();
-  cargarAnalisisVideo(user.uid);
   cargarMetricas(user.uid);
   cargarSeguimiento(user.uid);
   cargarEsperas();
@@ -109,78 +107,6 @@ function actualizarVisibilidadCanchaBeelup() {
   document.getElementById("cd-cancha-beelup-wrap").hidden = !esPistaBeelup(pista ? `${pista.nombre} — ${pista.distrito}` : "");
 }
 document.getElementById("cd-pista").addEventListener("change", actualizarVisibilidadCanchaBeelup);
-
-// ---- Analizador de video (IA) ----
-// Pide analizar cualquier cancha/fecha/hora de Club Pádel Lima (no hace
-// falta que sea una clase tuya registrada). Solo crea el "pedido" acá -- un
-// script externo (fuera de esta web, con Admin SDK) descarga el video de
-// Beelup, lo manda a una IA y escribe el resultado en el mismo documento.
-const ESTADOS_ANALISIS_VIDEO = {
-  pendiente: { label: "En cola", clase: "badge-pendiente" },
-  procesando: { label: "Procesando...", clase: "badge-pendiente" },
-  listo: { label: "Listo", clase: "badge-confirmada" },
-  error: { label: "Error", clase: "badge-rechazada" }
-};
-
-function poblarSelectsAnalisisVideo() {
-  document.getElementById("av-cancha").innerHTML = CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === "2" ? "selected" : ""}>${c}</option>`).join("");
-  document.getElementById("av-hora").innerHTML = HORAS_RESERVA.map((h) => `<option value="${h}">${h}</option>`).join("");
-  document.getElementById("av-fecha").value = new Date().toISOString().slice(0, 10);
-}
-
-document.getElementById("form-analisis-video").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const msg = document.getElementById("analisis-video-msg");
-  const cancha = document.getElementById("av-cancha").value;
-  const fecha = document.getElementById("av-fecha").value;
-  const hora = document.getElementById("av-hora").value;
-  try {
-    await addDoc(collection(db, "analisisVideo"), {
-      cancha, fecha, hora, estado: "pendiente",
-      profesorId: currentUid, profesorNombre: currentPerfil.nombre,
-      creadoEn: serverTimestamp()
-    });
-    msg.textContent = "Pedido enviado — puede tardar varios minutos en aparecer el resultado.";
-    msg.className = "form-msg ok";
-  } catch (err) {
-    msg.textContent = "No se pudo pedir el análisis: " + err.message;
-    msg.className = "form-msg error";
-  }
-});
-
-function cargarAnalisisVideo(uid) {
-  const wrap = document.getElementById("lista-analisis-video");
-  const q = query(collection(db, "analisisVideo"), where("profesorId", "==", uid), orderBy("creadoEn", "desc"), limit(30));
-  onSnapshot(q, (snap) => {
-    if (snap.empty) {
-      wrap.innerHTML = '<p class="empty-state">Todavía no pediste ningún análisis.</p>';
-      return;
-    }
-    wrap.innerHTML = "";
-    snap.docs.forEach((d) => {
-      const a = { id: d.id, ...d.data() };
-      const estadoInfo = ESTADOS_ANALISIS_VIDEO[a.estado] || { label: a.estado, clase: "badge-pendiente" };
-      const card = document.createElement("div");
-      card.className = "request-card";
-      card.innerHTML = `
-        <div class="request-info" style="flex:1 1 100%;">
-          <p class="request-title">Cancha ${escapeHtml(a.cancha)} · ${formatearFecha(a.fecha)} · ${escapeHtml(a.hora)} hrs
-            <span class="badge ${estadoInfo.clase}">${estadoInfo.label}</span>
-          </p>
-          ${a.estado === "listo" && a.resultado ? `<div class="callout" style="margin-top:8px; white-space:pre-wrap;">${escapeHtml(a.resultado)}</div>` : ""}
-          ${a.estado === "listo" && a.videoUrl ? `<p style="margin-top:6px;"><a class="btn btn-outline btn-small" target="_blank" rel="noopener" href="${escapeHtml(a.videoUrl)}">🎥 Ver video</a></p>` : ""}
-          ${a.estado === "error" && a.error ? `<p class="form-msg error" style="margin-top:6px;">${escapeHtml(a.error)}</p>` : ""}
-          <button class="btn btn-outline btn-small" type="button" data-borrar-analisis style="margin-top:8px;">Borrar</button>
-        </div>`;
-      card.querySelector("[data-borrar-analisis]").addEventListener("click", async () => {
-        if (!confirm("¿Borrar este pedido de análisis?")) return;
-        try { await deleteDoc(doc(db, "analisisVideo", a.id)); }
-        catch (err) { alert("No se pudo borrar: " + err.message); }
-      });
-      wrap.appendChild(card);
-    });
-  }, (err) => mostrarErrorConsulta(wrap, err));
-}
 
 document.getElementById("form-nuevo-alumno").addEventListener("submit", async (e) => {
   e.preventDefault();

@@ -8,9 +8,10 @@
 // 3) Avances: historial de métricas por alumno (colección progreso).
 import {
   auth, db, onAuthStateChanged,
-  doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, getDocs, serverTimestamp
+  doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, collection, query, where, orderBy, limit, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=18";
 import { escapeHtml } from "./utils.js?v=1";
+import { CANCHAS_BEELUP, HORAS_RESERVA } from "./portal-common.js?v=26";
 import {
   METRICAS, TEXTO_CLIP, tituloClip, proximaClase, TAREAS, driveImg, claveAlumno, nuevoToken, fechaCorta, sparkline
 } from "./informes-common.js?v=1";
@@ -19,20 +20,86 @@ const $ = (id) => document.getElementById(id);
 const ORIGEN = location.origin;
 let alumnosNombres = [];
 let clasesCache = [];
+let currentUid = null;
+let currentNombre = "";
+let solicitudesCache = [];
+
+const ESTADOS_SOLICITUD = {
+  pendiente: { label: "En cola", clase: "badge-pendiente" },
+  procesada: { label: "Procesada", clase: "badge-confirmada" },
+  error: { label: "Error", clase: "badge-rechazada" }
+};
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
   const snap = await getDoc(doc(db, "usuarios", user.uid));
   if (!snap.exists() || snap.data().rol !== "profesor") return;
+  currentUid = user.uid;
+  currentNombre = snap.data().nombre || "";
   try {
     const us = await getDocs(query(collection(db, "usuarios"), where("rol", "==", "alumno")));
     alumnosNombres = us.docs.map((d) => (d.data().nombre || "").trim()).filter(Boolean).sort((a, b) => a.localeCompare(b));
   } catch (e) { alumnosNombres = []; }
   const dl = $("inf-alumnos-lista");
   if (dl) dl.innerHTML = alumnosNombres.map((n) => `<option value="${escapeHtml(n)}"></option>`).join("");
+  poblarFormSolicitud();
+  escucharSolicitudes();
   escucharClases();
   escucharInformes();
   cargarAvances();
+});
+
+// ---------------------------------------------------------------- 0) Pedir análisis manual
+function poblarFormSolicitud() {
+  $("sa-cancha").innerHTML = CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === "2" ? "selected" : ""}>${c}</option>`).join("");
+  $("sa-hora").innerHTML = HORAS_RESERVA.map((h) => `<option value="${h}">${h}</option>`).join("");
+  $("sa-fecha").value = new Date().toISOString().slice(0, 10);
+}
+
+$("form-solicitud-analisis").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = $("sa-msg");
+  const cancha = $("sa-cancha").value;
+  const fecha = $("sa-fecha").value;
+  const hora = $("sa-hora").value;
+  try {
+    await addDoc(collection(db, "solicitudes_analisis"), {
+      cancha, fecha, hora, estado: "pendiente",
+      profesorId: currentUid, profesorNombre: currentNombre,
+      creadoEn: serverTimestamp()
+    });
+    msg.textContent = "Pedido enviado — la laptop lo procesa en su próxima corrida, no es instantáneo.";
+    msg.className = "form-msg ok";
+  } catch (err) {
+    msg.textContent = "No se pudo pedir el análisis: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
+
+function escucharSolicitudes() {
+  const wrap = $("inf-solicitudes");
+  onSnapshot(query(collection(db, "solicitudes_analisis"), where("profesorId", "==", currentUid), orderBy("creadoEn", "desc"), limit(20)), (qs) => {
+    solicitudesCache = qs.docs.map((d) => ({ id: d.id, ...d.data() }));
+    if (!solicitudesCache.length) { wrap.innerHTML = ""; return; }
+    wrap.innerHTML = solicitudesCache.map((s) => {
+      const info = ESTADOS_SOLICITUD[s.estado] || { label: s.estado, clase: "badge-pendiente" };
+      return `
+        <p class="request-title" data-id="${escapeHtml(s.id)}" style="margin:6px 0;">
+          Cancha ${escapeHtml(s.cancha)} · ${fechaCorta(s.fecha)} · ${escapeHtml(s.hora)}
+          <span class="badge ${info.clase}">${info.label}</span>
+          ${s.estado === "error" && s.error ? `<span class="field-hint">${escapeHtml(s.error)}</span>` : ""}
+          <button class="btn btn-outline btn-small" type="button" data-accion="borrar-sol">Borrar</button>
+        </p>`;
+    }).join("");
+  }, (err) => { wrap.innerHTML = `<p class="empty-state">No se pudo cargar: ${escapeHtml(err.message)}</p>`; });
+}
+
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest('[data-accion="borrar-sol"]');
+  if (!b) return;
+  const id = b.closest("[data-id]")?.dataset.id;
+  if (!id || !confirm("¿Borrar este pedido?")) return;
+  await deleteDoc(doc(db, "solicitudes_analisis", id));
 });
 
 // ---------------------------------------------------------------- 1) Clases por revisar

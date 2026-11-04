@@ -83,29 +83,22 @@ service cloud.firestore {
         get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
     }
 
-    match /analisisVideo/{id} {
-      // Cola de trabajos del "Analizador de video (IA)": el profesor pide
-      // analizar la cancha/fecha/hora que quiera (ni siquiera tiene que ser
-      // una clase suya registrada), y un script externo (fuera de esta web,
-      // con Admin SDK -- por eso bypassa estas reglas) descarga el video de
-      // Beelup, lo manda a una IA y escribe el resultado acá.
-      allow read: if request.auth != null &&
-        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
-      // Solo puede CREAR el pedido (estado "pendiente", sin resultado/error
-      // todavía) -- el procesamiento y el resultado los escribe el script
-      // externo, nunca el navegador.
-      allow create: if request.auth != null &&
-        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor' &&
+    match /solicitudes_analisis/{id} {
+      // Pedido manual de análisis por cancha/fecha/hora (no hace falta que
+      // sea una clase registrada). beelup_sync (el script de la laptop,
+      // Admin SDK -- bypassa estas reglas) la procesa igual que las clases
+      // automáticas y el resultado queda en clases_analisis, no acá: esta
+      // colección solo es la cola del pedido.
+      allow read: if esProfesor();
+      // Solo puede CREAR el pedido en estado "pendiente" -- el script
+      // externo es el único que la marca procesada/error.
+      allow create: if esProfesor() &&
         request.resource.data.profesorId == request.auth.uid &&
         request.resource.data.estado == 'pendiente' &&
-        !('resultado' in request.resource.data) &&
-        !('error' in request.resource.data) &&
-        !('videoUrl' in request.resource.data);
-      // Nadie actualiza desde el cliente -- ni el estado, ni el resultado,
-      // ni nada: eso es trabajo exclusivo del script externo.
+        !('claseAnalisisId' in request.resource.data) &&
+        !('error' in request.resource.data);
       allow update: if false;
-      allow delete: if request.auth != null &&
-        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
+      allow delete: if esProfesor();
     }
 
     match /paquetes/{id} {

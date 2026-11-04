@@ -104,29 +104,6 @@
 
       <!-- MIS CLASES: agenda -->
       <div data-tabpanel="clases" hidden>
-        <!-- Analizador de video (IA) -->
-        <div class="portal-card">
-          <h2>Analizador de video (IA)</h2>
-          <p class="field-hint">Pide el análisis de cualquier partido de Club Pádel Lima por cancha/fecha/hora, aunque no sea una clase tuya registrada. Un proceso externo descarga el video de Beelup y una IA lo revisa — puede tardar varios minutos, no es instantáneo.</p>
-          <form id="form-analisis-video" class="form-grid">
-            <div class="field">
-              <label for="av-cancha">Cancha</label>
-              <select id="av-cancha" required></select>
-            </div>
-            <div class="field">
-              <label for="av-fecha">Fecha</label>
-              <input type="date" id="av-fecha" required>
-            </div>
-            <div class="field">
-              <label for="av-hora">Hora</label>
-              <select id="av-hora" required></select>
-            </div>
-            <button class="btn btn-primary btn-small" type="submit">Analizar con IA</button>
-            <p class="form-msg" id="analisis-video-msg"></p>
-          </form>
-          <div id="lista-analisis-video" style="margin-top:14px;"><p class="empty-state">Todavía no pediste ningún análisis.</p></div>
-        </div>
-
         <!-- Grupos fijos (clase recurrente con roster) -->
         <div class="portal-card">
           <h2>Mis grupos</h2>
@@ -664,6 +641,27 @@
       <!-- INFORMES DE CLASE (video + análisis) -->
       <div data-tabpanel="informes" hidden>
         <div class="portal-card">
+          <h2>Pedir análisis de un video</h2>
+          <p class="field-hint">Para analizar una cancha/fecha/hora que no sea una clase tuya registrada (ej. un partido cualquiera en Club Pádel Lima). La laptop lo procesa igual que las clases automáticas y aparece abajo en "Clases por revisar" cuando esté listo — no es instantáneo.</p>
+          <form id="form-solicitud-analisis" class="form-grid">
+            <div class="field">
+              <label for="sa-cancha">Cancha</label>
+              <select id="sa-cancha" required></select>
+            </div>
+            <div class="field">
+              <label for="sa-fecha">Fecha</label>
+              <input type="date" id="sa-fecha" required>
+            </div>
+            <div class="field">
+              <label for="sa-hora">Hora</label>
+              <select id="sa-hora" required></select>
+            </div>
+            <button class="btn btn-outline btn-small" type="submit">Pedir análisis</button>
+            <p class="form-msg" id="sa-msg"></p>
+          </form>
+          <div id="inf-solicitudes" style="margin-top:12px;"></div>
+        </div>
+        <div class="portal-card">
           <h2>Clases por revisar</h2>
           <p class="field-hint">Cada noche a las 23:00 la laptop baja el video de Beelup y lo analiza. Acá decís quién es cada persona: el sistema nunca lo adivina por la reserva.</p>
           <datalist id="inf-alumnos-lista"></datalist>
@@ -735,6 +733,6 @@
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
 <script type="module" src="assets/js/profesor-portal.js?v=70"></script>
-<script type="module" src="assets/js/informes-profesor.js?v=1"></script>
+<script type="module" src="assets/js/informes-profesor.js?v=2"></script>
 </body>
 </html>
