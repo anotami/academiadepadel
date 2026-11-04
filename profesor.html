@@ -103,6 +103,29 @@
 
       <!-- MIS CLASES: agenda -->
       <div data-tabpanel="clases" hidden>
+        <!-- Analizador de video (IA) -->
+        <div class="portal-card">
+          <h2>Analizador de video (IA)</h2>
+          <p class="field-hint">Pide el análisis de cualquier partido de Club Pádel Lima por cancha/fecha/hora, aunque no sea una clase tuya registrada. Un proceso externo descarga el video de Beelup y una IA lo revisa — puede tardar varios minutos, no es instantáneo.</p>
+          <form id="form-analisis-video" class="form-grid">
+            <div class="field">
+              <label for="av-cancha">Cancha</label>
+              <select id="av-cancha" required></select>
+            </div>
+            <div class="field">
+              <label for="av-fecha">Fecha</label>
+              <input type="date" id="av-fecha" required>
+            </div>
+            <div class="field">
+              <label for="av-hora">Hora</label>
+              <select id="av-hora" required></select>
+            </div>
+            <button class="btn btn-primary btn-small" type="submit">Analizar con IA</button>
+            <p class="form-msg" id="analisis-video-msg"></p>
+          </form>
+          <div id="lista-analisis-video" style="margin-top:14px;"><p class="empty-state">Todavía no pediste ningún análisis.</p></div>
+        </div>
+
         <!-- Grupos fijos (clase recurrente con roster) -->
         <div class="portal-card">
           <h2>Mis grupos</h2>
@@ -691,6 +714,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=69"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=70"></script>
 </body>
 </html>
