@@ -292,6 +292,49 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
     }
 
+    // ---------- Jornadas (inscripción mensual, página pública /jornada.html) ----------
+
+    match /jornadas/{id} {
+      // Lectura pública: la página /jornada.html la muestra sin login.
+      allow read: if true;
+      allow create, delete: if esProfesor();
+      // El profesor edita cualquier campo libremente. El público (entra
+      // anónimo, como el resto de formularios de esta web) SOLO puede sumar
+      // cuposUsados al inscribirse, y nunca más allá del cupo total -- mismo
+      // patrón angosto que turnos_grupales.cupoUsado.
+      allow update: if esProfesor() || (
+        request.auth != null &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cuposUsados']) &&
+        request.resource.data.cuposUsados is int &&
+        request.resource.data.cuposUsados > resource.data.cuposUsados &&
+        request.resource.data.cuposUsados <= resource.data.cupos
+      );
+    }
+
+    match /inscripciones_jornada/{id} {
+      // Nombre, celular y distrito de un inscripto: nunca público. Solo el
+      // profesor lee la lista, cambia estadoPago o borra.
+      allow read, update, delete: if esProfesor();
+      // Cualquiera (anónimo) puede inscribirse -- es el formulario público.
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasOnly([
+          'jornadaId', 'cantidadPersonas', 'nombre', 'email', 'celular',
+          'acompanantes', 'distrito', 'experienciaRaqueta', 'creado', 'estadoPago'
+        ]) &&
+        request.resource.data.jornadaId is string && request.resource.data.jornadaId.size() > 0 &&
+        request.resource.data.cantidadPersonas in [1, 2, 3] &&
+        request.resource.data.nombre is string &&
+        request.resource.data.nombre.size() >= 1 && request.resource.data.nombre.size() <= 80 &&
+        request.resource.data.email is string && request.resource.data.email.size() <= 120 &&
+        request.resource.data.celular is string &&
+        request.resource.data.celular.matches('^\\+519[0-9]{8}$') &&
+        (!('acompanantes' in request.resource.data) || (request.resource.data.acompanantes is string && request.resource.data.acompanantes.size() <= 300)) &&
+        request.resource.data.distrito is string && request.resource.data.distrito.size() <= 60 &&
+        request.resource.data.experienciaRaqueta in ['sí, ya jugué otro deporte de raqueta', 'no, arranco desde cero'] &&
+        request.resource.data.estadoPago == 'pendiente' &&
+        request.resource.data.creado == request.time;
+    }
+
     match /convocatorias/{id} {
       // "Falta el cuarto": 100% interno, nunca se envía nada solo ni se
       // expone al público -- registra a quién se convocó y cuándo.

@@ -1827,3 +1827,13 @@ span.disp-toggle.on { background: var(--court); }
 .inf-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .inf-tareas { padding-left: 20px; }
 .inf-pie { margin-top: 32px; font-size: .8rem; color: var(--ink-soft); border-top: 1px solid var(--border); padding-top: 12px; }
+
+/* ---- Jornada (inscripción mensual, jornada.html) ---- */
+.jor-portada { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 16px; margin-bottom: 18px; }
+.jor-ficha { list-style: none; padding: 0; margin: 16px 0; display: flex; flex-direction: column; gap: 8px; font-size: 1.02rem; }
+.jor-ficha a { color: inherit; }
+.jor-cupos { display: inline-block; margin: 14px 0; padding: 8px 14px; border-radius: 99px; background: var(--accent); color: var(--ink); font-weight: 700; }
+.jor-cupos.jor-cupos-pocos { background: #fde68a; }
+.jor-cupos.jor-cupos-llenos { background: var(--bg); color: var(--ink-soft); }
+.jor-texto p { margin: 0 0 12px; line-height: 1.55; }
+.jor-texto strong { color: var(--ink); }

@@ -43,6 +43,7 @@
         <button class="portal-tab" type="button" role="tab" data-tab="clases">Mis clases</button>
         <button class="portal-tab" type="button" role="tab" data-tab="informes">Informes<span id="inf-badge"></span></button>
         <button class="portal-tab" type="button" role="tab" data-tab="alumnos">Alumnos y pagos</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="jornadas">Jornadas</button>
         <button class="portal-tab" type="button" role="tab" data-tab="mkt">MKT</button>
         <button class="portal-tab" type="button" role="tab" data-tab="datos">Mis datos</button>
       </nav>
@@ -678,6 +679,66 @@
         </div>
       </div>
 
+      <!-- JORNADAS -->
+      <div data-tabpanel="jornadas" hidden>
+        <div class="portal-card">
+          <h2>Nueva jornada</h2>
+          <p class="field-hint">La página pública (<a href="jornada.html" target="_blank" rel="noopener">jornada.html</a>) siempre muestra la jornada con "Activa" marcada que tenga la fecha más próxima.</p>
+          <form id="form-jornada-nueva" class="form-grid">
+            <div class="field field-full">
+              <label for="jn-titulo">Título</label>
+              <input type="text" id="jn-titulo" required maxlength="80" placeholder="Ej: Primera Jornada de Pádel · 07/11">
+            </div>
+            <div class="field">
+              <label for="jn-fecha">Fecha</label>
+              <input type="date" id="jn-fecha" required>
+            </div>
+            <div class="field">
+              <label for="jn-horario">Horario</label>
+              <input type="text" id="jn-horario" maxlength="60" placeholder="Opcional — vacío = 'te lo confirmamos por WhatsApp'">
+            </div>
+            <div class="field">
+              <label for="jn-sede">Sede</label>
+              <input type="text" id="jn-sede" required maxlength="80" placeholder="Ej: Club Pádel Lima (La Once)">
+            </div>
+            <div class="field">
+              <label for="jn-direccion">Dirección</label>
+              <input type="text" id="jn-direccion" maxlength="120" placeholder="Ej: Surquillo">
+            </div>
+            <div class="field field-full">
+              <label for="jn-maps">Link de Google Maps</label>
+              <input type="url" id="jn-maps" placeholder="Opcional">
+            </div>
+            <div class="field">
+              <label for="jn-precio">Precio por persona (S/)</label>
+              <input type="number" id="jn-precio" required min="0" step="1">
+            </div>
+            <div class="field">
+              <label for="jn-cupos">Cupos totales</label>
+              <input type="number" id="jn-cupos" required min="1" step="1" value="8">
+            </div>
+            <div class="field">
+              <label for="jn-metodo-pago">Método de pago</label>
+              <input type="text" id="jn-metodo-pago" maxlength="40" placeholder="Ej: Yape">
+            </div>
+            <div class="field field-full">
+              <label for="jn-portada">URL de la foto de portada</label>
+              <input type="url" id="jn-portada" placeholder="Opcional">
+            </div>
+            <label class="avail-slot" style="display:inline-flex; margin-top:4px;">
+              <input type="checkbox" id="jn-activa" checked> Activa (se muestra en jornada.html)
+            </label>
+            <button class="btn btn-primary btn-small" type="submit" style="margin-top:10px;">Crear jornada</button>
+            <p class="form-msg" id="jn-msg"></p>
+          </form>
+        </div>
+
+        <div class="portal-card">
+          <h2>Tus jornadas</h2>
+          <div id="lista-jornadas"><p class="empty-state">Cargando...</p></div>
+        </div>
+      </div>
+
       <!-- MIS DATOS -->
       <div data-tabpanel="datos" hidden>
         <div class="portal-card">
@@ -734,5 +795,6 @@
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
 <script type="module" src="assets/js/profesor-portal.js?v=70"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=2"></script>
+<script type="module" src="assets/js/jornadas-profesor.js?v=1"></script>
 </body>
 </html>

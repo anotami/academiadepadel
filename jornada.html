@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.gstatic.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-C2DJ9V0L4Z"></script>
+<script src="assets/js/gtag-init.js?v=2"></script>
+
+<title>Jornada de Pádel para principiantes | academiadepadel.pe</title>
+<meta name="description" content="Jornada para arrancar en el pádel desde cero: clase guiada, material prestado y tus primeros puntos. Cupos limitados.">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://academiadepadel.pe/jornada.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=54">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Jornada de Pádel para principiantes — Academia de Pádel GP">
+<meta property="og:description" content="Arrancá en el pádel desde cero: clase guiada, material prestado y tus primeros puntos. Cupos limitados.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_PE">
+<meta property="og:url" content="https://academiadepadel.pe/jornada.html">
+<meta property="og:image" content="https://academiadepadel.pe/assets/img/court/paddles-court.jpg">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>Academia de Pádel GP</span>
+    </a>
+    <a href="index.html" class="test-back-link">← Volver al sitio</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section portal-section">
+    <div class="container portal-shell">
+
+      <div class="portal-card" id="jorCargando" style="max-width:720px; margin:0 auto; text-align:center;">
+        <p class="empty-state">Cargando...</p>
+      </div>
+
+      <div class="portal-card" id="jorSinJornada" hidden style="max-width:720px; margin:0 auto; text-align:center;">
+        <h1>No hay ninguna jornada activa por ahora</h1>
+        <p style="margin:12px 0 18px;">Escríbenos por WhatsApp y te avisamos apenas abramos cupos para la próxima.</p>
+        <a class="btn btn-whatsapp" target="_blank" rel="noopener" href="https://wa.me/51957085531?text=Hola%2C%20quiero%20que%20me%20avisen%20de%20la%20pr%C3%B3xima%20jornada%20de%20p%C3%A1del">Escribir por WhatsApp</a>
+      </div>
+
+      <!-- Paso 1: portada + info -->
+      <div class="portal-card" id="jorInfoCard" hidden style="max-width:720px; margin:0 auto;">
+        <img class="jor-portada" id="jor-portada" alt="">
+        <p class="eyebrow">Jornada de pádel</p>
+        <h1 id="jor-titulo" style="margin-bottom:10px;"></h1>
+
+        <ul class="jor-ficha">
+          <li id="jor-fecha"></li>
+          <li id="jor-horario"></li>
+          <li id="jor-lugar"></li>
+          <li id="jor-precio"></li>
+        </ul>
+
+        <span class="jor-cupos" id="jor-cupos"></span>
+
+        <div class="jor-texto">
+          <p>¿Te dio curiosidad el pádel y nunca encontraste el momento para probar? Esta jornada es para arrancar desde cero, con profe, en cancha y sin vergüenza de no saber nada.</p>
+          <p>Vas a aprender las bases: cómo agarrar la pala, dónde pararte, cómo se juega con las paredes. Y al final jugás tus primeros puntos.</p>
+          <p><strong>Qué incluye:</strong> clase guiada para principiantes, pala y pelotas prestadas, y tus primeros partidos.</p>
+          <p><strong>Qué traer:</strong> ropa y zapatillas deportivas, agua y ganas de pasarla bien.</p>
+          <p>No necesitás experiencia previa.</p>
+        </div>
+
+        <button class="btn btn-primary" type="button" id="jor-btn-inscribite">Inscribite</button>
+
+        <div id="jor-completos" hidden style="margin-top:14px;">
+          <p style="margin-bottom:10px;">Cupos completos. Escribinos al WhatsApp para la próxima jornada.</p>
+          <a class="btn btn-whatsapp" id="jor-whatsapp-completos" target="_blank" rel="noopener" href="#">Escribir por WhatsApp</a>
+        </div>
+      </div>
+
+      <!-- Paso 2: formulario -->
+      <div class="portal-card" id="jorFormCard" hidden style="max-width:720px; margin:24px auto 0;">
+        <h2 style="margin-bottom:14px;">Inscribite a la jornada</h2>
+        <form id="form-jornada" class="form-grid">
+          <!-- Honeypot: invisible para una persona, un bot de formularios lo suele completar igual. -->
+          <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+            <label for="jor-web">No completar este campo</label>
+            <input type="text" id="jor-web" name="web" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label for="jor-personas">¿Cuántas personas se inscriben? *</label>
+            <select id="jor-personas" required>
+              <option value="1">1 persona</option>
+              <option value="2">2 personas</option>
+              <option value="3">3 personas</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="jor-nombre">Nombre y apellido *</label>
+            <input type="text" id="jor-nombre" required maxlength="80">
+          </div>
+          <div class="field">
+            <label for="jor-email">Email *</label>
+            <input type="email" id="jor-email" required maxlength="120">
+          </div>
+          <div class="field">
+            <label for="jor-celular">Celular *</label>
+            <input type="tel" id="jor-celular" required placeholder="999 111 222" inputmode="numeric">
+            <p class="field-hint">Celular de Perú, con o sin +51 adelante.</p>
+          </div>
+          <div class="field">
+            <label for="jor-distrito">Distrito *</label>
+            <select id="jor-distrito" required></select>
+          </div>
+          <div class="field field-full">
+            <label for="jor-experiencia">¿Jugaste antes algún deporte de raqueta? *</label>
+            <select id="jor-experiencia" required>
+              <option value="no, arranco desde cero">No, arranco desde cero</option>
+              <option value="sí, ya jugué otro deporte de raqueta">Sí, ya jugué otro deporte de raqueta</option>
+            </select>
+          </div>
+          <div class="field field-full" id="jor-acompanantes-wrap" hidden>
+            <label for="jor-acompanantes">Nombre y celular de quienes te acompañan</label>
+            <textarea id="jor-acompanantes" rows="2" maxlength="300" placeholder="Ej: Ana Pérez 987654321, Luis Gómez 912345678"></textarea>
+          </div>
+          <button class="btn btn-primary" type="submit" id="jor-submit">Reservar mi lugar</button>
+          <p class="form-msg" id="jor-msg"></p>
+        </form>
+      </div>
+
+      <!-- Paso 3: éxito -->
+      <div class="portal-card" id="jorOkCard" hidden style="max-width:720px; margin:24px auto 0; text-align:center;">
+        <h2>¡Listo, ya tenés tu lugar reservado!</h2>
+        <p style="margin:12px 0 18px;">Para confirmarlo, el pago es por Yape: escribinos al WhatsApp y te pasamos los datos.</p>
+        <a class="btn btn-whatsapp" id="jor-whatsapp-ok" target="_blank" rel="noopener" href="#">Escribir por WhatsApp</a>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="brand footer-brand">
+      <img src="assets/img/logo.svg" alt="" width="28" height="28">
+      <span>Academia de Pádel GP</span>
+    </div>
+    <p>Lima, Perú · <a href="https://wa.me/51957085531" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://www.instagram.com/academiapadelgp/" target="_blank" rel="noopener">Instagram</a></p>
+    <p class="footer-copy">© <span id="year"></span> academiadepadel.pe. Todos los derechos reservados. · <a href="privacidad.html">Privacidad</a></p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js?v=13"></script>
+<script src="assets/js/cookie-banner.js?v=1"></script>
+<script type="module" src="assets/js/jornada-page.js?v=1"></script>
+</body>
+</html>
