@@ -1787,3 +1787,43 @@ span.disp-toggle.on { background: var(--court); }
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- Informes de clase (panel del profesor + informe.html) ---------- */
+.inf-clase, .inf-informe { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin: 12px 0; background: var(--surface); }
+.inf-clase h3, .inf-informe h3 { margin: 0 0 4px; font-size: 1.02rem; }
+.inf-personas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 10px 0; }
+.inf-persona { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+.inf-persona img, .inf-sinfoto { width: 78px; height: 104px; object-fit: cover; border-radius: 8px; background: var(--bg); flex: none; }
+.inf-sinfoto { display: grid; place-items: center; font-size: .75rem; color: var(--ink-soft); }
+.inf-persona-datos { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.inf-persona-datos select, .inf-persona-datos input, .inf-proxima { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
+.inf-acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.inf-estado { font-size: .75rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-left: 6px; background: var(--bg); color: var(--ink-soft); vertical-align: middle; }
+.inf-estado.inf-listo { background: var(--accent); color: var(--ink); }
+.inf-avance { border-top: 1px solid var(--border); padding: 10px 0; }
+.inf-avance summary { cursor: pointer; }
+.inf-spark { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; }
+.inf-spark svg { max-width: 100%; height: auto; }
+.inf-tabla { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.inf-tabla td, .inf-tabla th { padding: 7px 6px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.inf-delta { display: block; font-size: .78rem; color: var(--ink-soft); }
+.inf-delta.inf-up { color: #1a7f37; } .inf-delta.inf-down { color: #b42318; }
+.inf-body { background: var(--bg); }
+.inf-hoja { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; background: var(--surface); min-height: 100vh; }
+.inf-hoja h1 { font-family: Sora, Manrope, sans-serif; font-size: 1.7rem; margin: 4px 0 6px; color: var(--ink); }
+.inf-hoja h2 { font-family: Sora, Manrope, sans-serif; font-size: 1.15rem; margin: 28px 0 8px; color: var(--court); }
+.inf-marca { font-weight: 800; color: var(--court); letter-spacing: .02em; margin: 0; }
+.inf-sub { color: var(--ink-soft); margin: 4px 0 10px; }
+.inf-cabecera { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0; flex-wrap: wrap; }
+.inf-foto { width: 120px; height: 160px; object-fit: cover; border-radius: 12px; }
+.inf-cabecera figure { margin: 0; flex: 1; min-width: 200px; }
+.inf-mapa { width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+.inf-cabecera figcaption { font-size: .8rem; color: var(--ink-soft); margin-top: 4px; }
+.inf-clips { padding-left: 0; list-style: none; }
+.inf-clip { margin: 16px 0; }
+.inf-clip h3 { margin: 0 0 4px; font-size: 1rem; }
+.inf-hora { color: var(--ink-soft); font-weight: 500; }
+.inf-video { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; margin-top: 8px; }
+.inf-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.inf-tareas { padding-left: 20px; }
+.inf-pie { margin-top: 32px; font-size: .8rem; color: var(--ink-soft); border-top: 1px solid var(--border); padding-top: 12px; }

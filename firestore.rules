@@ -9,6 +9,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function esProfesor() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
+    }
+
     // ---------- Portal (alumno/profesor) ----------
 
     match /usuarios/{uid} {
@@ -299,6 +304,25 @@ service cloud.firestore {
       // expone al público -- registra a quién se convocó y cuándo.
       allow read, write: if request.auth != null
         && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
+    }
+
+    // ---------- Informes de clase (video Beelup + análisis) ----------
+    // clases_analisis: las escribe el script de la laptop con Admin SDK (no pasa
+    // por estas reglas). Desde la web solo el profesor las lee y las marca
+    // revisadas o descartadas.
+    match /clases_analisis/{id} {
+      allow read, update: if esProfesor();
+    }
+    // informes: link privado. Cualquiera puede LEER un informe si tiene el
+    // token exacto (18 caracteres aleatorios), pero nadie puede LISTARLOS
+    // salvo el profesor. Solo el profesor crea, edita y retira.
+    match /informes/{token} {
+      allow get: if true;
+      allow list, create, update, delete: if esProfesor();
+    }
+    // progreso: historial de métricas por alumno, solo para el profesor.
+    match /progreso/{id} {
+      allow read, write: if esProfesor();
     }
 
     // ---------- Todo lo demás: denegado ----------
