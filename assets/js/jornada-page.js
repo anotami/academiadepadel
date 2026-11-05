@@ -23,6 +23,23 @@ let jornada = null;
 function capitalizar(s) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
 
 async function cargarJornada() {
+  // Un link directo a una jornada puntual (?id=...), como el que se copia
+  // desde el panel para publicar en Instagram, se abre tal cual aunque esa
+  // jornada no sea "la activa" del momento -- es justo lo que permite tener
+  // varios meses publicados en paralelo, cada uno con su propio link.
+  const idDeLaUrl = new URLSearchParams(location.search).get("id");
+  if (idDeLaUrl) {
+    const snap = await getDoc(doc(db, "jornadas", idDeLaUrl));
+    if (snap.exists()) {
+      jornada = { id: snap.id, ...snap.data() };
+      renderJornada();
+      $("jorCargando").hidden = true;
+      $("jorInfoCard").hidden = false;
+      return;
+    }
+    // Id inválido/borrado: sigue con el comportamiento de siempre.
+  }
+
   const snap = await getDocs(query(collection(db, "jornadas"), where("activa", "==", true)));
   if (snap.empty) {
     $("jorCargando").hidden = true;

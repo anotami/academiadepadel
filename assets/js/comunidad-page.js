@@ -14,7 +14,7 @@ import { HORARIOS_COMUNIDAD, normalizarTelefonoPeru } from "./portal-common.js?v
 // Mientras tanto quedan en "#" -- no rompen el formulario, solo no llevan
 // a ningún lado todavía.
 const LINKS_GRUPO_WHATSAPP = {
-  cero: "#",
+  cero: "https://chat.whatsapp.com/CJjPY60FamzCN0FLD81X1K?s=sw&p=i&mlu=4&ilr=4&iam=2",
   principiante: "#",
   intermedio: "#",
   avanzado: "#"

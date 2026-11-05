@@ -83,6 +83,17 @@ function sumarUnMes(fechaStr) {
   return new Date(y, m, d).toISOString().slice(0, 10);
 }
 
+// Crea una copia de `base` en `fechaNueva` -- misma sede/precio/cupos/portada,
+// horario vacío y pausada, igual que "Duplicar para el mes siguiente". La usan
+// tanto ese botón como "Generar próximos meses" (que la llama varias veces seguidas).
+async function duplicarJornada(base, fechaNueva) {
+  await addDoc(collection(db, "jornadas"), {
+    titulo: base.titulo, fecha: fechaNueva, horario: "", sede: base.sede, direccion: base.direccion || "",
+    mapsUrl: base.mapsUrl || "", precio: base.precio, cupos: base.cupos, metodoPago: base.metodoPago || "",
+    portadaUrl: base.portadaUrl || "", activa: false, cuposUsados: 0, creadoEn: serverTimestamp()
+  });
+}
+
 function csvEscape(v) {
   const s = String(v ?? "");
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -141,7 +152,9 @@ function render() {
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
         <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
         <button class="btn btn-outline btn-small" type="button" data-toggle-activa>${j.activa ? "Pausar" : "Activar"}</button>
+        <button class="btn btn-outline btn-small" type="button" data-copiar-link>Copiar link para Instagram</button>
         <button class="btn btn-outline btn-small" type="button" data-duplicar>Duplicar para el mes siguiente</button>
+        <button class="btn btn-outline btn-small" type="button" data-generar-meses>Generar próximos meses</button>
         <button class="btn btn-outline btn-small" type="button" data-borrar>Borrar</button>
         ${inscriptos.length ? `<button class="btn btn-outline btn-small" type="button" data-exportar>Exportar CSV (${inscriptos.length})</button>` : ""}
         ${inscriptos.length ? `<button class="btn btn-outline btn-small" type="button" data-toggle-inscriptos>Ver inscriptos</button>` : ""}
@@ -181,16 +194,39 @@ function render() {
         msg.textContent = "Guardado."; msg.className = "form-msg ok";
       } catch (err) { msg.textContent = "No se pudo guardar: " + err.message; msg.className = "form-msg error"; }
     });
+    card.querySelector("[data-copiar-link]").addEventListener("click", async () => {
+      const url = `https://academiadepadel.pe/jornada.html?id=${j.id}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        msg.textContent = "Link copiado: " + url;
+      } catch {
+        prompt("Copiá el link:", url);
+        msg.textContent = "";
+      }
+      msg.className = "form-msg ok";
+    });
     card.querySelector("[data-duplicar]").addEventListener("click", async () => {
       try {
-        await addDoc(collection(db, "jornadas"), {
-          titulo: j.titulo, fecha: sumarUnMes(j.fecha), horario: "", sede: j.sede, direccion: j.direccion || "",
-          mapsUrl: j.mapsUrl || "", precio: j.precio, cupos: j.cupos, metodoPago: j.metodoPago || "",
-          portadaUrl: j.portadaUrl || "", activa: false, cuposUsados: 0, creadoEn: serverTimestamp()
-        });
+        await duplicarJornada(j, sumarUnMes(j.fecha));
         msg.textContent = "Duplicada para el mes siguiente — revisa/edita la fecha y el horario.";
         msg.className = "form-msg ok";
       } catch (err) { msg.textContent = "No se pudo duplicar: " + err.message; msg.className = "form-msg error"; }
+    });
+    card.querySelector("[data-generar-meses]").addEventListener("click", async () => {
+      const cantidadRaw = prompt("¿Cuántos meses más generar a partir de esta jornada (misma sede/precio/cupos, horario vacío, pausadas)?", "5");
+      const cantidad = Number(cantidadRaw);
+      if (!cantidadRaw || !Number.isInteger(cantidad) || cantidad < 1) return;
+      msg.textContent = `Generando ${cantidad} jornada(s)...`;
+      msg.className = "form-msg";
+      try {
+        let fecha = j.fecha;
+        for (let i = 0; i < cantidad; i++) {
+          fecha = sumarUnMes(fecha);
+          await duplicarJornada(j, fecha);
+        }
+        msg.textContent = `Se generaron ${cantidad} jornada(s) — quedaron pausadas, revisa/edita fecha y horario de cada una.`;
+        msg.className = "form-msg ok";
+      } catch (err) { msg.textContent = "No se pudo generar: " + err.message; msg.className = "form-msg error"; }
     });
     card.querySelector("[data-borrar]").addEventListener("click", async () => {
       if (!confirm(`¿Borrar "${j.titulo}"? Los inscriptos ya anotados no se borran, solo la jornada.`)) return;
