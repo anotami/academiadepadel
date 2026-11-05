@@ -27,8 +27,10 @@ let solicitudesCache = [];
 const ESTADOS_SOLICITUD = {
   pendiente: { label: "En cola", clase: "badge-pendiente" },
   procesada: { label: "Procesada", clase: "badge-confirmada" },
-  error: { label: "Error", clase: "badge-rechazada" }
+  error: { label: "Error", clase: "badge-rechazada" },
+  expirada: { label: "Vencida (sin video después de 7 días)", clase: "badge-rechazada" }
 };
+const DIAS_PARA_EXPIRAR = 7;
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
@@ -80,6 +82,17 @@ function escucharSolicitudes() {
   const wrap = $("inf-solicitudes");
   onSnapshot(query(collection(db, "solicitudes_analisis"), where("profesorId", "==", currentUid), orderBy("creadoEn", "desc"), limit(20)), (qs) => {
     solicitudesCache = qs.docs.map((d) => ({ id: d.id, ...d.data() }));
+    // Beelup nunca encontró video para estos (pista vacía, horario mal
+    // elegido, etc.) -- después de una semana se marcan solas como
+    // "expirada" en vez de quedar "En cola" para siempre.
+    const limiteMs = DIAS_PARA_EXPIRAR * 24 * 60 * 60 * 1000;
+    solicitudesCache.forEach((s) => {
+      if (s.estado !== "pendiente") return;
+      const creadoMs = s.creadoEn?.toMillis ? s.creadoEn.toMillis() : (s.creadoEn?.seconds || 0) * 1000;
+      if (creadoMs && Date.now() - creadoMs > limiteMs) {
+        updateDoc(doc(db, "solicitudes_analisis", s.id), { estado: "expirada" }).catch(() => {});
+      }
+    });
     if (!solicitudesCache.length) { wrap.innerHTML = ""; return; }
     wrap.innerHTML = solicitudesCache.map((s) => {
       const info = ESTADOS_SOLICITUD[s.estado] || { label: s.estado, clase: "badge-pendiente" };

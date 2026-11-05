@@ -97,7 +97,14 @@ service cloud.firestore {
         request.resource.data.estado == 'pendiente' &&
         !('claseAnalisisId' in request.resource.data) &&
         !('error' in request.resource.data);
-      allow update: if false;
+      // Excepción angosta: el panel puede marcar "expirada" un pedido que
+      // lleva más de 7 días en "pendiente" (Beelup nunca lo encontró) -- no
+      // puede tocar nada más del documento ni expirar uno más reciente.
+      allow update: if esProfesor() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado']) &&
+        resource.data.estado == 'pendiente' &&
+        request.resource.data.estado == 'expirada' &&
+        request.time > resource.data.creadoEn + duration.value(7, 'd');
       allow delete: if esProfesor();
     }
 
