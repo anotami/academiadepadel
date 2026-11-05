@@ -1066,8 +1066,11 @@ h1 .hl {
 
 .portal-label-short { display: none; }
 
-/* Celulares angostos: logo + "ACCESO PORTAL" + hamburguesa no entran igual. */
-@media (max-width: 420px) {
+/* Celulares angostos: logo + "ACCESO PORTAL" + hamburguesa no entran igual.
+   480px (no 420px) para cubrir también los celulares grandes (iPhone Pro
+   Max y equivalentes Android, ~428-430px) -- a ese ancho el botón largo
+   todavía no entraba y se comía el nombre de la marca. */
+@media (max-width: 480px) {
   .header-inner { gap: 10px; }
   .brand { font-size: 0.92rem; gap: 6px; }
   .brand-logo { width: 28px; height: 28px; }
