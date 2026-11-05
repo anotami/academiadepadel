@@ -1368,6 +1368,54 @@ h1 .hl {
 .portal-tab:hover { color: var(--ink); }
 .portal-tab.activo { color: var(--ink); border-bottom-color: var(--court); }
 
+.tab-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  margin-right: 6px;
+  vertical-align: -4px;
+}
+.portal-tab[data-tab="hoy"] .tab-num { background: #16a34a; }
+.portal-tab[data-tab="clases"] .tab-num { background: var(--court); }
+.portal-tab[data-tab="alumnos"] .tab-num { background: #2563eb; }
+.portal-tab[data-tab="jornadas"] .tab-num { background: #d97706; }
+.portal-tab[data-tab="captacion"] .tab-num { background: #dc2626; }
+.portal-tab[data-tab="comunidad"] .tab-num { background: var(--whatsapp); }
+.portal-tab[data-tab="informes"] .tab-num { background: #7c3aed; }
+.portal-tab[data-tab="datos"] .tab-num { background: #47586b; }
+
+/* Pasos numerados dentro de un formulario (flujo guiado) */
+.paso-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--court);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin-right: 8px;
+  flex: 0 0 auto;
+  vertical-align: -6px;
+}
+.paso-titulo {
+  display: block;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin: 18px 0 10px;
+}
+.paso-titulo:first-child { margin-top: 2px; }
+
 .portal-card {
   background: var(--surface);
   border: 1px solid var(--border);

@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=55">
+<link rel="stylesheet" href="assets/css/style.css?v=56">
 </head>
 <body>
 
@@ -38,14 +38,15 @@
         <button class="btn btn-outline btn-small" id="btn-logout" type="button">Cerrar sesión</button>
       </div>
 
-      <nav class="portal-tabs" role="tablist" aria-label="Secciones del panel">
-        <button class="portal-tab" type="button" role="tab" data-tab="hoy">Hoy</button>
-        <button class="portal-tab" type="button" role="tab" data-tab="clases">Mis clases</button>
-        <button class="portal-tab" type="button" role="tab" data-tab="informes">Informes<span id="inf-badge"></span></button>
-        <button class="portal-tab" type="button" role="tab" data-tab="alumnos">Alumnos y pagos</button>
-        <button class="portal-tab" type="button" role="tab" data-tab="jornadas">Jornadas</button>
-        <button class="portal-tab" type="button" role="tab" data-tab="mkt">MKT</button>
-        <button class="portal-tab" type="button" role="tab" data-tab="datos">Mis datos</button>
+      <nav class="portal-tabs" role="tablist" aria-label="Secciones del panel, en el orden en que las usas">
+        <button class="portal-tab" type="button" role="tab" data-tab="hoy"><span class="tab-num">1</span>Hoy</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="clases"><span class="tab-num">2</span>Mis clases</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="alumnos"><span class="tab-num">3</span>Alumnos y pagos</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="jornadas"><span class="tab-num">4</span>Jornadas</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="captacion"><span class="tab-num">5</span>Captación</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="comunidad"><span class="tab-num">6</span>Comunidad</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="informes"><span class="tab-num">7</span>Informes<span id="inf-badge"></span></button>
+        <button class="portal-tab" type="button" role="tab" data-tab="datos"><span class="tab-num">8</span>Mis datos</button>
       </nav>
 
       <!-- HOY: lo accionable primero -->
@@ -234,12 +235,14 @@
           <h2>Registrar clase ya dictada</h2>
           <p class="field-hint">Para cargar una clase que ya diste (no pasa por "pendiente de confirmar" — queda directo como dictada).</p>
           <form id="form-clase-dictada" class="form-grid">
+            <span class="paso-titulo field-full"><span class="paso-badge">1</span>Quién</span>
             <div class="field field-full">
               <label for="cd-alumno">Alumno(s)</label>
               <select id="cd-alumno" required multiple size="4"></select>
               <p class="field-hint">Si fue clase grupal, selecciona varios (Ctrl/Cmd + clic) — se crea una clase por cada uno y el costo de cancha se reparte entre todos.</p>
             </div>
             <div class="field-full" id="cd-paquetes-alumno" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <span class="paso-titulo field-full"><span class="paso-badge">2</span>Cuándo y dónde</span>
             <div class="field field-full">
               <label for="cd-tipo">Tipo de clase</label>
               <select id="cd-tipo" required></select>
@@ -256,6 +259,7 @@
               <label for="cd-hora">Hora</label>
               <select id="cd-hora" required></select>
             </div>
+            <span class="paso-titulo field-full"><span class="paso-badge">3</span>Cobro</span>
             <div class="field">
               <label for="cd-modalidad">Modalidad</label>
               <select id="cd-modalidad">
@@ -340,16 +344,14 @@
 
       <!-- GRUPOS NUEVOS -->
       <!-- MKT: interesados, turnos, directorio de jugadores, falta el cuarto y leads -->
-      <div data-tabpanel="mkt" hidden>
+      <div data-tabpanel="captacion" hidden>
         <!-- Accesos directos para no tener que scrollear toda la pestaña -->
-        <nav class="mkt-quicknav" aria-label="Ir a sección de MKT">
+        <nav class="mkt-quicknav" aria-label="Ir a sección de Captación">
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-interesados">Interesados</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-turnos">Turnos</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-cruce">Cruce de disponibilidad</button>
-          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-jugadores">Jugadores</button>
-          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-falta-cuarto">Falta el cuarto</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-leads">Leads</button>
-          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-import">Importar WhatsApp</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-comunidad-whatsapp">Comunidad WhatsApp</button>
         </nav>
 
         <!-- Interesados -->
@@ -469,6 +471,42 @@
           <p class="field-hint" id="cr-detalle" style="margin-top:10px;">Toca un bloque de la grilla para ver quién calza y quién no.</p>
         </div>
 
+        <!-- Leads (captación) -->
+        <div class="portal-card" id="mkt-leads">
+          <h2>Leads — interesados en clases</h2>
+          <p class="field-hint">Jugadores de la comunidad que marcaron "Sí" o "Tal vez" en clases, del más reciente al más antiguo.</p>
+          <div id="com-leads"><p class="empty-state">Cargando...</p></div>
+        </div>
+
+        <!-- Inscripciones a la comunidad (formulario /comunidad.html por nivel) -->
+        <div class="portal-card" id="mkt-comunidad-whatsapp">
+          <h2>Comunidad WhatsApp</h2>
+          <p class="field-hint">Quiénes se anotaron desde <a href="comunidad.html" target="_blank" rel="noopener">comunidad.html</a> para sumarse al grupo de WhatsApp de su nivel.</p>
+          <div class="form-grid" style="margin-bottom:10px;">
+            <div class="field">
+              <label for="cw-filtro-nivel">Nivel</label>
+              <select id="cw-filtro-nivel">
+                <option value="">Todos</option>
+                <option value="cero">Cero</option>
+                <option value="principiante">Principiante</option>
+                <option value="intermedio">Intermedio</option>
+                <option value="avanzado">Avanzado</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-small" type="button" id="btn-exportar-comunidad-whatsapp" style="margin-bottom:12px;">Exportar a CSV</button>
+          <div id="lista-comunidad-whatsapp"><p class="empty-state">Cargando...</p></div>
+        </div>
+      </div>
+
+      <!-- COMUNIDAD (jugadores existentes, matchmaking "falta el cuarto") -->
+      <div data-tabpanel="comunidad" hidden>
+        <nav class="mkt-quicknav" aria-label="Ir a sección de Comunidad">
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-jugadores">Jugadores</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-falta-cuarto">Falta el cuarto</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-import">Importar WhatsApp</button>
+        </nav>
+
         <!-- Jugadores -->
         <div class="portal-card" id="mkt-jugadores">
           <h2>Jugadores</h2>
@@ -516,6 +554,7 @@
         <div class="portal-card" id="mkt-falta-cuarto">
           <h2>Falta el cuarto</h2>
           <p class="field-hint">Arma el mensaje, elige a quién mandárselo y ábrelo directo en WhatsApp. Nada se envía solo desde acá.</p>
+          <span class="paso-titulo"><span class="paso-badge">1</span>Armar mensaje</span>
           <div class="form-grid">
             <div class="field">
               <label for="fc-categoria">Categoría</label>
@@ -556,21 +595,16 @@
           <button class="btn btn-outline btn-small" type="button" id="btn-copiar-mensaje-cuarto" style="margin-top:8px;">Copiar mensaje</button>
           <p class="form-msg" id="fc-copiar-msg"></p>
 
-          <h3 style="margin-top:20px;">Candidatos</h3>
+          <span class="paso-titulo"><span class="paso-badge">2</span>Elegir candidatos</span>
           <p class="field-hint">Primero los verificados. Marca a quiénes les escribes y guarda la convocatoria para no repetir siempre a los mismos. Cada botón "WhatsApp" manda una redacción distinta del aviso (si no editaste el mensaje a mano) — igual, evita escribirles a todos de corrido; espácialo un poco para que no se vea como un envío masivo.</p>
           <div id="fc-candidatos"><p class="empty-state">Elige categoría y hora para ver candidatos.</p></div>
-          <button class="btn btn-primary btn-small" type="button" id="btn-guardar-convocatoria" style="margin-top:10px;">Guardar convocatoria con los marcados</button>
+
+          <span class="paso-titulo"><span class="paso-badge">3</span>Guardar convocatoria</span>
+          <button class="btn btn-primary btn-small" type="button" id="btn-guardar-convocatoria">Guardar convocatoria con los marcados</button>
           <p class="form-msg" id="fc-convocatoria-msg"></p>
 
           <h3 style="margin-top:20px;">Convocatorias recientes</h3>
           <div id="fc-historial"><p class="empty-state">Todavía no armaste ninguna.</p></div>
-        </div>
-
-        <!-- Leads (captación) -->
-        <div class="portal-card" id="mkt-leads">
-          <h2>Leads — interesados en clases</h2>
-          <p class="field-hint">Jugadores de la comunidad que marcaron "Sí" o "Tal vez" en clases, del más reciente al más antiguo.</p>
-          <div id="com-leads"><p class="empty-state">Cargando...</p></div>
         </div>
 
         <!-- Importar desde WhatsApp -->
@@ -582,9 +616,11 @@
             revisa y corrige cada fila antes de guardar, la detección es aproximada. Esto NO es lo mismo que el consentimiento explícito del
             formulario público: son contactos de un grupo que ya administras, así que si alguno te pide que lo saques, dalo de baja en "Jugadores".
           </p>
+          <span class="paso-titulo"><span class="paso-badge">1</span>Subir archivo</span>
           <input type="file" id="com-import-file" accept=".txt">
           <p class="form-msg" id="com-import-msg"></p>
 
+          <span class="paso-titulo"><span class="paso-badge">2</span>Revisar</span>
           <div class="form-grid" id="com-import-filtros" hidden style="margin-top:14px;">
             <div class="field field-full">
               <label for="com-import-buscar">Buscar por nombre</label>
@@ -634,7 +670,8 @@
           </div>
           <p class="field-hint" id="com-import-contador" hidden></p>
           <div id="com-import-tabla" style="margin-top:10px;"></div>
-          <button class="btn btn-primary btn-small" type="button" id="btn-guardar-import" hidden style="margin-top:10px;">Guardar seleccionados</button>
+          <span class="paso-titulo"><span class="paso-badge">3</span>Guardar seleccionados</span>
+          <button class="btn btn-primary btn-small" type="button" id="btn-guardar-import" hidden>Guardar seleccionados</button>
           <p class="form-msg" id="com-import-guardar-msg"></p>
         </div>
       </div>
@@ -793,7 +830,7 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=70"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=71"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=3"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=2"></script>
 </body>

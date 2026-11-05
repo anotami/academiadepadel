@@ -65,6 +65,7 @@ onAuthStateChanged(auth, async (user) => {
   generarReservasDeGrupos();
   poblarSelectsComunidad();
   cargarComunidad();
+  cargarComunidadWhatsapp();
   cargarConvocatorias();
 });
 
@@ -3730,6 +3731,43 @@ function renderComunidadLeads() {
   });
   activarPausaEnvioMasivo(wrap);
 }
+
+// ---- Comunidad WhatsApp (formulario comunidad.html, por nivel) ----
+
+let comunidadWhatsappCache = [];
+
+function cargarComunidadWhatsapp() {
+  onSnapshot(query(collection(db, "comunidad_whatsapp"), orderBy("creadoEn", "desc")), (qs) => {
+    comunidadWhatsappCache = qs.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderComunidadWhatsapp();
+  }, (err) => mostrarErrorConsulta(document.getElementById("lista-comunidad-whatsapp"), err));
+}
+
+function renderComunidadWhatsapp() {
+  const wrap = document.getElementById("lista-comunidad-whatsapp");
+  const nivel = document.getElementById("cw-filtro-nivel").value;
+  const filas = nivel ? comunidadWhatsappCache.filter((c) => c.nivel === nivel) : comunidadWhatsappCache;
+  if (!filas.length) { wrap.innerHTML = '<p class="empty-state">Todavía no hay inscripciones.</p>'; return; }
+  const NOMBRES_NIVEL = { cero: "Cero", principiante: "Principiante", intermedio: "Intermedio", avanzado: "Avanzado" };
+  wrap.innerHTML = filas.map((c) => {
+    const telDigits = soloDigitos(c.whatsapp);
+    return `
+    <div class="court-card">
+      <h3>${escapeHtml(c.nombre)} <span class="badge badge-confirmada">${NOMBRES_NIVEL[c.nivel] || escapeHtml(c.nivel)}</span></h3>
+      <p class="court-meta">${escapeHtml(c.sedePreferida || "")} · ${(c.horariosDisponibles || []).join(", ") || "Sin horarios"}</p>
+      <p class="court-meta">Llegó por: ${escapeHtml(c.comoNosConocio || "—")}</p>
+      ${telDigits ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:8px;" href="https://wa.me/${telDigits}">Escribirle</a>` : ""}
+    </div>`;
+  }).join("");
+}
+
+document.getElementById("cw-filtro-nivel").addEventListener("change", renderComunidadWhatsapp);
+document.getElementById("btn-exportar-comunidad-whatsapp").addEventListener("click", () => {
+  descargarCSV("comunidad_whatsapp.csv", comunidadWhatsappCache.map((c) => ({
+    Nombre: c.nombre, WhatsApp: c.whatsapp, Nivel: c.nivel, Sede: c.sedePreferida,
+    Horarios: (c.horariosDisponibles || []).join(" / "), "Cómo nos conoció": c.comoNosConocio || ""
+  })));
+});
 
 // ---- Importar desde WhatsApp ----
 
