@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.gstatic.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-C2DJ9V0L4Z"></script>
@@ -37,9 +37,14 @@
     <p class="field-hint">Lima, Perú 🎾</p>
 
     <ul class="lnk-lista">
-      <li><a class="lnk-item" href="jornada.html">Empezá desde cero <span>Jornada para principiantes</span></a></li>
       <li><a class="lnk-item" href="comunidad.html">Sumate a la comunidad <span>Grupo de WhatsApp por nivel</span></a></li>
-      <li><a class="lnk-item" href="evento.html">Próximo evento <span>Fechas y cupos</span></a></li>
+    </ul>
+
+    <ul class="lnk-lista" id="lnk-jornadas" style="margin-top:14px;">
+      <li class="lnk-item" style="font-weight:500; color:var(--ink-soft);">Cargando próximas jornadas...</li>
+    </ul>
+
+    <ul class="lnk-lista" style="margin-top:14px;">
       <li><a class="lnk-item" href="index.html">Clases y sedes <span>X3 Miraflores · La Once Surquillo</span></a></li>
     </ul>
   </div>
@@ -47,5 +52,6 @@
 
 <script src="assets/js/main.js?v=13"></script>
 <script src="assets/js/cookie-banner.js?v=1"></script>
+<script type="module" src="assets/js/links-page.js?v=1"></script>
 </body>
 </html>
