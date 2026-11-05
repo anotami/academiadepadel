@@ -1,41 +1,38 @@
-// Página pública /evento.html -- reutilizable, toma los datos de
-// evento-config.js (un archivo, no una base de datos). Si falta el dato
-// clave (titulo o fecha), muestra el estado "a confirmar" en vez de
-// inventar algo -- nunca fabrica fecha, precio ni cupo.
-import { EVENTO } from "./evento-config.js?v=1";
+// Página pública /evento.html -- "Próximo evento" para la bio de
+// Instagram. Muestra la misma jornada activa más próxima que ya carga
+// jornada.html (colección `jornadas`, panel "Jornadas"), para no mantener
+// un archivo de datos aparte. El botón manda a jornada.html, que es donde
+// vive el formulario real de inscripción.
+import { db, collection, query, where, getDocs } from "./firebase-app.js?v=18";
 import { formatearFechaLarga } from "./portal-common.js?v=26";
 
 function capitalizar(s) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
 
-if (!EVENTO.titulo || !EVENTO.fecha) {
-  // Queda el estado por defecto del HTML ("Estamos armando el próximo evento").
-} else {
+async function cargarEvento() {
+  const snap = await getDocs(query(collection(db, "jornadas"), where("activa", "==", true)));
+  if (snap.empty) return; // queda el estado por defecto del HTML
+
+  const jornada = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
+
   document.getElementById("evSinDatos").hidden = true;
   const card = document.getElementById("evConDatos");
   card.hidden = false;
 
-  document.getElementById("ev-titulo").textContent = EVENTO.titulo;
+  document.getElementById("ev-titulo").textContent = jornada.titulo || "Próximo evento";
 
+  const restantes = Math.max(0, (jornada.cupos || 0) - (jornada.cuposUsados || 0));
   const ficha = [];
-  ficha.push("📅 " + capitalizar(formatearFechaLarga(EVENTO.fecha)));
-  if (EVENTO.horario) ficha.push("🕒 " + EVENTO.horario);
-  if (EVENTO.sede) {
-    const lugar = `${EVENTO.sede}${EVENTO.direccion ? ", " + EVENTO.direccion : ""}`;
-    ficha.push("📍 " + (EVENTO.mapsUrl ? `<a href="${EVENTO.mapsUrl}" target="_blank" rel="noopener">${lugar}</a>` : lugar));
+  ficha.push("📅 " + capitalizar(formatearFechaLarga(jornada.fecha)));
+  ficha.push("🕒 " + (jornada.horario && jornada.horario.trim() ? jornada.horario : "te lo confirmamos por WhatsApp"));
+  if (jornada.sede) {
+    const lugar = `${jornada.sede}${jornada.direccion ? ", " + jornada.direccion : ""}`;
+    ficha.push("📍 " + (jornada.mapsUrl ? `<a href="${jornada.mapsUrl}" target="_blank" rel="noopener">${lugar}</a>` : lugar));
   }
-  if (EVENTO.formato) ficha.push("🎾 " + EVENTO.formato);
-  if (EVENTO.precio !== "") ficha.push("💵 S/" + EVENTO.precio);
-  if (EVENTO.cupo !== "") ficha.push("👥 Cupos: " + EVENTO.cupo);
+  if (jornada.precio != null) ficha.push(`💵 S/${jornada.precio} por persona${jornada.metodoPago ? " · pago por " + jornada.metodoPago : ""}`);
+  ficha.push(restantes > 0 ? `👥 Quedan ${restantes} de ${jornada.cupos} cupos` : "👥 Cupos completos");
   document.getElementById("ev-ficha").innerHTML = ficha.map((f) => `<li>${f}</li>`).join("");
 
-  const btn = document.getElementById("ev-btn-inscripcion");
-  if (EVENTO.linkInscripcion) {
-    btn.href = EVENTO.linkInscripcion;
-  } else {
-    btn.remove();
-  }
-
-  const desc = document.getElementById("ev-descripcion");
-  if (EVENTO.descripcion) desc.textContent = EVENTO.descripcion;
-  else desc.remove();
+  document.getElementById("ev-btn-inscripcion").textContent = restantes > 0 ? "Ver detalles y reservar mi lugar" : "Ver detalles";
 }
+
+cargarEvento().catch(() => {});
