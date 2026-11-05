@@ -335,6 +335,30 @@ service cloud.firestore {
         request.resource.data.creado == request.time;
     }
 
+    match /comunidad_whatsapp/{id} {
+      // Formulario público /comunidad.html (embudo Instagram -> grupo de
+      // WhatsApp por nivel). Distinta de jugadores_comunidad (esa es el
+      // directorio "falta el cuarto") -- acá solo se junta el dato para
+      // armar/filtrar los grupos de WhatsApp, nunca es pública.
+      allow read, update, delete: if esProfesor();
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasOnly([
+          'nombre', 'whatsapp', 'nivel', 'sedePreferida', 'horariosDisponibles',
+          'comoNosConocio', 'consentimiento', 'creadoEn'
+        ]) &&
+        request.resource.data.nombre is string &&
+        request.resource.data.nombre.size() >= 1 && request.resource.data.nombre.size() <= 80 &&
+        request.resource.data.whatsapp is string &&
+        request.resource.data.whatsapp.matches('^\\+519[0-9]{8}$') &&
+        request.resource.data.nivel in ['cero', 'principiante', 'intermedio', 'avanzado'] &&
+        request.resource.data.sedePreferida in ['X3 Miraflores', 'La Once Surquillo'] &&
+        request.resource.data.horariosDisponibles is list &&
+        request.resource.data.comoNosConocio is string && request.resource.data.comoNosConocio.size() <= 60 &&
+        request.resource.data.consentimiento.aceptado == true &&
+        request.resource.data.consentimiento.fecha == request.time &&
+        request.resource.data.creadoEn == request.time;
+    }
+
     match /convocatorias/{id} {
       // "Falta el cuarto": 100% interno, nunca se envía nada solo ni se
       // expone al público -- registra a quién se convocó y cuándo.

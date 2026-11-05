@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.gstatic.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.gstatic.com; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-C2DJ9V0L4Z"></script>
+<script src="assets/js/gtag-init.js?v=2"></script>
+
+<title>Sumate a la comunidad | academiadepadel.pe</title>
+<meta name="description" content="Sumate al grupo de WhatsApp de pádel según tu nivel: consejos, con quién jugar y los próximos eventos de la academia.">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://academiadepadel.pe/comunidad.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=54">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Sumate a la comunidad de pádel">
+<meta property="og:description" content="Entrá al grupo de WhatsApp de tu nivel: consejos, con quién jugar y los próximos eventos.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_PE">
+<meta property="og:url" content="https://academiadepadel.pe/comunidad.html">
+<meta property="og:image" content="https://academiadepadel.pe/assets/img/court/paddles-court.jpg">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>Academia de Pádel GP</span>
+    </a>
+    <a href="index.html" class="test-back-link">← Volver al sitio</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section portal-section">
+    <div class="container portal-shell">
+      <div class="portal-card" id="comFormCard" style="max-width:720px; margin:0 auto;">
+        <p class="eyebrow">Comunidad</p>
+        <h1 style="margin-bottom:10px;">Sumate a la comunidad</h1>
+        <p class="field-hint" style="font-size:0.92rem; margin-bottom:18px;">
+          Te paso al grupo de WhatsApp de tu nivel: ahí compartimos consejos, armamos partidos y avisamos de los
+          próximos eventos de la academia. Nada de spam, es la misma comunidad con la que entrenás.
+        </p>
+
+        <form id="form-comunidad" class="form-grid">
+          <!-- Honeypot: invisible para una persona, un bot de formularios lo suele completar igual. -->
+          <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+            <label for="com-web">No completar este campo</label>
+            <input type="text" id="com-web" name="web" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label for="com-nombre">Nombre y apellido *</label>
+            <input type="text" id="com-nombre" required maxlength="80">
+          </div>
+          <div class="field">
+            <label for="com-whatsapp">WhatsApp *</label>
+            <input type="tel" id="com-whatsapp" required placeholder="999 111 222" inputmode="numeric">
+            <p class="field-hint">Celular de Perú, con o sin +51 adelante.</p>
+          </div>
+          <div class="field">
+            <label for="com-nivel">¿Cuál es tu nivel? *</label>
+            <select id="com-nivel" required>
+              <option value="cero">Cero — nunca jugué</option>
+              <option value="principiante">Principiante</option>
+              <option value="intermedio">Intermedio</option>
+              <option value="avanzado">Avanzado</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="com-sede">Sede donde preferís jugar *</label>
+            <select id="com-sede" required>
+              <option value="X3 Miraflores">X3 Miraflores</option>
+              <option value="La Once Surquillo">La Once Surquillo</option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label style="margin:0 0 8px;">¿Qué horarios tenés disponibles?</label>
+            <div id="com-horarios" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+          </div>
+          <div class="field">
+            <label for="com-conocio">¿Cómo nos conociste?</label>
+            <select id="com-conocio">
+              <option value="Instagram">Instagram</option>
+              <option value="TikTok">TikTok</option>
+              <option value="Recomendación de alguien">Recomendación de alguien</option>
+              <option value="Google">Google</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label class="avail-slot" style="align-items:flex-start;">
+              <input type="checkbox" id="com-consentimiento" required style="margin-top:3px;">
+              <span>Acepto que Academia de Pádel GP me sume al grupo de WhatsApp de mi nivel y me contacte por ahí — ver
+                <a href="privacidad.html" target="_blank" rel="noopener">política de privacidad</a>.</span>
+            </label>
+          </div>
+          <button class="btn btn-primary" type="submit" id="com-submit">Sumarme</button>
+          <p class="form-msg" id="com-msg"></p>
+        </form>
+      </div>
+
+      <div class="portal-card" id="comOkCard" hidden style="max-width:720px; margin:24px auto 0; text-align:center;">
+        <h2>¡Buenísimo, ya sos parte!</h2>
+        <p style="margin-bottom:18px;">Tocá el botón y entrá al grupo de WhatsApp de tu nivel.</p>
+        <a class="btn btn-whatsapp" id="com-grupo-cta" target="_blank" rel="noopener" href="#">Entrar al grupo</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="brand footer-brand">
+      <img src="assets/img/logo.svg" alt="" width="28" height="28">
+      <span>Academia de Pádel GP</span>
+    </div>
+    <p>Lima, Perú · <a href="https://wa.me/51957085531" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://www.instagram.com/academiapadelgp/" target="_blank" rel="noopener">Instagram</a></p>
+    <p class="footer-copy">© <span id="year"></span> academiadepadel.pe. Todos los derechos reservados. · <a href="privacidad.html">Privacidad</a></p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js?v=13"></script>
+<script src="assets/js/cookie-banner.js?v=1"></script>
+<script type="module" src="assets/js/comunidad-page.js?v=1"></script>
+</body>
+</html>

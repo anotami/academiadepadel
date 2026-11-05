@@ -1837,3 +1837,11 @@ span.disp-toggle.on { background: var(--court); }
 .jor-cupos.jor-cupos-llenos { background: var(--bg); color: var(--ink-soft); }
 .jor-texto p { margin: 0 0 12px; line-height: 1.55; }
 .jor-texto strong { color: var(--ink); }
+
+/* ---- /links (página de links para la bio de Instagram) ---- */
+.lnk-shell { max-width: 420px; margin: 0 auto; padding: 48px 20px 40px; text-align: center; }
+.lnk-avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; margin: 0 auto 14px; display: block; }
+.lnk-lista { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-direction: column; gap: 14px; }
+.lnk-item { display: block; padding: 16px 20px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 700; font-size: 1.05rem; transition: transform .15s ease, border-color .15s ease; }
+.lnk-item:hover, .lnk-item:focus-visible { transform: translateY(-2px); border-color: var(--court); }
+.lnk-item span { display: block; font-weight: 500; font-size: .82rem; color: var(--ink-soft); margin-top: 2px; }
