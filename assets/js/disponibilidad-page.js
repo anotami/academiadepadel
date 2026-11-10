@@ -25,6 +25,7 @@ const form = document.getElementById("form-disponibilidad");
 const camposInteresado = document.getElementById("dp-campos-interesado");
 const nombreInput = document.getElementById("dp-nombre");
 const whatsappInput = document.getElementById("dp-whatsapp");
+const instagramInput = document.getElementById("dp-instagram");
 const canchaSelect = document.getElementById("dp-cancha");
 const submitBtn = document.getElementById("dp-submit");
 const msg = document.getElementById("dp-msg");
@@ -125,6 +126,7 @@ form.addEventListener("submit", async (e) => {
 
   const nombre = nombreInput.value.trim();
   const whatsapp = whatsappInput.value.trim();
+  const instagram = instagramInput.value.trim();
   const canchaOpcion = canchaSelect.options[canchaSelect.selectedIndex];
   const canchaInteresadaId = canchaSelect.value || null;
   const canchaInteresada = canchaSelect.value ? canchaOpcion.dataset.nombre : "";
@@ -144,6 +146,7 @@ form.addEventListener("submit", async (e) => {
       creadoEn: serverTimestamp()
     };
     if (canchaInteresadaId) datos.canchaInteresadaId = canchaInteresadaId;
+    if (instagram) datos.instagram = instagram;
     await addDoc(collection(db, "interesados_grupo"), datos);
 
     if (typeof gtag === "function") gtag("event", "disponibilidad_enviada");

@@ -34,6 +34,18 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Logo/nombre en la home: "#top" apunta al header fijo (ya visible), así que
+  // el ancla sola no sube la página. Se sube a mano.
+  var brandHome = document.querySelector('.site-header .brand[href="#top"]');
+  if (brandHome) {
+    brandHome.addEventListener("click", function (e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (nav) nav.classList.remove("open");
+      if (toggle) toggle.setAttribute("aria-expanded", "false");
+    });
+  }
+
   var yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 });

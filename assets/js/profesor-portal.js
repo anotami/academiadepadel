@@ -3017,7 +3017,7 @@ function renderInteresados() {
         <p class="request-title">${escapeHtml(i.nombre)} <span class="badge ${BADGE_POR_ESTADO_INTERESADO[i.estado] || "badge-pendiente"}">${LABEL_ESTADO_INTERESADO[i.estado] || i.estado}</span>${i.origen === "link_directo" ? ' <span class="badge badge-confirmada">Vía link directo</span>' : ""}</p>
         <p>${linea2}</p>
         ${i.canchaInteresada ? `<p class="court-meta">Cancha de preferencia: ${escapeHtml(i.canchaInteresada)}</p>` : ""}
-        <p class="court-meta">${escapeHtml(i.whatsapp)}${i.email ? " · " + escapeHtml(i.email) : ""}</p>
+        <p class="court-meta">${escapeHtml(i.whatsapp)}${i.email ? " · " + escapeHtml(i.email) : ""}${i.instagram ? ` · <a href="https://instagram.com/${escapeHtml(i.instagram.replace(/^@/, ""))}" target="_blank" rel="noopener">@${escapeHtml(i.instagram.replace(/^@/, ""))}</a>` : ""}</p>
         ${i.notas ? `<p class="court-meta">📝 ${escapeHtml(i.notas)}</p>` : ""}
         <button class="btn btn-outline btn-small" type="button" data-toggle-notas style="margin-top:2px;">Editar notas</button>
         <div data-notas-form hidden style="margin-top:6px;">

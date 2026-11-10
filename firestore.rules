@@ -169,7 +169,7 @@ service cloud.firestore {
       // se valida solo si vino en la petición.
       allow create: if request.auth != null
         && request.resource.data.keys().hasOnly([
-          'nombre', 'whatsapp', 'email', 'nivel', 'turnoId', 'turnoNombre',
+          'nombre', 'whatsapp', 'instagram', 'email', 'nivel', 'turnoId', 'turnoNombre',
           'estado', 'creadoEn', 'disponibilidad', 'canchaInteresada', 'canchaInteresadaId', 'origen', 'notas'
         ])
         && request.resource.data.nombre is string
@@ -178,6 +178,7 @@ service cloud.firestore {
         && request.resource.data.whatsapp is string
         && request.resource.data.whatsapp.size() >= 6
         && request.resource.data.whatsapp.size() <= 20
+        && (!('instagram' in request.resource.data) || (request.resource.data.instagram is string && request.resource.data.instagram.size() <= 60))
         && (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 120))
         && (!('nivel' in request.resource.data) || request.resource.data.nivel in [
           '',
