@@ -9,7 +9,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=56">
+<link rel="stylesheet" href="assets/css/style.css?v=57">
 </head>
 <body>
 
@@ -77,6 +77,23 @@
       </div>
 
       <div class="portal-card">
+        <h2>Habilitar Top Padel La Molina (fines de semana)</h2>
+        <p>
+          Actualiza SOLO la pista "Top Padel La Molina" (la crea si no existe): queda habilitada,
+          con tu costo de S/ 50 por hora y disponible sábado y domingo de 8:00 a 20:00. No toca
+          ninguna otra pista, así que es seguro usarlo cuando quieras.
+        </p>
+        <form id="form-top-padel">
+          <div class="field">
+            <label for="pw-profesor-top">Contraseña del profesor (anotami@gmail.com)</label>
+            <input type="password" id="pw-profesor-top" minlength="6" required autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary" id="btn-top-padel" type="submit" style="margin-top:16px;">Habilitar Top Padel</button>
+        </form>
+        <div id="log-top" style="margin-top:16px; font-size:0.88rem; color:var(--ink-soft); white-space:pre-line;"></div>
+      </div>
+
+      <div class="portal-card">
         <h2>Herramienta de prueba: reserva confirmada de ayer</h2>
         <p>
           Crea una reserva ya <strong>confirmada</strong> con fecha de <strong>ayer</strong> para el primer
@@ -97,6 +114,6 @@
 </main>
 <p style="text-align:center; font-size:0.78rem; color:var(--ink-soft); padding:16px 20px;"><a href="privacidad.html">Privacidad</a></p>
 
-<script type="module" src="assets/js/setup-seed.js?v=17"></script>
+<script type="module" src="assets/js/setup-seed.js?v=18"></script>
 </body>
 </html>

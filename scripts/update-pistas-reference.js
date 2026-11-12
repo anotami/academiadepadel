@@ -1,7 +1,8 @@
 // Referencia del script que se le entregó a Gabriel para correr UNA VEZ
 // en su carpeta local de admin (junto a clave.json y set-admin.js), para
-// bloquear todas las pistas salvo X3 y La Once en su Firestore en vivo,
-// con tarifa de 2 niveles (sin luz / con luz) en La Once.
+// bloquear todas las pistas salvo X3, La Once y Top Padel La Molina en su
+// Firestore en vivo, con tarifa de 2 niveles (sin luz / con luz) en La Once
+// y tarifa fija de S/ 50 solo sábado y domingo en Top Padel.
 // No se ejecuta como parte del sitio — queda acá solo como registro.
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
@@ -41,6 +42,15 @@ const LA_ONCE = {
   ]
 };
 
+const TOP_PADEL = {
+  estadoPista: "Habilitada",
+  costoHoraSinLuz: 50,
+  costoHoraConLuz: 0,
+  horario: "Sábado y domingo, 8:00 – 20:00",
+  notas: "Costo fijo: S/ 50/hora, solo sábados y domingos de 8:00 a 20:00.",
+  disponibilidad: grilla(FIN_DE_SEMANA, ["8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00"], "sin-luz")
+};
+
 (async () => {
   const snap = await db.collection("pistas").get();
   console.log(`Encontradas ${snap.size} pistas.`);
@@ -53,6 +63,7 @@ const LA_ONCE = {
     const cancha = (data.cancha || "").toLowerCase();
     const esX3 = nombre.includes("x3");
     const esLaOnce = nombre.includes("once") || cancha.includes("11");
+    const esTopPadel = nombre.includes("top padel");
 
     if (esX3) {
       batch.update(docSnap.ref, X3);
@@ -62,6 +73,10 @@ const LA_ONCE = {
       batch.update(docSnap.ref, LA_ONCE);
       console.log("✔ La Once ->", data.nombre);
       actualizadas++;
+    } else if (esTopPadel) {
+      batch.update(docSnap.ref, TOP_PADEL);
+      console.log("✔ Top Padel ->", data.nombre);
+      actualizadas++;
     } else {
       batch.update(docSnap.ref, { estadoPista: "Bloqueada" });
       bloqueadas++;
@@ -69,6 +84,6 @@ const LA_ONCE = {
   });
 
   await batch.commit();
-  console.log(`Listo. ${actualizadas} actualizadas (X3/La Once), ${bloqueadas} bloqueadas.`);
+  console.log(`Listo. ${actualizadas} actualizadas (X3/La Once/Top Padel), ${bloqueadas} bloqueadas.`);
   process.exit(0);
 })();

@@ -3,7 +3,7 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   doc, setDoc, deleteDoc, addDoc, collection, getDocs, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=17";
+import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=18";
 import { TIPOS_CLASE } from "./portal-common.js?v=22";
 
 const logEl = document.getElementById("log");
@@ -113,6 +113,43 @@ document.getElementById("form-reseed-pistas").addEventListener("submit", async (
     logPistas(`✔ ${PISTAS_SEED.length} pistas cargadas de nuevo.`);
   } catch (err) {
     logPistas(`✘ No se pudo actualizar: ${err.message}`);
+  } finally {
+    await signOut(auth);
+    btn.disabled = false;
+  }
+});
+
+// ---- Habilitar solo Top Padel La Molina (no toca las demás pistas) ----
+const logTopEl = document.getElementById("log-top");
+function logTop(msg) {
+  logTopEl.textContent += (logTopEl.textContent ? "\n" : "") + msg;
+}
+
+document.getElementById("form-top-padel").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (CONFIG_IS_PLACEHOLDER) {
+    logTop("Falta configurar assets/js/firebase-config.js con tu proyecto de Firebase antes de usar esta página.");
+    return;
+  }
+  const password = document.getElementById("pw-profesor-top").value;
+  const btn = document.getElementById("btn-top-padel");
+  btn.disabled = true;
+  logTopEl.textContent = "";
+
+  try {
+    await signInWithEmailAndPassword(auth, PROFESOR_SEED.email, password);
+    const top = PISTAS_SEED.find((p) => p.nombre === "Top Padel La Molina");
+    const actuales = await getDocs(collection(db, "pistas"));
+    const existente = actuales.docs.find((d) => (d.data().nombre || "").toLowerCase().includes("top padel"));
+    if (existente) {
+      await setDoc(doc(db, "pistas", existente.id), top, { merge: true });
+      logTop("✔ Top Padel La Molina actualizada (habilitada, S/ 50, sáb y dom de 8:00 a 20:00).");
+    } else {
+      await setDoc(doc(collection(db, "pistas")), top);
+      logTop("✔ Top Padel La Molina creada (habilitada, S/ 50, sáb y dom de 8:00 a 20:00).");
+    }
+  } catch (err) {
+    logTop(`✘ No se pudo actualizar: ${err.message}`);
   } finally {
     await signOut(auth);
     btn.disabled = false;

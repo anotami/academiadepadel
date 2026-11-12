@@ -76,12 +76,13 @@ const PISTAS_RAW = [
   ["Mad Padel - La Molina", "Cancha 1", "Lunes a Domingo", "06:00", "23:00", "Habilitada", "+51 950 303 330", "La Molina, Lima", "madpadel.pe | @madpadelpe", "S/ 90 - S/ 130 / hr"]
 ];
 
-// Gabriel solo dicta clase en 2 de estas canchas por ahora (el resto queda
+// Gabriel solo dicta clase en 3 de estas canchas por ahora (el resto queda
 // en el directorio solo como referencia pública, bloqueado para clases):
-// Club adidas X3 y Club Pádel Lima (La Once, su "Cancha 11"). Sus horarios
-// reales no entran en el modelo simple de "un rango de horas" de la tabla
-// de arriba (La Once tiene un hueco al mediodía entre semana y un precio
-// que sube de noche), así que se arman a mano acá.
+// Club adidas X3, Club Pádel Lima (La Once, su "Cancha 11") y Top Padel La
+// Molina (solo fines de semana). Sus horarios reales no entran en el modelo
+// simple de "un rango de horas" de la tabla de arriba (La Once tiene un
+// hueco al mediodía entre semana y un precio que sube de noche; Top Padel
+// solo abre sábado y domingo), así que se arman a mano acá.
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 const FIN_DE_SEMANA = ["Sábado", "Domingo"];
 
@@ -114,6 +115,15 @@ const PISTAS_OVERRIDE = {
       ...grilla(FIN_DE_SEMANA, ["6:00–8:00", "8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00"], "sin-luz"),
       ...grilla(FIN_DE_SEMANA, ["18:00–20:00", "20:00–22:00"], "con-luz")
     ]
+  },
+  "Top Padel La Molina": {
+    estadoPista: "Habilitada",
+    costoHoraSinLuz: 50,
+    costoHoraConLuz: 0,
+    horario: "Sábado y domingo, 8:00 – 20:00",
+    precio: "S/ 50 / hr",
+    notas: "Costo fijo: S/ 50/hora, solo sábados y domingos de 8:00 a 20:00.",
+    disponibilidad: grilla(FIN_DE_SEMANA, ["8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00"], "sin-luz")
   }
 };
 
@@ -137,7 +147,7 @@ export const PISTAS_SEED = PISTAS_RAW.map(
     };
     const override = PISTAS_OVERRIDE[nombre];
     // Por pedido de Gabriel (oct. 2026): bloqueadas para dar clases todas las
-    // pistas salvo las 2 donde realmente dicta clase hoy.
+    // pistas salvo las donde realmente dicta clase hoy.
     if (override) return { ...base, ...override };
     return { ...base, estadoPista: "Bloqueada" };
   }

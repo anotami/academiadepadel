@@ -60,7 +60,9 @@ function ordenarPistas(pistas) {
     const nombre = (p.nombre || "").toLowerCase();
     if (nombre.includes("x3")) return 0;
     if (nombre.includes("once")) return 1;
-    return 2;
+    if (nombre.includes("benavides")) return 2;
+    if (nombre.includes("top padel")) return 3;
+    return 4;
   };
   return pistas.slice().sort((a, b) => prioridad(a) - prioridad(b) || (a.nombre || "").localeCompare(b.nombre || "", "es"));
 }

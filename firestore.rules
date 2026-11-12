@@ -359,7 +359,7 @@ service cloud.firestore {
         request.resource.data.whatsapp is string &&
         request.resource.data.whatsapp.matches('^\\+519[0-9]{8}$') &&
         request.resource.data.nivel in ['cero', 'principiante', 'intermedio', 'avanzado'] &&
-        request.resource.data.sedePreferida in ['X3 Miraflores', 'La Once Surquillo'] &&
+        request.resource.data.sedePreferida in ['X3 Miraflores', 'La Once Surquillo', 'Padel Center Benavides', 'Top Padel La Molina'] &&
         request.resource.data.horariosDisponibles is list &&
         request.resource.data.comoNosConocio is string && request.resource.data.comoNosConocio.size() <= 60 &&
         request.resource.data.consentimiento.aceptado == true &&

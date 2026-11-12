@@ -6,17 +6,20 @@ export const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sáb
 export const DIAS_CORTO = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 // Nombre/cancha de una pista -> prioridad de sede (0 Club adidas X3, 1 La
-// Once, 2 Padel Center Benavides, 3 el resto). Son las 3 sedes donde
-// Gabriel realmente dicta clase hoy (ver masthead de index.html) — se usa
-// para mostrarlas primero/destacadas en selectores de pista (pistas-page.js,
-// disponibilidad-page.js) en vez de orden alfabético plano.
+// Once, 2 Padel Center Benavides, 3 Top Padel La Molina, 4 el resto). Son
+// las 4 sedes donde Gabriel realmente dicta clase hoy (ver sedes de
+// index.html) — se usa para mostrarlas primero/destacadas en selectores de
+// pista (pistas-page.js, disponibilidad-page.js) en vez de orden alfabético
+// plano. SEDES_PRINCIPALES es la cantidad de sedes destacadas.
+export const SEDES_PRINCIPALES = 4;
 export function prioridadNombreSede(nombre, cancha) {
   const n = (nombre || "").toLowerCase();
   const c = (cancha || "").toLowerCase();
   if (n.includes("x3")) return 0;
   if (n.includes("once") || c.includes("11")) return 1;
   if (n.includes("benavides")) return 2;
-  return 3;
+  if (n.includes("top padel")) return 3;
+  return SEDES_PRINCIPALES;
 }
 
 // Bloques de disponibilidad de 2 horas, de 6:00 a 22:00 (8 bloques/día).

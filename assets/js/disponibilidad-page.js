@@ -16,7 +16,7 @@ import {
   doc, getDoc, updateDoc,
   collection, getDocs, addDoc, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { construirGrillaDisponibilidad, prioridadNombreSede } from "./portal-common.js?v=22";
+import { construirGrillaDisponibilidad, prioridadNombreSede, SEDES_PRINCIPALES } from "./portal-common.js?v=27";
 
 const WHATSAPP_NUMBER = "51957085531";
 const alumnoId = new URLSearchParams(location.search).get("alumno");
@@ -86,10 +86,10 @@ onAuthStateChanged(auth, async (user) => {
         return (a.nombre || "").localeCompare(b.nombre || "", "es");
       });
     const opcion = (p) => `<option value="${p.id}" data-nombre="${(p.nombre || "")} — ${(p.distrito || "")}">${p.nombre} — ${p.distrito || ""}</option>`;
-    // Tus 3 sedes principales primero, en su propio grupo destacado —
+    // Tus sedes principales primero, en su propio grupo destacado —
     // el resto de pistas que tengas cargadas va aparte, por si acaso.
-    const principales = pistas.filter((p) => prioridadNombreSede(p.nombre, p.cancha) < 3);
-    const otras = pistas.filter((p) => prioridadNombreSede(p.nombre, p.cancha) >= 3);
+    const principales = pistas.filter((p) => prioridadNombreSede(p.nombre, p.cancha) < SEDES_PRINCIPALES);
+    const otras = pistas.filter((p) => prioridadNombreSede(p.nombre, p.cancha) >= SEDES_PRINCIPALES);
     canchaSelect.innerHTML = '<option value="">No tengo preferencia</option>' +
       (principales.length ? `<optgroup label="Tus sedes">${principales.map(opcion).join("")}</optgroup>` : "") +
       (otras.length ? `<optgroup label="Otras pistas">${otras.map(opcion).join("")}</optgroup>` : "");
