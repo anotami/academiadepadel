@@ -2357,9 +2357,13 @@ async function calcularRentabilidad(wrap, reservas) {
   sesiones.forEach((reservasDeLaSesion) => {
     reservasDeLaSesion.forEach((r) => {
       const pista = pistasCache.find((p) => p.id === r.pistaId);
+      // Una clase compartida usa UNA sola cancha: si el alumno no trae su
+      // parte ya cargada (costoCanchaPagado), la hora de cancha se reparte
+      // entre los alumnos de la sesión en vez de cobrarse completa a cada uno.
+      const horaDeCancha = pista ? costoSinLuzDePista(pista) : costoPromedioPistas;
       const costoCancha = typeof r.costoCanchaPagado === "number"
         ? r.costoCanchaPagado
-        : (pista ? costoSinLuzDePista(pista) : costoPromedioPistas);
+        : horaDeCancha / reservasDeLaSesion.length;
       costoTotal += costoCancha;
       detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha, tipo: "cancha", fecha: r.fecha });
     });
