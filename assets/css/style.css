@@ -1561,7 +1561,7 @@ span.disp-toggle.on { background: var(--court); }
    muestran una al lado de la otra para comparar horarios de un vistazo. */
 .agenda-grid-wrap { margin: 18px 0 26px; }
 .agenda-canchas-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
-.agenda-cancha-col { flex: 1 1 320px; min-width: 280px; }
+.agenda-cancha-col { flex: 0 1 calc(50% - 12px); min-width: 280px; }
 .agenda-cancha-nombre { margin: 0 0 10px; font-size: 1rem; font-weight: 800; color: var(--court); }
 .agenda-slot.seleccionada { outline: 3px solid var(--ink); outline-offset: -3px; }
 .agenda-confirm {
