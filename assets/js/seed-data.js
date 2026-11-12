@@ -121,8 +121,8 @@ const PISTAS_OVERRIDE = {
     costoHoraSinLuz: 50,
     costoHoraConLuz: 0,
     horario: "Sábado y domingo, 8:00 – 20:00",
-    precio: "S/ 50 / hr",
-    notas: "Costo fijo: S/ 50/hora, solo sábados y domingos de 8:00 a 20:00.",
+    precio: "",
+    notas: "Solo sábados y domingos, de 8:00 a 20:00.",
     disponibilidad: grilla(FIN_DE_SEMANA, ["8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00"], "sin-luz")
   }
 };
