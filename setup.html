@@ -77,10 +77,28 @@
       </div>
 
       <div class="portal-card">
+        <h2>Ocultar mis costos de cancha</h2>
+        <p>
+          Mueve lo que te cuesta cada cancha a un lugar que solo tu cuenta puede leer, y lo borra
+          de las fichas públicas de las pistas (que cualquier visitante puede consultar). En X3,
+          La Once y Top Padel también vacía el precio y las notas públicas, porque ahí mostraban
+          tu costo. No toca horarios ni disponibilidad. Usalo una vez; si lo repetís, no pasa nada.
+        </p>
+        <form id="form-ocultar-costos">
+          <div class="field">
+            <label for="pw-profesor-ocultar">Contraseña del profesor (anotami@gmail.com)</label>
+            <input type="password" id="pw-profesor-ocultar" minlength="6" required autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary" id="btn-ocultar-costos" type="submit" style="margin-top:16px;">Ocultar mis costos</button>
+        </form>
+        <div id="log-ocultar" style="margin-top:16px; font-size:0.88rem; color:var(--ink-soft); white-space:pre-line;"></div>
+      </div>
+
+      <div class="portal-card">
         <h2>Habilitar Top Padel La Molina (fines de semana)</h2>
         <p>
           Actualiza SOLO la pista "Top Padel La Molina" (la crea si no existe): queda habilitada,
-          con tu costo interno de S/ 50 por hora (no se muestra al público) y disponible sábado y domingo de 8:00 a 20:00. Si ya la habilitaste antes, volvé a tocar el botón: borra el precio público. No toca
+          y disponible sábado y domingo de 8:00 a 20:00. Tu costo de S/ 50 por hora se guarda en privado, no en la ficha pública. No toca
           ninguna otra pista, así que es seguro usarlo cuando quieras.
         </p>
         <form id="form-top-padel">
@@ -114,6 +132,6 @@
 </main>
 <p style="text-align:center; font-size:0.78rem; color:var(--ink-soft); padding:16px 20px;"><a href="privacidad.html">Privacidad</a></p>
 
-<script type="module" src="assets/js/setup-seed.js?v=19"></script>
+<script type="module" src="assets/js/setup-seed.js?v=20"></script>
 </body>
 </html>

@@ -4,6 +4,9 @@
 // Firestore en vivo, con tarifa de 2 niveles (sin luz / con luz) en La Once
 // y tarifa fija de S/ 50 solo sábado y domingo en Top Padel.
 // No se ejecuta como parte del sitio — queda acá solo como registro.
+// OJO: es histórico. Hoy los costos NO van dentro de la pista (es pública):
+// viven en la colección costos_pistas (ver COSTOS_PISTAS_SEED en seed-data.js
+// y "Ocultar mis costos de cancha" en setup.html).
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 

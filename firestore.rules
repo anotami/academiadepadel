@@ -393,6 +393,14 @@ service cloud.firestore {
       allow read, write: if esProfesor();
     }
 
+    // ---------- Costos internos de cancha ----------
+    // costos_pistas/{id de la pista}: lo que te cuesta la hora de cada
+    // cancha (sin luz / con luz). A propósito NO viven dentro de "pistas",
+    // que cualquier visitante puede leer: acá solo el profesor.
+    match /costos_pistas/{id} {
+      allow read, write: if esProfesor();
+    }
+
     // ---------- Todo lo demás: denegado ----------
     match /{document=**} {
       allow read, write: if false;

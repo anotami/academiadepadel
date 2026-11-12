@@ -241,9 +241,23 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
   }
 });
 
+// Costos internos de cancha: viven en costos_pistas (solo el profesor los
+// lee), no dentro de la pista pública. Si una pista todavía los trae dentro
+// (datos viejos, antes de ocultarlos en setup.html) se usan como respaldo.
+let costosPistasCache = {};
+
+function costoSinLuzDePista(p) {
+  return ((costosPistasCache[p.id] || p).costoHoraSinLuz) || 0;
+}
+
 async function cargarPistasCache() {
-  const snap = await getDocs(collection(db, "pistas"));
+  const [snap, costosSnap] = await Promise.all([
+    getDocs(collection(db, "pistas")),
+    // Si la regla de costos_pistas todavía no está publicada, el panel igual carga.
+    getDocs(collection(db, "costos_pistas")).catch(() => ({ docs: [] }))
+  ]);
   pistasCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  costosPistasCache = Object.fromEntries(costosSnap.docs.map((d) => [d.id, d.data()]));
   poblarSelectCrucePista();
 }
 
@@ -2287,7 +2301,7 @@ async function calcularRentabilidad(wrap, reservas) {
   }
 
   const costoPromedioPistas = pistasCache.length
-    ? pistasCache.reduce((sum, p) => sum + (p.costoHoraSinLuz || 0), 0) / pistasCache.length
+    ? pistasCache.reduce((sum, p) => sum + costoSinLuzDePista(p), 0) / pistasCache.length
     : 0;
   const costoProfesorHora = currentPerfil.costoHora || 0;
 
@@ -2345,7 +2359,7 @@ async function calcularRentabilidad(wrap, reservas) {
       const pista = pistasCache.find((p) => p.id === r.pistaId);
       const costoCancha = typeof r.costoCanchaPagado === "number"
         ? r.costoCanchaPagado
-        : (pista ? pista.costoHoraSinLuz || 0 : costoPromedioPistas);
+        : (pista ? costoSinLuzDePista(pista) : costoPromedioPistas);
       costoTotal += costoCancha;
       detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha, tipo: "cancha", fecha: r.fecha });
     });

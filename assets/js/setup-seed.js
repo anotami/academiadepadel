@@ -3,7 +3,7 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
   doc, setDoc, deleteDoc, addDoc, collection, getDocs, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=19";
+import { PISTAS_SEED, COSTOS_PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=20";
 import { TIPOS_CLASE } from "./portal-common.js?v=22";
 
 const logEl = document.getElementById("log");
@@ -62,6 +62,15 @@ document.getElementById("form-seed").addEventListener("submit", async (e) => {
   document.getElementById("btn-seed").disabled = false;
 });
 
+// Guarda una pista pública y, aparte, tus costos internos de cancha
+// (costos_pistas, mismo id) si esa pista los tiene en COSTOS_PISTAS_SEED.
+async function guardarPistaConCostos(pista) {
+  const ref = doc(collection(db, "pistas"));
+  await setDoc(ref, pista);
+  const costos = COSTOS_PISTAS_SEED[pista.nombre];
+  if (costos) await setDoc(doc(db, "costos_pistas", ref.id), costos);
+}
+
 async function crearSesionTemporalYsembrarPistas(email, password) {
   try {
     // Leer y escribir "pistas" requiere estar autenticado: entra brevemente con el profesor.
@@ -72,7 +81,7 @@ async function crearSesionTemporalYsembrarPistas(email, password) {
       return;
     }
     for (const pista of PISTAS_SEED) {
-      await setDoc(doc(collection(db, "pistas")), pista);
+      await guardarPistaConCostos(pista);
     }
     log(`✔ ${PISTAS_SEED.length} pistas cargadas.`);
   } catch (err) {
@@ -106,9 +115,13 @@ document.getElementById("form-reseed-pistas").addEventListener("submit", async (
     for (const d of actuales.docs) {
       await deleteDoc(doc(db, "pistas", d.id));
     }
+    const costosViejos = await getDocs(collection(db, "costos_pistas"));
+    for (const d of costosViejos.docs) {
+      await deleteDoc(doc(db, "costos_pistas", d.id));
+    }
 
     for (const pista of PISTAS_SEED) {
-      await setDoc(doc(collection(db, "pistas")), pista);
+      await guardarPistaConCostos(pista);
     }
     logPistas(`✔ ${PISTAS_SEED.length} pistas cargadas de nuevo.`);
   } catch (err) {
@@ -143,13 +156,73 @@ document.getElementById("form-top-padel").addEventListener("submit", async (e) =
     const existente = actuales.docs.find((d) => (d.data().nombre || "").toLowerCase().includes("top padel"));
     if (existente) {
       await setDoc(doc(db, "pistas", existente.id), top, { merge: true });
-      logTop("✔ Top Padel La Molina actualizada (habilitada, S/ 50, sáb y dom de 8:00 a 20:00).");
+      await setDoc(doc(db, "costos_pistas", existente.id), COSTOS_PISTAS_SEED["Top Padel La Molina"]);
+      logTop("✔ Top Padel La Molina actualizada (habilitada, sáb y dom de 8:00 a 20:00; tu costo queda privado).");
     } else {
-      await setDoc(doc(collection(db, "pistas")), top);
-      logTop("✔ Top Padel La Molina creada (habilitada, S/ 50, sáb y dom de 8:00 a 20:00).");
+      await guardarPistaConCostos(top);
+      logTop("✔ Top Padel La Molina creada (habilitada, sáb y dom de 8:00 a 20:00; tu costo queda privado).");
     }
   } catch (err) {
     logTop(`✘ No se pudo actualizar: ${err.message}`);
+  } finally {
+    await signOut(auth);
+    btn.disabled = false;
+  }
+});
+
+// ---- Ocultar tus costos de cancha (mueve costoHora* a costos_pistas) ----
+const logOcultarEl = document.getElementById("log-ocultar");
+function logOcultar(msg) {
+  logOcultarEl.textContent += (logOcultarEl.textContent ? "\n" : "") + msg;
+}
+
+document.getElementById("form-ocultar-costos").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (CONFIG_IS_PLACEHOLDER) {
+    logOcultar("Falta configurar assets/js/firebase-config.js con tu proyecto de Firebase antes de usar esta página.");
+    return;
+  }
+  const password = document.getElementById("pw-profesor-ocultar").value;
+  const btn = document.getElementById("btn-ocultar-costos");
+  btn.disabled = true;
+  logOcultarEl.textContent = "";
+
+  try {
+    await signInWithEmailAndPassword(auth, PROFESOR_SEED.email, password);
+    const snap = await getDocs(collection(db, "pistas"));
+    let movidas = 0;
+    for (const d of snap.docs) {
+      const { costoHoraSinLuz, costoHoraConLuz, ...publica } = d.data();
+      const nombre = (publica.nombre || "").toLowerCase();
+      const cancha = (publica.cancha || "").toLowerCase();
+      const esX3 = nombre.includes("x3");
+      const esLaOnce = nombre.includes("once") || cancha.includes("11");
+      const esTop = nombre.includes("top padel");
+      const propia = esX3 || esLaOnce || esTop;
+      const teniaCostos = costoHoraSinLuz !== undefined || costoHoraConLuz !== undefined;
+      if (!propia && !teniaCostos) continue;
+
+      const claveSeed = esX3 ? "Club adidas X3" : esLaOnce ? "Club Pádel Lima (La Once)" : esTop ? "Top Padel La Molina" : null;
+      const deSeed = (claveSeed && COSTOS_PISTAS_SEED[claveSeed]) || {};
+      const sinLuz = Number(costoHoraSinLuz) || deSeed.costoHoraSinLuz || 0;
+      const conLuz = Number(costoHoraConLuz) || deSeed.costoHoraConLuz || 0;
+      if (sinLuz || conLuz) {
+        await setDoc(doc(db, "costos_pistas", d.id), { costoHoraSinLuz: sinLuz, costoHoraConLuz: conLuz });
+      }
+
+      // En tus 3 sedes el precio y las notas públicas eran tu costo: se vacían.
+      if (propia) {
+        publica.precio = "";
+        publica.notas = esTop ? "Solo sábados y domingos, de 8:00 a 20:00." : "";
+      }
+      // Reemplazo completo del documento: así desaparecen costoHora* de la pista pública.
+      await setDoc(doc(db, "pistas", d.id), publica);
+      movidas++;
+      logOcultar(`✔ ${publica.nombre}: costos privados${propia ? ", precio y notas públicos vaciados" : ""}.`);
+    }
+    logOcultar(movidas ? `Listo. ${movidas} pista(s) actualizadas.` : "No había nada que mover: tus costos ya estaban ocultos.");
+  } catch (err) {
+    logOcultar(`✘ No se pudo actualizar: ${err.message}`);
   } finally {
     await signOut(auth);
     btn.disabled = false;

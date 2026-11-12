@@ -95,20 +95,16 @@ function grilla(dias, franjas, tarifa) {
 const PISTAS_OVERRIDE = {
   "Club adidas X3": {
     estadoPista: "Habilitada",
-    costoHoraSinLuz: 70,
-    costoHoraConLuz: 0,
     horario: "Lunes a Domingo, 7:30 – 18:00",
-    precio: "S/ 70 / hr",
-    notas: "Costo fijo: S/ 70/hora (no juega de noche, no necesita luz).",
+    precio: "",
+    notas: "",
     disponibilidad: grilla(DIAS, ["6:00–8:00", "8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00"], "sin-luz")
   },
   "Club Pádel Lima (La Once)": {
     estadoPista: "Habilitada",
-    costoHoraSinLuz: 80,
-    costoHoraConLuz: 100,
     horario: "Lunes a Viernes 6:00-8:00 y 16:00-23:00 · Sábado y domingo 6:00-22:00",
-    precio: "S/ 80 (sin luz) - S/ 100 (con luz) / hr",
-    notas: "S/ 80/hora hasta las 18:00 (sin luz); desde las 18:00 sube a S/ 100/hora (con luz).",
+    precio: "",
+    notas: "",
     disponibilidad: [
       ...grilla(DIAS_SEMANA, ["6:00–8:00", "16:00–18:00"], "sin-luz"),
       ...grilla(DIAS_SEMANA, ["18:00–20:00", "20:00–22:00"], "con-luz"),
@@ -118,13 +114,20 @@ const PISTAS_OVERRIDE = {
   },
   "Top Padel La Molina": {
     estadoPista: "Habilitada",
-    costoHoraSinLuz: 50,
-    costoHoraConLuz: 0,
     horario: "Sábado y domingo, 8:00 – 20:00",
     precio: "",
     notas: "Solo sábados y domingos, de 8:00 a 20:00.",
     disponibilidad: grilla(FIN_DE_SEMANA, ["8:00–10:00", "10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00"], "sin-luz")
   }
+};
+
+// Tus costos internos de cancha (por hora). NUNCA van dentro de PISTAS_SEED:
+// las pistas son públicas. Se guardan aparte, en la colección costos_pistas
+// (solo el profesor la lee), con el mismo id que la pista.
+export const COSTOS_PISTAS_SEED = {
+  "Club adidas X3": { costoHoraSinLuz: 70, costoHoraConLuz: 0 },
+  "Club Pádel Lima (La Once)": { costoHoraSinLuz: 80, costoHoraConLuz: 100 },
+  "Top Padel La Molina": { costoHoraSinLuz: 50, costoHoraConLuz: 0 }
 };
 
 export const PISTAS_SEED = PISTAS_RAW.map(
@@ -137,8 +140,6 @@ export const PISTAS_SEED = PISTAS_RAW.map(
       telefono,
       horario: `${dias}, ${horaInicio} – ${horaFin}`,
       estadoPista,
-      costoHoraSinLuz: 0,
-      costoHoraConLuz: 0,
       web,
       precio,
       notas: notas || "",

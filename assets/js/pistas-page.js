@@ -1,4 +1,4 @@
-import { auth, db, onAuthStateChanged, signInAnonymously, doc, getDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=18";
+import { auth, db, onAuthStateChanged, signInAnonymously, doc, getDoc, setDoc, updateDoc, addDoc, collection, getDocs } from "./firebase-app.js?v=18";
 import { construirGrillaTarifaPista, prioridadNombreSede, SEDES_PRINCIPALES } from "./portal-common.js?v=27";
 
 const ESTADOS_PISTA = ["Habilitada", "Reservada", "Bloqueada"];
@@ -47,17 +47,25 @@ onAuthStateChanged(auth, async (user) => {
 
   const wrap = document.getElementById("lista-pistas");
   const snap = await getDocs(collection(db, "pistas"));
+  // Tus costos viven en costos_pistas (solo el profesor los lee).
+  let costos = {};
+  if (esProfesor) {
+    try {
+      const costosSnap = await getDocs(collection(db, "costos_pistas"));
+      costos = Object.fromEntries(costosSnap.docs.map((d) => [d.id, d.data()]));
+    } catch { /* sin permiso o sin datos: se muestran en 0 */ }
+  }
   if (snap.empty) {
     wrap.innerHTML = '<p class="empty-state">Aún no hay pistas cargadas.</p>';
     return;
   }
 
   const pistasOrdenadas = ordenarPistas(snap.docs);
-  construirFiltroDistrito(pistasOrdenadas, esProfesor);
+  construirFiltroDistrito(pistasOrdenadas, esProfesor, costos);
 });
 
 // ---- Filtro por distrito (checkboxes múltiples) ----
-function construirFiltroDistrito(docs, esProfesor) {
+function construirFiltroDistrito(docs, esProfesor, costos) {
   const wrap = document.getElementById("lista-pistas");
   const filtroWrap = document.getElementById("filtro-distrito");
   const distritos = Array.from(new Set(docs.map((d) => d.data().distrito).filter(Boolean))).sort((a, b) => a.localeCompare(b, "es"));
@@ -72,13 +80,13 @@ function construirFiltroDistrito(docs, esProfesor) {
       wrap.innerHTML = '<p class="empty-state">No hay pistas en los distritos elegidos.</p>';
       return;
     }
-    visibles.forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor)));
+    visibles.forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor, costos[d.id])));
   }
 
   if (!distritos.length) {
     filtroWrap.hidden = true;
     wrap.innerHTML = "";
-    docs.forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor)));
+    docs.forEach((d) => wrap.appendChild(construirTarjetaPista(d.id, d.data(), esProfesor, costos[d.id])));
     return;
   }
 
@@ -167,7 +175,7 @@ function construirFormularioNuevaPista() {
     }
     const disponibilidad = grid.obtenerSeleccion();
     try {
-      await addDoc(collection(db, "pistas"), {
+      const nueva = await addDoc(collection(db, "pistas"), {
         nombre,
         cancha: campo("cancha"),
         distrito,
@@ -175,13 +183,15 @@ function construirFormularioNuevaPista() {
         telefono: campo("telefono"),
         horario: campo("horario"),
         precio: campo("precio"),
-        costoHoraSinLuz: Number(campo("costoHoraSinLuz")) || 0,
-        costoHoraConLuz: Number(campo("costoHoraConLuz")) || 0,
         web: campo("web"),
         estadoPista: card.querySelector('[data-campo="estadoPista"]').value,
         notas: "",
         fuente: "Cargada por el profesor desde el portal",
         disponibilidad
+      });
+      await setDoc(doc(db, "costos_pistas", nueva.id), {
+        costoHoraSinLuz: Number(campo("costoHoraSinLuz")) || 0,
+        costoHoraConLuz: Number(campo("costoHoraConLuz")) || 0
       });
       msg.textContent = "Pista creada. Actualizando la lista...";
       msg.className = "form-msg ok";
@@ -205,7 +215,10 @@ function renderWeb(web) {
     .join(" · ");
 }
 
-function construirTarjetaPista(pistaId, pista, esProfesor) {
+function construirTarjetaPista(pistaId, pista, esProfesor, costo) {
+  // costo = { costoHoraSinLuz, costoHoraConLuz } de costos_pistas; si falta,
+  // respaldo con los campos viejos que algunas pistas aún traen dentro.
+  costo = costo || { costoHoraSinLuz: pista.costoHoraSinLuz, costoHoraConLuz: pista.costoHoraConLuz };
   const card = document.createElement("div");
   card.className = "court-card";
   const estado = pista.estadoPista || "Habilitada";
@@ -257,11 +270,11 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
       </div>
       <div class="field">
         <label>Tu costo sin luz, por hora (S/)</label>
-        <input type="number" min="0" step="1" data-campo="costoHoraSinLuz" value="${pista.costoHoraSinLuz || 0}">
+        <input type="number" min="0" step="1" data-campo="costoHoraSinLuz" value="${costo.costoHoraSinLuz || 0}">
       </div>
       <div class="field">
         <label>Tu costo con luz, por hora (S/)</label>
-        <input type="number" min="0" step="1" data-campo="costoHoraConLuz" value="${pista.costoHoraConLuz || 0}">
+        <input type="number" min="0" step="1" data-campo="costoHoraConLuz" value="${costo.costoHoraConLuz || 0}">
       </div>
     `;
     const estadoSelect = fieldsWrap.querySelector('[data-campo="estadoPista"]');
@@ -281,12 +294,14 @@ function construirTarjetaPista(pistaId, pista, esProfesor) {
     btn.addEventListener("click", async () => {
       const disponibilidad = grid.obtenerSeleccion();
       try {
+        await setDoc(doc(db, "costos_pistas", pistaId), {
+          costoHoraSinLuz: Number(costoSinLuzInput.value) || 0,
+          costoHoraConLuz: Number(costoConLuzInput.value) || 0
+        });
         await updateDoc(doc(db, "pistas", pistaId), {
           disponibilidad,
           estadoPista: estadoSelect.value,
-          precio: precioInput.value.trim(),
-          costoHoraSinLuz: Number(costoSinLuzInput.value) || 0,
-          costoHoraConLuz: Number(costoConLuzInput.value) || 0
+          precio: precioInput.value.trim()
         });
         msg.textContent = "Guardado.";
         msg.className = "form-msg ok";
