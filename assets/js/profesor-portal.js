@@ -993,6 +993,38 @@ function renderHistorial() {
 let historialSesionesCache = [];
 function claveSesion(r) { return `${r.pistaId}|${r.fecha}|${r.hora}`; }
 
+// Fecha y hora editables de una reserva (para mover una clase de día u hora
+// sin borrarla y volver a registrarla). Mueve solo a ese alumno.
+function camposFechaHoraHtml(r) {
+  const horas = HORAS_RESERVA.includes(r.hora) ? HORAS_RESERVA : [...HORAS_RESERVA, r.hora].sort();
+  return `
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" data-campo="fecha" value="${escapeHtml(r.fecha || "")}">
+        </div>
+        <div class="field">
+          <label>Hora</label>
+          <select data-campo="hora">${horas.map((h) => `<option ${h === r.hora ? "selected" : ""}>${h}</option>`).join("")}</select>
+        </div>
+        <p class="field-hint field-full" style="margin-top:-4px;">Para pasar esta clase a otro día u hora. Mueve solo a ${escapeHtml(r.alumnoNombre || "este alumno")}: si la clase tiene más alumnos, muévelos uno por uno.</p>`;
+}
+
+// Devuelve { fecha, hora, cambio } o null si falta la fecha.
+function leerFechaHora(form, r) {
+  const fecha = form.querySelector('[data-campo="fecha"]').value;
+  const hora = form.querySelector('[data-campo="hora"]').value;
+  if (!fecha) return null;
+  return { fecha, hora, cambio: fecha !== r.fecha || hora !== r.hora };
+}
+
+// Avisos antes de mover: el video de Beelup queda atado a la hora original y
+// un Grupo fijo futuro se vuelve a generar en su fecha de siempre.
+function confirmarMovimientoDeClase(r) {
+  if (r.videoUrl && !confirm("Esta clase ya tiene un video de Beelup de su fecha y hora originales. Si la mueves, ese video no corresponde a la nueva hora. ¿Mover igual?")) return false;
+  if (r.grupoId && !fechaYaPaso(r.fecha) && !confirm("Esta clase viene de un Grupo fijo: el sistema puede volver a crearla en su fecha original. ¿Mover igual?")) return false;
+  return true;
+}
+
 // Select con las otras sesiones existentes (excluye la propia), para
 // "mover" una reserva y que se agrupe con otra clase ya registrada.
 function opcionesMoverSesion(claveActual) {
@@ -1157,6 +1189,7 @@ function construirTarjetaHistorial(r) {
             <option value="cancelada" ${r.estado === "cancelada" ? "selected" : ""}>Cancelada</option>
           </select>
         </div>
+        ${camposFechaHoraHtml(r)}
         ${esPistaBeelup(r.pistaNombre) ? `
         <div class="field">
           <label>Cancha (video Beelup)</label>
@@ -1255,6 +1288,9 @@ function construirTarjetaHistorial(r) {
     const estado = form.querySelector('[data-campo="estado"]').value;
     const duracionMin = Number(form.querySelector('[data-campo="duracionMin"]').value) || 90;
     const campoCancha = form.querySelector('[data-campo="canchaBeelup"]');
+    const fh = leerFechaHora(form, r);
+    if (!fh) { msg.textContent = "Elige la fecha de la clase."; msg.className = "form-msg error"; return; }
+    if (fh.cambio && !confirmarMovimientoDeClase(r)) return;
     try {
       const cambios = {
         modalidad,
@@ -1263,6 +1299,7 @@ function construirTarjetaHistorial(r) {
         estado,
         duracionMin
       };
+      if (fh.cambio) { cambios.fecha = fh.fecha; cambios.hora = fh.hora; }
       if (campoCancha) cambios.canchaBeelup = campoCancha.value;
       await updateDoc(doc(db, "reservas", r.id), cambios);
       msg.textContent = "Actualizado.";
@@ -1366,6 +1403,7 @@ function construirTarjetaHistorialGrupal(grupo) {
                 <option value="cancelada" ${r.estado === "cancelada" ? "selected" : ""}>Cancelada</option>
               </select>
             </div>
+            ${camposFechaHoraHtml(r)}
             <button class="btn btn-primary btn-small" type="button" data-guardar>Guardar</button>
             ${!esFutura ? `
             <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
@@ -1448,13 +1486,18 @@ function construirTarjetaHistorialGrupal(grupo) {
       const montoCobrado = r.paqueteId ? null : (Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0);
       const costoCanchaRaw = form.querySelector('[data-campo="costoCanchaPagado"]').value;
       const estado = form.querySelector('[data-campo="estado"]').value;
+      const fh = leerFechaHora(form, r);
+      if (!fh) { msg.textContent = "Elige la fecha de la clase."; msg.className = "form-msg error"; return; }
+      if (fh.cambio && !confirmarMovimientoDeClase(r)) return;
       try {
-        await updateDoc(doc(db, "reservas", r.id), {
+        const cambios = {
           modalidad,
           montoCobrado,
           costoCanchaPagado: costoCanchaRaw === "" ? null : Number(costoCanchaRaw),
           estado
-        });
+        };
+        if (fh.cambio) { cambios.fecha = fh.fecha; cambios.hora = fh.hora; }
+        await updateDoc(doc(db, "reservas", r.id), cambios);
         msg.textContent = "Actualizado.";
         msg.className = "form-msg ok";
       } catch (err) {
