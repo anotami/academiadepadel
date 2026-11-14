@@ -200,7 +200,28 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
     paqueteElegidoPorAlumno[alumno.id] = select ? select.value : "";
   });
 
+  // Un doble toque creaba la clase dos veces (y descontaba dos clases del paquete).
+  const botonRegistrar = document.querySelector('button[form="form-clase-dictada"]');
+  if (botonRegistrar.disabled) return;
+  botonRegistrar.disabled = true;
+
   try {
+    // Si el alumno ya tiene esa clase cargada (por ejemplo la generó solo un Grupo
+    // fijo), registrarla otra vez la duplicaría: se edita la que ya existe.
+    const mismaHora = await getDocs(query(
+      collection(db, "reservas"),
+      where("profesorId", "==", currentUid), where("fecha", "==", fecha), where("hora", "==", hora)
+    ));
+    const idsYaCargados = new Set(mismaHora.docs.map((d) => d.data())
+      .filter((r) => r.pistaId === pistaId && r.estado !== "cancelada" && r.estado !== "rechazada")
+      .map((r) => r.alumnoId));
+    const repetidos = alumnosSeleccionados.filter((a) => idsYaCargados.has(a.id));
+    if (repetidos.length) {
+      msg.textContent = `${repetidos.map((a) => a.nombre).join(", ")} ya ${repetidos.length === 1 ? "tiene" : "tienen"} esa clase cargada en esa pista, fecha y hora. Edítala en "2 Mis clases" → "Clases registradas" en vez de registrarla otra vez.`;
+      msg.className = "form-msg error";
+      return;
+    }
+
     for (const alumno of alumnosSeleccionados) {
       const paqueteId = paqueteElegidoPorAlumno[alumno.id];
       const datos = {
@@ -238,6 +259,8 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
   } catch (err) {
     msg.textContent = "No se pudo registrar: " + err.message;
     msg.className = "form-msg error";
+  } finally {
+    botonRegistrar.disabled = false;
   }
 });
 
