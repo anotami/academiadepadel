@@ -11,7 +11,7 @@ import {
   CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD, normalizarTelefonoPeru,
   categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto, elegirMensaje,
   calcularProgresoAlumno, esPistaBeelup, CANCHAS_BEELUP, DURACIONES_CLASE, videoClaseHtml
-} from "./portal-common.js?v=26";
+} from "./portal-common.js?v=28";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -450,8 +450,8 @@ function cargarConfirmadas(uid) {
     const futuras = [];
     snap.docs.forEach((d) => {
       const r = { id: d.id, ...d.data() };
-      if (fechaYaPaso(r.fecha) && !r.registrada) porRegistrar.push(r);
-      else if (!r.registrada || !fechaYaPaso(r.fecha)) futuras.push(r);
+      if (fechaYaPaso(r.fecha, r.hora) && !r.registrada) porRegistrar.push(r);
+      else if (!r.registrada || !fechaYaPaso(r.fecha, r.hora)) futuras.push(r);
     });
 
     wrapPorRegistrar.innerHTML = "";
@@ -971,8 +971,8 @@ function renderHistorial() {
   // última clase realmente dictada. Separar deja lo ya dictado primero
   // (más reciente primero) y lo que falta, aparte y pintado distinto.
   const grupos = agruparPorSesion(reservas);
-  const pasadas = grupos.filter((g) => fechaYaPaso(g[0].fecha));
-  const futuras = grupos.filter((g) => !fechaYaPaso(g[0].fecha))
+  const pasadas = grupos.filter((g) => fechaYaPaso(g[0].fecha, g[0].hora));
+  const futuras = grupos.filter((g) => !fechaYaPaso(g[0].fecha, g[0].hora))
     .sort((a, b) => a[0].fecha.localeCompare(b[0].fecha) || a[0].hora.localeCompare(b[0].hora));
 
   pasadas.forEach((grupo) => wrap.appendChild(
@@ -1021,7 +1021,7 @@ function leerFechaHora(form, r) {
 // un Grupo fijo futuro se vuelve a generar en su fecha de siempre.
 function confirmarMovimientoDeClase(r) {
   if (r.videoUrl && !confirm("Esta clase ya tiene un video de Beelup de su fecha y hora originales. Si la mueves, ese video no corresponde a la nueva hora. ¿Mover igual?")) return false;
-  if (r.grupoId && !fechaYaPaso(r.fecha) && !confirm("Esta clase viene de un Grupo fijo: el sistema puede volver a crearla en su fecha original. ¿Mover igual?")) return false;
+  if (r.grupoId && !fechaYaPaso(r.fecha, r.hora) && !confirm("Esta clase viene de un Grupo fijo: el sistema puede volver a crearla en su fecha original. ¿Mover igual?")) return false;
   return true;
 }
 
@@ -1150,7 +1150,7 @@ async function vincularReservaAPaquete(r, paqueteIdNuevo, msg) {
 
 function construirTarjetaHistorial(r) {
   const card = document.createElement("div");
-  const esFutura = !fechaYaPaso(r.fecha);
+  const esFutura = !fechaYaPaso(r.fecha, r.hora);
   card.className = "request-card";
   if (esFutura) card.style.cssText = "background:var(--card-futura-bg, #fff8e6); border:1px solid var(--card-futura-border, #e6c766);";
   const estadoLabel = { confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado;
@@ -1335,7 +1335,7 @@ function construirTarjetaHistorial(r) {
 // distinto o se le canceló solo a él), pero comparten la tarjeta.
 function construirTarjetaHistorialGrupal(grupo) {
   const base = grupo[0];
-  const esFutura = !fechaYaPaso(base.fecha);
+  const esFutura = !fechaYaPaso(base.fecha, base.hora);
   const card = document.createElement("div");
   card.className = "request-card";
   if (esFutura) card.style.cssText = "background:var(--card-futura-bg, #fff8e6); border:1px solid var(--card-futura-border, #e6c766);";
@@ -1853,7 +1853,7 @@ async function cargarAlumnos() {
       subieronNivel.push({ alumno: a, progreso });
     }
     const clasesRecientes = (reservasPorAlumno[a.id] || [])
-      .filter((r) => fechaYaPaso(r.fecha))
+      .filter((r) => fechaYaPaso(r.fecha, r.hora))
       .sort((x, y) => y.fecha.localeCompare(x.fecha) || y.hora.localeCompare(x.hora))
       .slice(0, 10);
     const card = document.createElement("div");
@@ -2256,13 +2256,13 @@ async function cargarMetricas(uid) {
     // fijo tiene semanas adelante ya confirmadas. Separarlas para que
     // "dictadas" sea de verdad lo ya dado, no una mezcla con lo que falta.
     const confirmadasTodas = reservas.filter((r) => r.estado === "confirmada");
-    const dictadas = agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha))).length;
-    const proximas = agruparSesiones(confirmadasTodas.filter((r) => !fechaYaPaso(r.fecha))).length;
+    const dictadas = agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha, r.hora))).length;
+    const proximas = agruparSesiones(confirmadasTodas.filter((r) => !fechaYaPaso(r.fecha, r.hora))).length;
     const rechazadas = reservas.filter((r) => r.estado === "rechazada").length;
     const pendientes = reservas.filter((r) => r.estado === "pendiente").length;
 
     const conteoPistas = {};
-    agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha))).forEach((ses) => {
+    agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha, r.hora))).forEach((ses) => {
       conteoPistas[ses.pistaNombre] = (conteoPistas[ses.pistaNombre] || 0) + 1;
     });
     const pistaTop = Object.entries(conteoPistas).sort((a, b) => b[1] - a[1])[0];
@@ -2272,7 +2272,7 @@ async function cargarMetricas(uid) {
       ? (conNps.reduce((sum, r) => sum + r.nps, 0) / conNps.length).toFixed(1)
       : "—";
 
-    const alumnosActivos = new Set(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha)).map((r) => r.alumnoId)).size;
+    const alumnosActivos = new Set(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha, r.hora)).map((r) => r.alumnoId)).size;
 
     wrap.innerHTML = `
       <div class="card clickable" data-detalle-metrica="dictadas"><div class="card-icon">✅</div><h3>${dictadas}</h3><p>Clases dictadas</p></div>
@@ -2308,8 +2308,8 @@ function mostrarDetalleMetrica(tipo, cardEl) {
 
   if (tipo === "dictadas" || tipo === "proximas" || tipo === "rechazadas" || tipo === "pendientes") {
     let filtradas;
-    if (tipo === "dictadas") filtradas = reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha));
-    else if (tipo === "proximas") filtradas = reservas.filter((r) => r.estado === "confirmada" && !fechaYaPaso(r.fecha));
+    if (tipo === "dictadas") filtradas = reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora));
+    else if (tipo === "proximas") filtradas = reservas.filter((r) => r.estado === "confirmada" && !fechaYaPaso(r.fecha, r.hora));
     else filtradas = reservas.filter((r) => r.estado === { rechazadas: "rechazada", pendientes: "pendiente" }[tipo]);
     const porSesion = tipo === "dictadas" || tipo === "proximas";
     // dictadas/próximas se cuentan por clase (una compartida = 1); rechazadas y pendientes son pedidos de cada alumno.
@@ -2320,7 +2320,7 @@ function mostrarDetalleMetrica(tipo, cardEl) {
       : '<p class="empty-state">Sin registros.</p>';
   } else if (tipo === "pistas") {
     const conteo = {};
-    agruparSesiones(reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha))).forEach((ses) => { conteo[ses.pistaNombre] = (conteo[ses.pistaNombre] || 0) + 1; });
+    agruparSesiones(reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora))).forEach((ses) => { conteo[ses.pistaNombre] = (conteo[ses.pistaNombre] || 0) + 1; });
     const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
     wrap.innerHTML = filas.length
       ? `<table class="detalle-table"><thead><tr><th>Pista</th><th>Clases dictadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
@@ -2332,7 +2332,7 @@ function mostrarDetalleMetrica(tipo, cardEl) {
       : '<p class="empty-state">Todavía no hay respuestas de NPS.</p>';
   } else if (tipo === "alumnos") {
     const conteo = {};
-    reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha)).forEach((r) => { conteo[r.alumnoNombre] = (conteo[r.alumnoNombre] || 0) + 1; });
+    reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora)).forEach((r) => { conteo[r.alumnoNombre] = (conteo[r.alumnoNombre] || 0) + 1; });
     const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
     wrap.innerHTML = filas.length
       ? `<table class="detalle-table"><thead><tr><th>Alumno</th><th>Clases dictadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
@@ -2352,7 +2352,7 @@ async function calcularRentabilidad(wrap, reservas) {
   // clases que ya pasaron: una clase de un Grupo fijo se autogenera hasta
   // 4 semanas por adelantado con su monto ya cargado, así que sin este
   // filtro aparecían como "ingreso ya ganado" clases que ni se dictaron.
-  const reservasSueltas = reservas.filter((r) => r.estado === "confirmada" && !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0 && fechaYaPaso(r.fecha));
+  const reservasSueltas = reservas.filter((r) => r.estado === "confirmada" && !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0 && fechaYaPaso(r.fecha, r.hora));
 
   if (paquetesPagados.length === 0 && reservasSueltas.length === 0) {
     wrap.innerHTML = '<p class="empty-state">Todavía no hay paquetes pagados ni clases sueltas con monto cargado para calcular rentabilidad.</p>';
@@ -2394,7 +2394,7 @@ async function calcularRentabilidad(wrap, reservas) {
       const alumnoHtml = escapeHtml(paquete.alumnoNombre || "");
       const notaPaquete = `paquete ${escapeHtml(paquete.tipo || "")}`;
       const dictadasConFecha = reservas
-        .filter((r) => r.estado === "confirmada" && r.paqueteId === paquete.id && fechaYaPaso(r.fecha))
+        .filter((r) => r.estado === "confirmada" && r.paqueteId === paquete.id && fechaYaPaso(r.fecha, r.hora))
         .sort((a, b) => a.fecha.localeCompare(b.fecha) || (a.hora || "").localeCompare(b.hora || ""))
         .slice(0, clasesUsadas);
       dictadasConFecha.forEach((r) => detalleIngreso.push({ fecha: r.fecha, alumno: alumnoHtml, nota: notaPaquete, monto: valorClase }));
@@ -2421,7 +2421,7 @@ async function calcularRentabilidad(wrap, reservas) {
   // se cuenta UNA sola vez por sesión, no una vez por alumno.
   // Solo clases que ya pasaron -- igual que Ingreso, una sesión de Grupo
   // fijo autogenerada para dentro de 3 semanas no te cuesta nada todavía.
-  const confirmadas = reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha));
+  const confirmadas = reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora));
   const sesiones = new Map();
   confirmadas.forEach((r) => {
     const clave = `${r.pistaId}|${r.fecha}|${r.hora}`;
@@ -2617,7 +2617,7 @@ async function cargarSeguimiento(uid) {
 }
 
 function renderLeadsJornadaGratis(wrap, reservas, paquetes) {
-  const leads = reservas.filter((r) => r.tipoClase === TIPO_JORNADA_GRATIS && fechaYaPaso(r.fecha));
+  const leads = reservas.filter((r) => r.tipoClase === TIPO_JORNADA_GRATIS && fechaYaPaso(r.fecha, r.hora));
   if (leads.length === 0) {
     wrap.innerHTML = '<p class="empty-state">Nadie ha hecho la jornada gratis todavía.</p>';
     return;

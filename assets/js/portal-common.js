@@ -235,9 +235,21 @@ export function construirGrillaTarifaPista(container, { editable = true, marcada
 // Niveles de la metodología del sitio (sección #metodologia de index.html).
 export const NIVELES = ["Iniciación", "Intermedio", "Consolidación"];
 
-// ¿La fecha "YYYY-MM-DD" ya pasó (antes de hoy, no cuenta hoy)?
-export function fechaYaPaso(fechaStr) {
-  return fechaStr < new Date().toISOString().slice(0, 10);
+// Fecha y hora de AHORA en Lima (UTC-5, Perú no tiene horario de verano).
+// Con la fecha UTC "hoy" cambiaba a las 19:00 de Lima, y una clase de hoy
+// figuraba como "aún no sucedió" casi todo el día.
+function ahoraEnLima() {
+  const iso = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString();
+  return { fecha: iso.slice(0, 10), hora: iso.slice(11, 16) };
+}
+
+// ¿La clase "YYYY-MM-DD" (+ hora "HH:MM", opcional) ya pasó? Un día anterior
+// siempre sí. Hoy: sí si se pasa la hora y esa hora ya empezó; sin hora, hoy
+// todavía no cuenta como pasado.
+export function fechaYaPaso(fechaStr, horaStr) {
+  const ahora = ahoraEnLima();
+  if (fechaStr < ahora.fecha) return true;
+  return !!horaStr && fechaStr === ahora.fecha && horaStr <= ahora.hora;
 }
 
 // Solo los programas regulares (Junior / Adultos) se pagan por paquete de clases;
@@ -476,7 +488,7 @@ export function videoClaseHtml(r) {
     return `<a class="btn btn-outline btn-small" target="_blank" rel="noopener" href="${escapeHtml(r.videoUrl)}">🎥 Ver video</a>` +
       (tramos ? ` <span class="court-meta">${tramos} tramo${tramos === 1 ? "" : "s"}</span>` : "");
   }
-  if (esPistaBeelup(r.pistaNombre) && fechaYaPaso(r.fecha) && diasDesdeFecha(r.fecha) <= 7) {
+  if (esPistaBeelup(r.pistaNombre) && fechaYaPaso(r.fecha, r.hora) && diasDesdeFecha(r.fecha) <= 7) {
     return '<span class="badge badge-pendiente">Video en proceso</span>';
   }
   return "";

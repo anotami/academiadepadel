@@ -8,7 +8,7 @@ import {
   HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad,
   calcularProgresoAlumno, GOLPES_DESBLOQUEABLES, calcularInsignias, MOSTRAR_VIDEO_ALUMNO, videoClaseHtml
-} from "./portal-common.js?v=26";
+} from "./portal-common.js?v=28";
 import { escapeHtml } from "./utils.js?v=1";
 
 let currentUid = null;
@@ -434,7 +434,7 @@ function cargarReservas(uid) {
     wrap.innerHTML = "";
     snap.docs.forEach((d) => {
       const r = { id: d.id, ...d.data() };
-      const puedeCancelar = r.estado === "confirmada" && !fechaYaPaso(r.fecha);
+      const puedeCancelar = r.estado === "confirmada" && !fechaYaPaso(r.fecha, r.hora);
       const card = document.createElement("div");
       card.className = "request-card";
       card.innerHTML = `
@@ -490,7 +490,7 @@ document.getElementById("lista-reservas").addEventListener("click", async (e) =>
 });
 
 function bloqueNps(r) {
-  if (r.estado !== "confirmada" || !fechaYaPaso(r.fecha) || r.nps !== undefined) return "";
+  if (r.estado !== "confirmada" || !fechaYaPaso(r.fecha, r.hora) || r.nps !== undefined) return "";
   const botones = Array.from({ length: 11 }, (_, n) =>
     `<button type="button" class="btn btn-outline btn-small" data-nps-score="${n}" style="padding:6px 11px; margin:2px;">${n}</button>`
   ).join("");
@@ -503,7 +503,7 @@ function bloqueNps(r) {
 
 // ---- Encuesta post-clase (autorreporte del alumno) ----
 function bloqueEncuesta(r) {
-  if (r.estado !== "confirmada" || !fechaYaPaso(r.fecha) || r.encuesta) return "";
+  if (r.estado !== "confirmada" || !fechaYaPaso(r.fecha, r.hora) || r.encuesta) return "";
   const escala = (campo, max) => Array.from({ length: max }, (_, i) => i + 1)
     .map((n) => `<button type="button" class="btn btn-outline btn-small" data-escala="${campo}" data-valor="${n}" style="padding:6px 10px; margin:2px;">${n}</button>`)
     .join("");
