@@ -2188,6 +2188,19 @@ function linkRecordatorio(r) {
 // ---- Resumen / métricas ----
 let metricasReservasCache = null;
 
+// Una clase compartida (varios alumnos, misma pista + fecha + hora) es UNA
+// sola clase dictada, aunque tenga una reserva por alumno. Misma clave que
+// usa Rentabilidad para contar la cancha una sola vez.
+function agruparSesiones(reservas) {
+  const sesiones = new Map();
+  reservas.forEach((r) => {
+    const clave = `${r.pistaId}|${r.fecha}|${r.hora}`;
+    if (!sesiones.has(clave)) sesiones.set(clave, { fecha: r.fecha, hora: r.hora, pistaNombre: r.pistaNombre, alumnos: [] });
+    sesiones.get(clave).alumnos.push(r.alumnoNombre || "");
+  });
+  return Array.from(sesiones.values());
+}
+
 async function cargarMetricas(uid) {
   const wrap = document.getElementById("metricas");
   const wrapRent = document.getElementById("rentabilidad");
@@ -2200,14 +2213,14 @@ async function cargarMetricas(uid) {
     // fijo tiene semanas adelante ya confirmadas. Separarlas para que
     // "dictadas" sea de verdad lo ya dado, no una mezcla con lo que falta.
     const confirmadasTodas = reservas.filter((r) => r.estado === "confirmada");
-    const dictadas = confirmadasTodas.filter((r) => fechaYaPaso(r.fecha)).length;
-    const proximas = confirmadasTodas.filter((r) => !fechaYaPaso(r.fecha)).length;
+    const dictadas = agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha))).length;
+    const proximas = agruparSesiones(confirmadasTodas.filter((r) => !fechaYaPaso(r.fecha))).length;
     const rechazadas = reservas.filter((r) => r.estado === "rechazada").length;
     const pendientes = reservas.filter((r) => r.estado === "pendiente").length;
 
     const conteoPistas = {};
-    confirmadasTodas.filter((r) => fechaYaPaso(r.fecha)).forEach((r) => {
-      conteoPistas[r.pistaNombre] = (conteoPistas[r.pistaNombre] || 0) + 1;
+    agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha))).forEach((ses) => {
+      conteoPistas[ses.pistaNombre] = (conteoPistas[ses.pistaNombre] || 0) + 1;
     });
     const pistaTop = Object.entries(conteoPistas).sort((a, b) => b[1] - a[1])[0];
 
@@ -2248,19 +2261,23 @@ function mostrarDetalleMetrica(tipo, cardEl) {
   cardEl.classList.add("activa");
   const reservas = metricasReservasCache || [];
   const filaReserva = (r) => `<tr><td>${formatearFecha(r.fecha)} · ${r.hora}</td><td>${escapeHtml(r.alumnoNombre || "")}</td><td>${escapeHtml(r.pistaNombre || "")}</td></tr>`;
+  const filaSesion = (ses) => `<tr><td>${formatearFecha(ses.fecha)} · ${ses.hora}</td><td>${ses.alumnos.map(escapeHtml).join(", ")}</td><td>${escapeHtml(ses.pistaNombre || "")}</td></tr>`;
 
   if (tipo === "dictadas" || tipo === "proximas" || tipo === "rechazadas" || tipo === "pendientes") {
     let filtradas;
     if (tipo === "dictadas") filtradas = reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha));
     else if (tipo === "proximas") filtradas = reservas.filter((r) => r.estado === "confirmada" && !fechaYaPaso(r.fecha));
     else filtradas = reservas.filter((r) => r.estado === { rechazadas: "rechazada", pendientes: "pendiente" }[tipo]);
+    const porSesion = tipo === "dictadas" || tipo === "proximas";
+    // dictadas/próximas se cuentan por clase (una compartida = 1); rechazadas y pendientes son pedidos de cada alumno.
+    if (porSesion) filtradas = agruparSesiones(filtradas);
     filtradas = filtradas.sort((a, b) => tipo === "proximas" ? a.fecha.localeCompare(b.fecha) : b.fecha.localeCompare(a.fecha));
     wrap.innerHTML = filtradas.length
-      ? `<table class="detalle-table"><thead><tr><th>Fecha</th><th>Alumno</th><th>Pista</th></tr></thead><tbody>${filtradas.slice(0, 50).map(filaReserva).join("")}</tbody></table>${filtradas.length > 50 ? `<p class="field-hint">Mostrando las 50 ${tipo === "proximas" ? "más próximas" : "más recientes"} de ${filtradas.length}.</p>` : ""}`
+      ? `<table class="detalle-table"><thead><tr><th>Fecha</th><th>${porSesion ? "Alumnos" : "Alumno"}</th><th>Pista</th></tr></thead><tbody>${filtradas.slice(0, 50).map(porSesion ? filaSesion : filaReserva).join("")}</tbody></table>${filtradas.length > 50 ? `<p class="field-hint">Mostrando las 50 ${tipo === "proximas" ? "más próximas" : "más recientes"} de ${filtradas.length}.</p>` : ""}`
       : '<p class="empty-state">Sin registros.</p>';
   } else if (tipo === "pistas") {
     const conteo = {};
-    reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha)).forEach((r) => { conteo[r.pistaNombre] = (conteo[r.pistaNombre] || 0) + 1; });
+    agruparSesiones(reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha))).forEach((ses) => { conteo[ses.pistaNombre] = (conteo[ses.pistaNombre] || 0) + 1; });
     const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
     wrap.innerHTML = filas.length
       ? `<table class="detalle-table"><thead><tr><th>Pista</th><th>Clases dictadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
