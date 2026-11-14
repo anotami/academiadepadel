@@ -2302,7 +2302,7 @@ let rentabilidadDetalleCache = { ingreso: [], costo: [], cobrado: [] };
 
 async function calcularRentabilidad(wrap, reservas) {
   const paquetesSnap = await getDocs(collection(db, "paquetes"));
-  const paquetesPagados = paquetesSnap.docs.map((d) => d.data()).filter((p) => p.pagado);
+  const paquetesPagados = paquetesSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((p) => p.pagado);
 
   // Clases sueltas registradas con su propio monto (ej. "Registrar clase ya
   // dictada"), que no pertenecen a ningún paquete — cuentan aparte. Solo
@@ -2344,7 +2344,21 @@ async function calcularRentabilidad(wrap, reservas) {
     const devengado = clasesTotales > 0 ? (monto / clasesTotales) * clasesUsadas : 0;
     ingresoTotal += devengado;
     if (devengado > 0) {
-      detalleIngreso.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")} (${clasesUsadas}/${clasesTotales} dictadas)`, monto: devengado });
+      // Cada clase dictada del paquete aporta (monto / clases del paquete) en SU fecha;
+      // lo que el contador del paquete marca como usado pero no tiene una clase con
+      // fecha registrada se junta aparte, para que el total siga cuadrando.
+      const valorClase = monto / clasesTotales;
+      const alumnoHtml = escapeHtml(paquete.alumnoNombre || "");
+      const notaPaquete = `paquete ${escapeHtml(paquete.tipo || "")}`;
+      const dictadasConFecha = reservas
+        .filter((r) => r.estado === "confirmada" && r.paqueteId === paquete.id && fechaYaPaso(r.fecha))
+        .sort((a, b) => a.fecha.localeCompare(b.fecha) || (a.hora || "").localeCompare(b.hora || ""))
+        .slice(0, clasesUsadas);
+      dictadasConFecha.forEach((r) => detalleIngreso.push({ fecha: r.fecha, alumno: alumnoHtml, nota: notaPaquete, monto: valorClase }));
+      const sinFecha = clasesUsadas - dictadasConFecha.length;
+      if (sinFecha > 0) {
+        detalleIngreso.push({ fecha: null, alumno: alumnoHtml, nota: `${notaPaquete} · ${sinFecha} clase${sinFecha === 1 ? "" : "s"} sin fecha registrada`, monto: valorClase * sinFecha });
+      }
     }
   });
   // Las clases sueltas se cobran la misma sesión en que se dictan, así que
@@ -2352,7 +2366,7 @@ async function calcularRentabilidad(wrap, reservas) {
   reservasSueltas.forEach((r) => {
     ingresoTotal += r.montoCobrado;
     cobradoEfectivoTotal += r.montoCobrado;
-    detalleIngreso.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado, fecha: r.fecha });
+    detalleIngreso.push({ fecha: r.fecha, alumno: escapeHtml(r.alumnoNombre || ""), nota: "clase suelta", monto: r.montoCobrado });
     detalleCobrado.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)}`, monto: r.montoCobrado, fecha: r.fecha });
   });
 
@@ -2432,8 +2446,28 @@ function mostrarDetalleRentabilidad(tipo, cardEl) {
     ? `<table class="detalle-table"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>${ordenarPorFecha(filas).map((f) => `<tr class="${f.tipo ? `fila-${f.tipo}` : ""}"><td>${f.concepto}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("")}</tbody></table>`
     : '<p class="empty-state">Sin datos.</p>';
 
+  // Ingreso: por día (más reciente arriba), con el total de cada día y, adentro, cada alumno.
+  const tablaIngresoPorDia = (filas) => {
+    if (!filas.length) return '<p class="empty-state">Sin datos.</p>';
+    const porDia = new Map();
+    filas.forEach((f) => {
+      const clave = f.fecha || "";
+      if (!porDia.has(clave)) porDia.set(clave, []);
+      porDia.get(clave).push(f);
+    });
+    const dias = Array.from(porDia.keys()).sort((a, b) => (!a ? 1 : !b ? -1 : b.localeCompare(a)));
+    const cuerpo = dias.map((dia) => {
+      const delDia = porDia.get(dia).sort((a, b) => a.alumno.localeCompare(b.alumno, "es"));
+      const totalDia = delDia.reduce((sum, f) => sum + f.monto, 0);
+      return `<tr class="fila-dia"><td>${dia ? formatearFecha(dia) : "Sin fecha registrada"}</td><td>S/ ${totalDia.toFixed(0)}</td></tr>`
+        + delDia.map((f) => `<tr class="fila-alumno"><td>${f.alumno}${f.nota ? ` <span class="court-meta">· ${f.nota}</span>` : ""}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("");
+    }).join("");
+    const total = filas.reduce((sum, f) => sum + f.monto, 0);
+    return `<table class="detalle-table"><thead><tr><th>Día / alumno</th><th>Monto</th></tr></thead><tbody>${cuerpo}<tr class="fila-total"><td>Total ingreso</td><td>S/ ${total.toFixed(0)}</td></tr></tbody></table>`;
+  };
+
   if (tipo === "ingreso") {
-    wrap.innerHTML = `<p class="field-hint">Solo lo que ya ganaste por clases realmente dictadas. Un paquete pagado pero sin empezar no suma acá todavía.</p>${tabla(ingreso)}`;
+    wrap.innerHTML = `<p class="field-hint">Solo lo que ya ganaste por clases realmente dictadas, por día. Cada clase de un paquete vale lo que costó el paquete dividido entre sus clases. Un paquete pagado pero sin empezar no suma acá todavía.</p>${tablaIngresoPorDia(ingreso)}`;
   }
   else if (tipo === "costo") {
     wrap.innerHTML = `<p class="field-hint"><span style="color:#b02a24; font-weight:700;">● Cancha</span> = plata que le pagas al club &nbsp; <span style="color:#157347; font-weight:700;">● Tu hora</span> = tu ingreso por dictar la clase, no un gasto real</p>${tabla(costo)}`;

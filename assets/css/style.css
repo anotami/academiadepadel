@@ -437,6 +437,9 @@ h1 .hl {
    sale de tu bolsillo) del costo de cancha (plata real que le pagas al club). */
 .detalle-table tr.fila-hora td { color: #157347; }
 .detalle-table tr.fila-cancha td { color: #b02a24; }
+.detalle-table tr.fila-dia td { font-weight: 800; color: var(--court); background: var(--bg); border-top: 2px solid var(--border); }
+.detalle-table tr.fila-alumno td:first-child { padding-left: 22px; }
+.detalle-table tr.fila-total td { font-weight: 800; border-top: 2px solid var(--ink); }
 
 /* Programas */
 .program-cards {
