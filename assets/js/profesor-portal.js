@@ -217,7 +217,7 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
       .map((r) => r.alumnoId));
     const repetidos = alumnosSeleccionados.filter((a) => idsYaCargados.has(a.id));
     if (repetidos.length) {
-      msg.textContent = `${repetidos.map((a) => a.nombre).join(", ")} ya ${repetidos.length === 1 ? "tiene" : "tienen"} esa clase cargada en esa pista, fecha y hora. Edítala en "2 Mis clases" → "Clases registradas" en vez de registrarla otra vez.`;
+      msg.textContent = `${repetidos.map((a) => a.nombre).join(", ")} ya ${repetidos.length === 1 ? "tiene" : "tienen"} esa clase cargada en esa pista, fecha y hora. Edítala en "2 Mis clases" → "④ Historial de clases" en vez de crearla otra vez.`;
       msg.className = "form-msg error";
       return;
     }
@@ -254,10 +254,10 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
     document.getElementById("cd-duracion").value = "90";
     actualizarVisibilidadCanchaBeelup();
     const nombres = alumnosSeleccionados.map((a) => a.nombre).join(", ");
-    msg.textContent = `Clase registrada para ${nombres} — ve a "Hoy" → "Clases por registrar" para marcar asistencia y feedback.`;
+    msg.textContent = `Clase creada para ${nombres}. Cuando su hora llegue, ciérrala en "Hoy" → "③ Clases por cerrar" marcando asistencia y feedback.`;
     msg.className = "form-msg ok";
   } catch (err) {
-    msg.textContent = "No se pudo registrar: " + err.message;
+    msg.textContent = "No se pudo crear la clase: " + err.message;
     msg.className = "form-msg error";
   } finally {
     botonRegistrar.disabled = false;
@@ -323,6 +323,64 @@ document.getElementById("form-perfil").addEventListener("submit", async (e) => {
 });
 
 // ---- Solicitudes pendientes ----
+// ---- Ciclo de una clase: ① Nueva clase → ② Por dar → ③ Por cerrar → ④ Cerrada ----
+// "Cerrar" una clase = marcar asistencia y dejar feedback (reserva.registrada).
+const cicloEstado = { cargado: false, solicitudes: null, porDar: 0, porCerrar: 0, cerradas: 0 };
+
+function plural(n, uno, varios) { return `${n} ${n === 1 ? uno : varios}`; }
+
+function actualizarCiclo(parcial) {
+  Object.assign(cicloEstado, parcial);
+  const { cargado, solicitudes, porDar, porCerrar, cerradas } = cicloEstado;
+
+  const badge = document.getElementById("hoy-badge");
+  if (badge) {
+    badge.hidden = !(cargado && porCerrar > 0);
+    badge.textContent = porCerrar;
+    badge.title = plural(porCerrar, "clase sin cerrar", "clases sin cerrar");
+  }
+
+  const lineas = [];
+  if (cargado && porCerrar > 0) lineas.push(`<p>⚠ Tienes ${plural(porCerrar, "clase sin cerrar", "clases sin cerrar")}: falta marcar asistencia y feedback.</p>`);
+  if (solicitudes > 0) lineas.push(`<p>📩 Tienes ${plural(solicitudes, "solicitud de clase", "solicitudes de clase")} por confirmar.</p>`);
+  const aviso = !cargado && solicitudes === null
+    ? '<div class="ciclo-aviso">Revisando tus clases...</div>'
+    : lineas.length
+      ? `<div class="ciclo-aviso alerta">${lineas.join("")}
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            ${porCerrar > 0 ? '<button class="btn btn-primary btn-small" type="button" data-ir-tab="hoy" data-ir-a="card-por-cerrar">Cerrarlas ahora →</button>' : ""}
+            ${solicitudes > 0 ? '<button class="btn btn-outline btn-small" type="button" data-ir-tab="hoy" data-ir-a="card-solicitudes">Ver solicitudes →</button>' : ""}
+          </div>
+        </div>`
+      : '<div class="ciclo-aviso ok">✓ Todo al día: no tienes clases sin cerrar ni solicitudes por confirmar.</div>';
+
+  const paso = (n, titulo, detalle, cantidad, destino, estado) => `
+    <button class="ciclo-paso ${estado || ""}" type="button" data-ir-tab="${destino[0]}" data-ir-a="${destino[1]}">
+      <span class="paso-badge">${n}</span>
+      <span class="ciclo-paso-titulo">${titulo}</span>
+      ${cantidad === null ? "" : `<span class="ciclo-paso-cantidad">${cantidad}</span>`}
+      <span class="ciclo-paso-detalle">${detalle}</span>
+    </button>`;
+  const html = `${aviso}
+    <div class="ciclo-pasos">
+      ${paso(1, "Nueva clase", "Cárgala aquí", null, ["clases", "card-nueva-clase"])}
+      ${paso(2, "Por dar", "Confirmadas, aún no empiezan", cargado ? porDar : "…", ["clases", "card-por-dar"])}
+      ${paso(3, "Por cerrar", "Falta asistencia y feedback", cargado ? porCerrar : "…", ["hoy", "card-por-cerrar"], cargado ? (porCerrar > 0 ? "alerta" : "ok") : "")}
+      ${paso(4, "Cerradas", "Ya terminadas y registradas", cargado ? cerradas : "…", ["clases", "card-historial"])}
+    </div>`;
+  document.querySelectorAll("[data-ciclo]").forEach((el) => { el.innerHTML = html; });
+}
+
+document.addEventListener("click", (e) => {
+  const boton = e.target.closest("[data-ir-tab]");
+  if (!boton) return;
+  document.querySelector(`.portal-tab[data-tab="${boton.dataset.irTab}"]`)?.click();
+  const destino = document.getElementById(boton.dataset.irA);
+  if (destino) setTimeout(() => destino.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+});
+
+actualizarCiclo({});
+
 function cargarPendientes(uid) {
   const wrap = document.getElementById("lista-pendientes");
   const q = query(
@@ -332,6 +390,7 @@ function cargarPendientes(uid) {
     orderBy("creadoEn", "asc")
   );
   onSnapshot(q, (snap) => {
+    actualizarCiclo({ solicitudes: snap.size });
     if (snap.empty) {
       wrap.innerHTML = '<p class="empty-state">No hay solicitudes pendientes.</p>';
       return;
@@ -471,15 +530,23 @@ function cargarConfirmadas(uid) {
   onSnapshot(q, (snap) => {
     const porRegistrar = [];
     const futuras = [];
+    const cerradasLista = [];
     snap.docs.forEach((d) => {
       const r = { id: d.id, ...d.data() };
       if (fechaYaPaso(r.fecha, r.hora) && !r.registrada) porRegistrar.push(r);
       else if (!r.registrada || !fechaYaPaso(r.fecha, r.hora)) futuras.push(r);
+      if (r.registrada && fechaYaPaso(r.fecha, r.hora)) cerradasLista.push(r);
+    });
+    actualizarCiclo({
+      cargado: true,
+      porCerrar: agruparPorSesion(porRegistrar).length,
+      porDar: agruparPorSesion(futuras).length,
+      cerradas: agruparPorSesion(cerradasLista).length
     });
 
     wrapPorRegistrar.innerHTML = "";
     if (porRegistrar.length === 0) {
-      wrapPorRegistrar.innerHTML = '<p class="empty-state">No hay clases pendientes de registrar.</p>';
+      wrapPorRegistrar.innerHTML = '<p class="empty-state">✓ No tienes clases por cerrar.</p>';
     } else {
       agruparPorSesion(porRegistrar).forEach((grupo) => wrapPorRegistrar.appendChild(
         grupo.length > 1 ? construirTarjetaRegistroGrupal(grupo) : construirTarjetaRegistro(grupo[0])
@@ -757,7 +824,7 @@ function mostrarAvisoFeedback({ nombre, telefono, feedback }) {
   card.className = "request-card";
   card.innerHTML = `
     <div class="request-info">
-      <p class="request-title">${escapeHtml(nombre)} — clase registrada</p>
+      <p class="request-title">${escapeHtml(nombre)} — clase cerrada</p>
       ${tel
         ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent(mensajeAvisoFeedback(nombre, feedback))}">Avisarle por WhatsApp</a>`
         : '<p class="court-meta">Sin teléfono para avisarle.</p>'}
@@ -813,7 +880,7 @@ function construirTarjetaRegistro(r) {
           <input type="url" data-campo="materialUrl" placeholder="Drive, Google Fotos...">
         </div>
       </div>
-      <button class="btn btn-primary btn-small" type="button" data-guardar style="margin-top:10px;">Guardar registro</button>
+      <button class="btn btn-primary btn-small" type="button" data-guardar style="margin-top:10px;">Cerrar clase</button>
       ${linkPedirOpinion(r.alumnoNombre, r.alumnoTelefono)}
       <p class="form-msg"></p>
     </div>`;
@@ -835,7 +902,7 @@ function construirTarjetaRegistro(r) {
         feedback
       });
       if (asistio) await vincularAPaqueteSiCorresponde(r);
-      msg.textContent = "Registrado. El alumno ya puede verlo.";
+      msg.textContent = "Clase cerrada. El alumno ya puede verla.";
       msg.className = "form-msg ok";
       mostrarAvisoFeedback({ nombre: r.alumnoNombre, telefono: r.alumnoTelefono, feedback });
     } catch (err) {
@@ -885,7 +952,7 @@ function construirTarjetaRegistroGrupal(grupo) {
               <input type="url" data-campo="materialUrl" placeholder="Drive, Google Fotos...">
             </div>
           </div>
-          <button class="btn btn-primary btn-small" type="button" data-guardar style="margin-top:10px;">Guardar registro de ${escapeHtml(r.alumnoNombre)}</button>
+          <button class="btn btn-primary btn-small" type="button" data-guardar style="margin-top:10px;">Cerrar clase de ${escapeHtml(r.alumnoNombre)}</button>
           ${linkPedirOpinion(r.alumnoNombre, r.alumnoTelefono)}
           <p class="form-msg"></p>
         </div>`).join("")}
@@ -910,7 +977,7 @@ function construirTarjetaRegistroGrupal(grupo) {
           feedback
         });
         if (asistio) await vincularAPaqueteSiCorresponde(r);
-        msg.textContent = "Registrado. El alumno ya puede verlo.";
+        msg.textContent = "Clase cerrada. El alumno ya puede verla.";
         msg.className = "form-msg ok";
         mostrarAvisoFeedback({ nombre: r.alumnoNombre, telefono: r.alumnoTelefono, feedback });
       } catch (err) {
@@ -982,11 +1049,11 @@ function renderHistorial() {
 
   wrap.innerHTML = "";
   if (historialReservasCache.length === 0) {
-    wrap.innerHTML = '<p class="empty-state">Aún no registraste ninguna clase.</p>';
+    wrap.innerHTML = '<p class="empty-state">Aún no tienes clases cargadas.</p>';
     return;
   }
   if (reservas.length === 0) {
-    wrap.innerHTML = '<p class="empty-state">No hay clases registradas ese mes.</p>';
+    wrap.innerHTML = '<p class="empty-state">No hay clases ese mes.</p>';
     return;
   }
   // La consulta trae fecha desc, así que las clases de un Grupo fijo
@@ -1004,7 +1071,7 @@ function renderHistorial() {
 
   if (futuras.length) {
     const divisor = document.createElement("h3");
-    divisor.textContent = `Próximas — aún no suceden (${futuras.length})`;
+    divisor.textContent = `② Por dar — aún no suceden (${futuras.length})`;
     divisor.style.cssText = "margin-top:22px; padding-top:14px; border-top:2px solid var(--border);";
     wrap.appendChild(divisor);
     futuras.forEach((grupo) => wrap.appendChild(
@@ -1014,6 +1081,14 @@ function renderHistorial() {
 }
 
 let historialSesionesCache = [];
+// Etiqueta de en qué parte del ciclo está una clase (individual o de una sesión).
+function badgeCiclo(esFutura, cerrada) {
+  if (esFutura) return '<span class="badge badge-pendiente">② Por dar</span>';
+  return cerrada
+    ? '<span class="badge badge-confirmada">④ Cerrada</span>'
+    : '<span class="badge badge-rechazada">③ Por cerrar</span>';
+}
+
 function claveSesion(r) { return `${r.pistaId}|${r.fecha}|${r.hora}`; }
 
 // Fecha y hora editables de una reserva (para mover una clase de día u hora
@@ -1179,7 +1254,7 @@ function construirTarjetaHistorial(r) {
   const estadoLabel = { confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado;
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)} ${esFutura ? '<span class="badge badge-pendiente">Próxima — aún no sucede</span>' : ""}</p>
+      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)} ${badgeCiclo(esFutura, !!r.registrada)}</p>
       <p>${r.pistaNombre || ""} · ${formatearFecha(r.fecha)} · ${r.hora} hrs
         ${r.modalidad ? "· " + r.modalidad : ""}
         ${typeof r.montoCobrado === "number" ? `· cobrado S/ ${r.montoCobrado}` : ""}
@@ -1251,11 +1326,11 @@ function construirTarjetaHistorial(r) {
               <div data-temas-wrap>${chipsTemasConSeleccion(r.feedback?.temas || [])}</div>
             </div>
           </div>
-          <button class="btn btn-primary btn-small" type="button" data-guardar-feedback style="margin-top:8px;">Guardar feedback</button>
-          <p class="field-hint">${r.registrada ? "Ya estaba registrada — esto corrige lo que quedó cargado." : "Todavía no se había registrado esta clase."}</p>
+          <button class="btn btn-primary btn-small" type="button" data-guardar-feedback style="margin-top:8px;">Cerrar clase</button>
+          <p class="field-hint">${r.registrada ? "Esta clase ya estaba cerrada — esto corrige lo que quedó cargado." : "Esta clase todavía no estaba cerrada: al guardar queda cerrada."}</p>
         </div>` : ""}
         <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
-          <label>Unir esta clase a otra sesión ya registrada</label>
+          <label>Unir esta clase a otra clase ya cargada</label>
           <select data-mover-sesion>${opcionesMoverSesion(claveSesion(r))}</select>
           <p class="field-hint">Le cambia la pista/fecha/hora/tipo de clase a esta reserva para que quede agrupada con la que elijas.</p>
         </div>
@@ -1365,7 +1440,7 @@ function construirTarjetaHistorialGrupal(grupo) {
   const estadoLabel = (r) => ({ confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado);
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos) ${esFutura ? '<span class="badge badge-pendiente">Próxima — aún no sucede</span>' : ""}</p>
+      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos) ${badgeCiclo(esFutura, grupo.every((x) => x.registrada))}</p>
       <p>${base.pistaNombre || ""} · ${formatearFecha(base.fecha)} · ${base.hora} hrs ${base.modalidad ? "· " + base.modalidad : ""}</p>
       ${!esFutura ? `<p>${videoClaseHtml(base)}</p>` : ""}
       <div class="form-grid" style="margin-top:8px;">
@@ -1456,12 +1531,12 @@ function construirTarjetaHistorialGrupal(grupo) {
                   <div data-temas-wrap>${chipsTemasConSeleccion(r.feedback?.temas || [])}</div>
                 </div>
               </div>
-              <button class="btn btn-primary btn-small" type="button" data-guardar-feedback style="margin-top:8px;">Guardar feedback</button>
+              <button class="btn btn-primary btn-small" type="button" data-guardar-feedback style="margin-top:8px;">Cerrar clase</button>
             </div>` : ""}
             <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
-              <label>Sacar a ${escapeHtml(r.alumnoNombre)} de esta clase y unir su reserva a otra clase ya registrada</label>
+              <label>Sacar a ${escapeHtml(r.alumnoNombre)} de esta clase y unir su reserva a otra clase ya cargada</label>
               <select data-mover-sesion>${opcionesMoverSesion(claveSesion(r))}</select>
-              <p class="field-hint">Es para corregir una clase que quedó mal cargada (pista/fecha/hora equivocada) — las opciones son otras clases que ya registraste, no tus Grupos fijos. Para cambiarla de Grupo fijo (su clase semanal), hacelo en "Alumnos y pagos" → "Tus alumnos" → Editar.</p>
+              <p class="field-hint">Es para corregir una clase que quedó mal cargada (pista/fecha/hora equivocada) — las opciones son otras clases que ya cargaste, no tus Grupos fijos. Para cambiarla de Grupo fijo (su clase semanal), hacelo en "Alumnos y pagos" → "Tus alumnos" → Editar.</p>
             </div>
             <button class="btn btn-outline btn-small" type="button" data-guardar-mover>Unir</button>
             <div class="field field-full" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
@@ -2203,7 +2278,7 @@ function construirFilaPaquete(p) {
     // -- así queda un solo paso y no hay que acordarse de nada más.
     const seguro = confirm(
       `Esto solo mueve el contador de ${p.alumnoNombre} a ${p.clasesUsadas + 1}/${p.clasesTotales} — no registra la clase (sin fecha, pista ni costo de cancha).\n\n` +
-      `Si es una clase que acabas de dictar, cancela esto y usá "Registrar clase ya dictada" en la pestaña Alumnos y pagos, eligiendo el paquete ahí mismo.\n\n` +
+      `Si es una clase que acabas de dictar, cancela esto y usá "① Nueva clase" en la pestaña Mis clases, eligiendo el paquete ahí mismo.\n\n` +
       `¿Seguro que querés ajustar solo el contador?`
     );
     if (!seguro) return;

@@ -1419,6 +1419,68 @@ h1 .hl {
 }
 .paso-titulo:first-child { margin-top: 2px; }
 
+/* Badge rojo con la cantidad de clases sin cerrar (pestaña Hoy) */
+.tab-badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Ciclo de una clase: aviso + 4 pasos numerados que llevan a cada sección */
+.ciclo-aviso {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+.ciclo-aviso.alerta { background: #fdecea; border-color: #f3b8b4; color: #8a1f17; }
+.ciclo-aviso.ok { background: #e8f7ee; border-color: #b5e0c4; color: #157347; }
+.ciclo-aviso .btn { margin-top: 8px; }
+.ciclo-aviso p { margin: 0 0 4px; }
+.ciclo-pasos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.ciclo-paso {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.ciclo-paso:hover { border-color: var(--court); }
+.ciclo-paso .paso-badge { margin-right: 0; margin-bottom: 2px; }
+.ciclo-paso-titulo { font-weight: 800; font-size: 0.92rem; }
+.ciclo-paso-detalle { font-size: 0.8rem; color: var(--ink-soft); }
+.ciclo-paso-cantidad { font-family: "Sora", sans-serif; font-weight: 800; font-size: 1.35rem; line-height: 1.1; }
+.ciclo-paso.alerta { border-color: #dc2626; background: #fdecea; }
+.ciclo-paso.alerta .paso-badge { background: #dc2626; }
+.ciclo-paso.alerta .ciclo-paso-cantidad { color: #b02a24; }
+.ciclo-paso.ok .ciclo-paso-cantidad { color: #157347; }
+@media (max-width: 760px) {
+  .ciclo-pasos { grid-template-columns: 1fr 1fr; }
+}
+
 .portal-card {
   background: var(--surface);
   border: 1px solid var(--border);

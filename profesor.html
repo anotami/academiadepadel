@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=59">
+<link rel="stylesheet" href="assets/css/style.css?v=60">
 </head>
 <body>
 
@@ -39,7 +39,7 @@
       </div>
 
       <nav class="portal-tabs" role="tablist" aria-label="Secciones del panel, en el orden en que las usas">
-        <button class="portal-tab" type="button" role="tab" data-tab="hoy"><span class="tab-num">1</span>Hoy</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="hoy"><span class="tab-num">1</span>Hoy<span id="hoy-badge" class="tab-badge" hidden></span></button>
         <button class="portal-tab" type="button" role="tab" data-tab="clases"><span class="tab-num">2</span>Mis clases</button>
         <button class="portal-tab" type="button" role="tab" data-tab="alumnos"><span class="tab-num">3</span>Alumnos y pagos</button>
         <button class="portal-tab" type="button" role="tab" data-tab="jornadas"><span class="tab-num">4</span>Jornadas</button>
@@ -51,6 +51,27 @@
 
       <!-- HOY: lo accionable primero -->
       <div data-tabpanel="hoy">
+        <!-- Ciclo de una clase: aviso + pasos numerados (lo llena profesor-portal.js) -->
+        <div class="portal-card ciclo-card">
+          <h2>Ciclo de una clase</h2>
+          <div data-ciclo></div>
+        </div>
+
+        <!-- Solicitudes pendientes -->
+        <div class="portal-card" id="card-solicitudes">
+          <h2>Solicitudes de clase</h2>
+          <p class="field-hint">Confirma según la disponibilidad real de la pista — ya se avisa si otra clase ya está confirmada en el mismo horario.</p>
+          <div id="lista-pendientes"><p class="empty-state">Cargando...</p></div>
+        </div>
+
+        <!-- ③ Clases por cerrar (ya empezaron o pasaron, falta marcar asistencia y feedback) -->
+        <div class="portal-card" id="card-por-cerrar">
+          <h2><span class="paso-badge">3</span>Clases por cerrar</h2>
+          <p class="field-hint">Clases que ya empezaron o pasaron. Marca si el alumno asistió y deja una nota corta: al guardarla la clase queda cerrada y el alumno la ve en su panel.</p>
+          <div id="avisos-feedback"></div>
+          <div id="lista-por-registrar"><p class="empty-state">Cargando...</p></div>
+        </div>
+
         <!-- Métricas -->
         <div class="portal-card">
           <h2>Resumen</h2>
@@ -74,21 +95,6 @@
           <div class="cards grid-4" id="estadisticas"><p class="empty-state">Cargando...</p></div>
           <div id="estadisticas-detalle" hidden style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);"></div>
         </div>
-
-        <!-- Solicitudes pendientes -->
-        <div class="portal-card">
-          <h2>Solicitudes de clase</h2>
-          <p class="field-hint">Confirma según la disponibilidad real de la pista — ya se avisa si otra clase ya está confirmada en el mismo horario.</p>
-          <div id="lista-pendientes"><p class="empty-state">Cargando...</p></div>
-        </div>
-
-        <!-- Clases por registrar (ya pasaron, falta marcar asistencia y feedback) -->
-        <div class="portal-card">
-          <h2>Clases por registrar</h2>
-          <p class="field-hint">Marca si el alumno asistió y deja una nota corta de la sesión — el alumno la ve en su panel.</p>
-          <div id="avisos-feedback"></div>
-          <div id="lista-por-registrar"><p class="empty-state">Cargando...</p></div>
-        </div>
       </div>
 
       <datalist id="dl-sugerencias-mejora">
@@ -106,6 +112,79 @@
 
       <!-- MIS CLASES: agenda -->
       <div data-tabpanel="clases" hidden>
+        <!-- Ciclo de una clase: aviso + pasos numerados (lo llena profesor-portal.js) -->
+        <div class="portal-card ciclo-card">
+          <h2>Ciclo de una clase</h2>
+          <div data-ciclo></div>
+        </div>
+
+        <!-- ① Nueva clase -->
+        <div class="portal-card" id="card-nueva-clase">
+          <h2><span class="paso-badge">1</span>Nueva clase</h2>
+          <p class="field-hint">Para cargar una clase que ya diste (no pasa por "pendiente de confirmar" — queda confirmada). Cuando su hora llega aparece en ③ Clases por cerrar (pestaña Hoy) para marcar asistencia y feedback.</p>
+          <form id="form-clase-dictada" class="form-grid">
+            <span class="paso-titulo field-full"><span class="paso-badge">a</span>Quién</span>
+            <div class="field field-full">
+              <label for="cd-alumno">Alumno(s)</label>
+              <select id="cd-alumno" required multiple size="4"></select>
+              <p class="field-hint">Si fue clase grupal, selecciona varios (Ctrl/Cmd + clic) — se crea una clase por cada uno y el costo de cancha se reparte entre todos.</p>
+            </div>
+            <div class="field-full" id="cd-paquetes-alumno" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <span class="paso-titulo field-full"><span class="paso-badge">b</span>Cuándo y dónde</span>
+            <div class="field field-full">
+              <label for="cd-tipo">Tipo de clase</label>
+              <select id="cd-tipo" required></select>
+            </div>
+            <div class="field field-full">
+              <label for="cd-pista">Pista</label>
+              <select id="cd-pista" required></select>
+            </div>
+            <div class="field">
+              <label for="cd-fecha">Fecha</label>
+              <input type="date" id="cd-fecha" required>
+            </div>
+            <div class="field">
+              <label for="cd-hora">Hora</label>
+              <select id="cd-hora" required></select>
+            </div>
+            <span class="paso-titulo field-full"><span class="paso-badge">c</span>Cobro</span>
+            <div class="field">
+              <label for="cd-modalidad">Modalidad</label>
+              <select id="cd-modalidad">
+                <option value="Particular">Particular</option>
+                <option value="Grupal (2-4 personas)">Grupal (2-4 personas)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="cd-monto">Monto cobrado por persona (S/)</label>
+              <input type="number" id="cd-monto" min="0" step="1">
+            </div>
+            <div class="field">
+              <label for="cd-cancha-pagada">Costo total de cancha pagado (S/, opcional)</label>
+              <input type="number" id="cd-cancha-pagada" min="0" step="1" placeholder="Déjalo vacío para usar la tarifa de la pista">
+              <p class="field-hint">El total de la sesión, no por persona — se divide solo entre los alumnos que elegiste arriba.</p>
+            </div>
+            <div class="field" id="cd-cancha-beelup-wrap" hidden>
+              <label for="cd-cancha-beelup">Cancha (video Beelup)</label>
+              <select id="cd-cancha-beelup"></select>
+            </div>
+            <div class="field">
+              <label for="cd-duracion">Duración (min)</label>
+              <select id="cd-duracion"></select>
+            </div>
+          </form>
+          <button class="btn btn-primary btn-small" type="submit" form="form-clase-dictada" style="margin-top:10px;">Crear clase</button>
+          <p class="field-hint">El monto cobrado se sugiere solo según tu tabla de precios ("Clase suelta") — puedes cambiarlo libremente, pero si un alumno usó una clase de su paquete elegilo arriba en vez de editar el monto: no se cobra aparte y el contador de su paquete sube solo. Queda como clase confirmada; cuando su hora llega, la cierras en "Hoy" → "③ Clases por cerrar" marcando asistencia y feedback.</p>
+          <p class="form-msg" id="clase-dictada-msg"></p>
+        </div>
+
+        <!-- ② Clases por dar (confirmadas que todavía no empezaron) -->
+        <div class="portal-card" id="card-por-dar">
+          <h2><span class="paso-badge">2</span>Clases por dar</h2>
+          <p class="field-hint">Confirmadas que todavía no empezaron. Cuando su hora llega, pasan a ③ Clases por cerrar (pestaña Hoy).</p>
+          <div id="lista-confirmadas"><p class="empty-state">Cargando...</p></div>
+        </div>
+
         <!-- Grupos fijos (clase recurrente con roster) -->
         <div class="portal-card">
           <h2>Mis grupos</h2>
@@ -156,12 +235,6 @@
           <div id="lista-grupos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
         </div>
 
-        <!-- Próximas clases confirmadas -->
-        <div class="portal-card">
-          <h2>Próximas clases confirmadas</h2>
-          <div id="lista-confirmadas"><p class="empty-state">Cargando...</p></div>
-        </div>
-
         <!-- Lista de espera -->
         <div class="portal-card">
           <h2>Lista de espera</h2>
@@ -169,10 +242,10 @@
           <div id="lista-esperas"><p class="empty-state">Cargando...</p></div>
         </div>
 
-        <!-- Historial de clases registradas -->
-        <div class="portal-card">
-          <h2>Clases registradas</h2>
-          <p class="field-hint">Todas tus clases, más reciente primero. Toca "Editar" para corregir el monto cobrado, el costo de cancha o la modalidad — por ejemplo si cargaste una clase grupal con el costo total de cancha repetido en vez de dividido.</p>
+        <!-- ④ Historial de clases (por dar, por cerrar y cerradas) -->
+        <div class="portal-card" id="card-historial">
+          <h2><span class="paso-badge">4</span>Historial de clases</h2>
+          <p class="field-hint">Todas tus clases, más reciente primero: por dar, por cerrar y cerradas. Toca "Editar" para corregir el monto cobrado, el costo de cancha o la modalidad — por ejemplo si cargaste una clase grupal con el costo total de cancha repetido en vez de dividido.</p>
           <div class="field" style="max-width:260px; margin-bottom:14px;">
             <label for="historial-mes">Mes</label>
             <select id="historial-mes"></select>
@@ -228,66 +301,6 @@
             <button class="btn btn-primary btn-small" type="submit">Crear alumno</button>
             <p class="form-msg" id="nuevo-alumno-msg"></p>
           </form>
-        </div>
-
-        <!-- Registrar clase ya dictada -->
-        <div class="portal-card">
-          <h2>Registrar clase ya dictada</h2>
-          <p class="field-hint">Para cargar una clase que ya diste (no pasa por "pendiente de confirmar" — queda directo como dictada).</p>
-          <form id="form-clase-dictada" class="form-grid">
-            <span class="paso-titulo field-full"><span class="paso-badge">1</span>Quién</span>
-            <div class="field field-full">
-              <label for="cd-alumno">Alumno(s)</label>
-              <select id="cd-alumno" required multiple size="4"></select>
-              <p class="field-hint">Si fue clase grupal, selecciona varios (Ctrl/Cmd + clic) — se crea una clase por cada uno y el costo de cancha se reparte entre todos.</p>
-            </div>
-            <div class="field-full" id="cd-paquetes-alumno" style="display:flex; flex-direction:column; gap:10px;"></div>
-            <span class="paso-titulo field-full"><span class="paso-badge">2</span>Cuándo y dónde</span>
-            <div class="field field-full">
-              <label for="cd-tipo">Tipo de clase</label>
-              <select id="cd-tipo" required></select>
-            </div>
-            <div class="field field-full">
-              <label for="cd-pista">Pista</label>
-              <select id="cd-pista" required></select>
-            </div>
-            <div class="field">
-              <label for="cd-fecha">Fecha</label>
-              <input type="date" id="cd-fecha" required>
-            </div>
-            <div class="field">
-              <label for="cd-hora">Hora</label>
-              <select id="cd-hora" required></select>
-            </div>
-            <span class="paso-titulo field-full"><span class="paso-badge">3</span>Cobro</span>
-            <div class="field">
-              <label for="cd-modalidad">Modalidad</label>
-              <select id="cd-modalidad">
-                <option value="Particular">Particular</option>
-                <option value="Grupal (2-4 personas)">Grupal (2-4 personas)</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="cd-monto">Monto cobrado por persona (S/)</label>
-              <input type="number" id="cd-monto" min="0" step="1">
-            </div>
-            <div class="field">
-              <label for="cd-cancha-pagada">Costo total de cancha pagado (S/, opcional)</label>
-              <input type="number" id="cd-cancha-pagada" min="0" step="1" placeholder="Déjalo vacío para usar la tarifa de la pista">
-              <p class="field-hint">El total de la sesión, no por persona — se divide solo entre los alumnos que elegiste arriba.</p>
-            </div>
-            <div class="field" id="cd-cancha-beelup-wrap" hidden>
-              <label for="cd-cancha-beelup">Cancha (video Beelup)</label>
-              <select id="cd-cancha-beelup"></select>
-            </div>
-            <div class="field">
-              <label for="cd-duracion">Duración (min)</label>
-              <select id="cd-duracion"></select>
-            </div>
-          </form>
-          <button class="btn btn-primary btn-small" type="submit" form="form-clase-dictada" style="margin-top:10px;">Registrar clase</button>
-          <p class="field-hint">El monto cobrado se sugiere solo según tu tabla de precios ("Clase suelta") — puedes cambiarlo libremente, pero si un alumno usó una clase de su paquete elegilo arriba en vez de editar el monto: no se cobra aparte y el contador de su paquete sube solo. Queda como clase confirmada — ve a "Hoy" → "Clases por registrar" para marcar asistencia y dejar feedback.</p>
-          <p class="form-msg" id="clase-dictada-msg"></p>
         </div>
 
         <!-- Paquetes de clases -->
@@ -830,7 +843,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=79"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=80"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=3"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=2"></script>
 </body>
