@@ -2,7 +2,7 @@ import {
   auth, db,
   onAuthStateChanged, signOut,
   doc, getDoc, setDoc, updateDoc, addDoc, collection,
-  query, where, orderBy, onSnapshot, getDocs, serverTimestamp
+  query, where, orderBy, onSnapshot, getDocs, serverTimestamp, arrayUnion
 } from "./firebase-app.js?v=18";
 import {
   HORAS_RESERVA, TIPOS_CLASE,
@@ -405,6 +405,8 @@ document.getElementById("form-reserva").addEventListener("submit", async (e) => 
 
   try {
     // Evita duplicar una solicitud si ese horario de esa pista ya está confirmado.
+    // Las reservas de otros alumnos son privadas: si no se pueden leer, se omite este aviso
+    // y tu profesor ve el choque al confirmar tu solicitud.
     const conflicto = await getDocs(
       query(
         collection(db, "reservas"),
@@ -413,7 +415,7 @@ document.getElementById("form-reserva").addEventListener("submit", async (e) => 
         where("hora", "==", hora),
         where("estado", "==", "confirmada")
       )
-    );
+    ).catch(() => ({ empty: true }));
     if (!conflicto.empty) {
       msg.innerHTML = `Ese horario ya está confirmado para otro alumno en esa pista. Elige otra hora, o
         <button type="button" class="btn btn-outline btn-small" id="btn-anotar-espera" style="margin-top:8px;">Anotarme en lista de espera</button>`;
@@ -514,7 +516,9 @@ async function cancelarReserva(r) {
       const paqueteSnap = await getDoc(doc(db, "paquetes", r.paqueteId));
       if (paqueteSnap.exists()) {
         const clasesUsadas = Math.max(0, (paqueteSnap.data().clasesUsadas || 0) - 1);
-        await updateDoc(doc(db, "paquetes", r.paqueteId), { clasesUsadas });
+        // ultimaDevolucion/devueltas: la regla de Firestore exige este rastro para que una
+        // devolución corresponda a una reserva cancelada (y no se pueda repetir).
+        await updateDoc(doc(db, "paquetes", r.paqueteId), { clasesUsadas, ultimaDevolucion: r.id, devueltas: arrayUnion(r.id) });
       }
     }
   } catch (err) {

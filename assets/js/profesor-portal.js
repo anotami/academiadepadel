@@ -46,6 +46,17 @@ onAuthStateChanged(auth, async (user) => {
   }
   currentUid = user.uid;
   currentPerfil = snap.data();
+  // Costo por hora privado (costos_profesor); si todavía está en el perfil viejo, se usa de respaldo.
+  try {
+    const cp = await getDoc(doc(db, "costos_profesor", user.uid));
+    if (cp.exists() && typeof cp.data().costoHora === "number") {
+      currentPerfil.costoHora = cp.data().costoHora;
+    } else if (typeof currentPerfil.costoHora === "number") {
+      // Migración automática: el costo estaba en el perfil (que leen los alumnos). Se pasa a privado.
+      await setDoc(doc(db, "costos_profesor", user.uid), { costoHora: currentPerfil.costoHora });
+    }
+    if (typeof snap.data().costoHora === "number") await updateDoc(doc(db, "usuarios", user.uid), { costoHora: null });
+  } catch { /* regla aún sin publicar: se usa el valor del perfil */ }
   document.getElementById("who-nombre").textContent = currentPerfil.nombre || user.email;
   rellenarPerfil(currentPerfil);
   await cargarPistasCache();
@@ -367,11 +378,13 @@ document.getElementById("form-perfil").addEventListener("submit", async (e) => {
   const disponibilidad = dispGrid.obtenerSeleccion();
   try {
     const costoHora = Number(document.getElementById("p-costo-hora").value) || 0;
+    // Tu costo por hora es PRIVADO (costos_profesor): el perfil usuarios/{uid} lo leen los alumnos.
+    await setDoc(doc(db, "costos_profesor", currentUid), { costoHora });
     await updateDoc(doc(db, "usuarios", currentUid), {
       telefono: document.getElementById("p-telefono").value.trim(),
       especialidad: document.getElementById("p-especialidad").value.trim(),
       bio: document.getElementById("p-bio").value.trim(),
-      costoHora,
+      costoHora: null, // se vacía el dato viejo que sí veían los alumnos
       disponibilidad
     });
     currentPerfil.disponibilidad = disponibilidad;

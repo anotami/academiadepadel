@@ -47,11 +47,18 @@ El pedido original era `lectura... solo si request.auth != null`. Pero `arbitraj
 
 Se mantuvo la lectura pública (como está hoy) y se aplicó la parte de escritura que sí pedías: antes cualquier usuario logueado podía escribir en el partido de **otro** árbitro; ahora solo quien lo creó (`creadoPor == auth.uid`) puede actualizarlo o borrarlo.
 
-### c) `usuarios`: lectura abierta a cualquier logueado, no solo a uno mismo
+### c) `usuarios`, `reservas`, `paquetes` y `grupos`: cerrados (ya NO son de lectura abierta)
 
-Mismo patrón: el pedido quería "cada usuario lee y escribe solo su propio documento". El portal necesita que un profesor pueda **leer** la lista de alumnos (para reservas, activar paquetes, el autocompletar del árbitro) y que un alumno vea qué profesores existen (selector al reservar). Restringir la lectura a uno mismo rompe esas pantallas.
+Antes cualquier persona con sesión (incluidos los visitantes anónimos de los formularios) podía leer todos los alumnos, todas las reservas y editar paquetes. Ahora:
 
-Se mantuvo lectura abierta a cualquier usuario logueado (como hoy) y la escritura restringida a uno mismo (como pedías, y como ya estaba) — **más una excepción para el admin** (tu custom claim), que también puede escribir el documento de cualquier alumno. Esto es lo que permite dar de alta un alumno nuevo directo desde "Alumnos y pagos" en tu panel, sin que esa persona tenga que crear su propia cuenta primero (útil para cargar clases que ya dictaste a alguien que nunca se registró). Si de verdad quieres privacidad estricta ahí, hay que rediseñar esas pantallas primero (por ejemplo, separando los datos públicos del alumno — nombre, nivel — de los privados — teléfono, email — en documentos distintos); es un cambio de arquitectura, no una línea de regla.
+- **usuarios**: se puede leer UN documento si se conoce su id (ids aleatorios: lo usan el link "actualiza tu disponibilidad" y la activación de cuenta), pero solo el profesor puede **listar** alumnos; cualquiera puede listar profesores (selector y agenda pública). Tu costo por hora ya no vive en tu perfil: está en `costos_profesor` (solo tú).
+- **reservas**: cada alumno lee solo las suyas; solo puede cancelarlas, dejar NPS o encuesta. El profesor lee y edita todas. El costo de cancha de cada clase está en `costos_reservas` (solo tú).
+- **paquetes**: cada alumno ve solo los suyos; solo el profesor los crea/edita. Al cancelar con anticipación el alumno se devuelve 1 clase, y la regla exige que sea por una reserva suya ya cancelada, una sola vez.
+- **grupos, esperas**: del profesor (el alumno solo se anota en espera a su nombre).
+- Consecuencia: el aviso "ese horario ya está confirmado" que veía el alumno al pedir una clase ya no puede leer reservas ajenas: se omite y tú ves el choque al confirmar.
+- El autocompletar de alumnos del árbitro solo funciona si entras con tu cuenta de profesor.
+
+Las reglas tienen pruebas automáticas contra el emulador de Firestore: `scripts/reglas/` (ver su README).
 
 ## 3. Activar App Check (reCAPTCHA v3)
 

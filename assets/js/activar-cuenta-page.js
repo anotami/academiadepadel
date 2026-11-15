@@ -52,7 +52,8 @@ async function init() {
       elYaActivada.hidden = false;
       return;
     }
-    const yaMigrado = await getDocs(query(collection(db, "usuarios"), where("migradoDe", "==", alumnoId)));
+    // Consulta que ahora solo puede hacer el profesor: si no se puede, se sigue (el correo repetido igual se rechaza).
+    const yaMigrado = await getDocs(query(collection(db, "usuarios"), where("migradoDe", "==", alumnoId))).catch(() => ({ empty: true }));
     if (!yaMigrado.empty) {
       elCargando.hidden = true;
       elYaActivada.hidden = false;

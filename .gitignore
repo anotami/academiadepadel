@@ -1,2 +1,5 @@
 scripts/asistente/node_modules/
 scripts/asistente/respaldos/
+
+scripts/reglas/node_modules
+scripts/reglas/package*.json

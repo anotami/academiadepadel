@@ -9,6 +9,13 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Alumno que todavía no activó su cuenta (lo cargó el profesor): su link de activación
+    // (con su id, que es aleatorio) deja leer y reapuntar SUS reservas/paquetes a su cuenta nueva.
+    function esAlumnoSinCuenta(alumnoId) {
+      return exists(/databases/$(database)/documents/usuarios/$(alumnoId))
+        && get(/databases/$(database)/documents/usuarios/$(alumnoId)).data.get('cuentaPropia', true) == false;
+    }
+
     function esProfesor() {
       return request.auth != null
         && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'profesor';
@@ -27,7 +34,12 @@ service cloud.firestore {
       // hoy) y escritura restringida a uno mismo (como pedías y como ya
       // estaba). Si de verdad quieres lectura 100% privada, avísame y
       // ajustamos esas pantallas antes de aplicar la regla estricta.
-      allow read: if request.auth != null;
+      // CERRADO: un alumno (o un visitante anónimo) ya no puede listar ni leer a los demás.
+      //  - get: cualquiera con sesión puede leer UN documento si conoce su id (los ids son
+      //    aleatorios): lo usan el link "actualiza tu disponibilidad" y la activación de cuenta.
+      //  - list: solo el profesor, o la consulta pública de profesores (selector de profesor y agenda).
+      allow get: if request.auth != null;
+      allow list: if esProfesor() || resource.data.rol == 'profesor';
       // El admin (tu custom claim) también puede escribir el documento de
       // cualquier alumno — necesario para dar de alta un alumno nuevo
       // directo desde el panel, sin que él tenga que crear cuenta primero.
@@ -54,7 +66,10 @@ service cloud.firestore {
     }
 
     match /reservas/{id} {
-      allow read: if request.auth != null;
+      // CERRADO: cada alumno lee solo SUS reservas; el profesor lee todas.
+      allow read: if request.auth != null && (
+        resource.data.alumnoId == request.auth.uid || esProfesor() || esAlumnoSinCuenta(resource.data.alumnoId)
+      );
       // Un alumno solo puede crear SU PROPIA reserva, y solo como "pendiente"
       // sin monto/registro — así queda igual que hoy hace alumno-portal.js,
       // pero evita que alguien llame a Firestore directo (sin pasar por la
@@ -75,8 +90,24 @@ service cloud.firestore {
       // externo con Admin SDK (bypassa estas reglas) -- esta excepción es
       // por si alguien intenta escribirlos desde la consola del navegador
       // o llamando a Firestore directo, nunca por cómo los escribe el script.
-      allow update: if request.auth != null &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['videoUrl', 'videoTramos', 'videoActualizado']);
+      // El profesor edita lo que quiera (menos los campos de video). Un alumno solo puede tocar
+      // SU reserva y solo: cancelarla, dejar su NPS o su encuesta.
+      allow update: if request.auth != null
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['videoUrl', 'videoTramos', 'videoActualizado'])
+        && (
+          esProfesor()
+          || (
+            resource.data.alumnoId == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'nps', 'npsEn', 'encuesta', 'encuestaEn'])
+            && (!('estado' in request.resource.data.diff(resource.data).affectedKeys()) || request.resource.data.estado == 'cancelada')
+          )
+          // Activación de cuenta: reapunta la reserva del alumno sin cuenta a su uid nuevo.
+          || (
+            esAlumnoSinCuenta(resource.data.alumnoId)
+            && request.resource.data.alumnoId == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['alumnoId'])
+          )
+        );
       // Solo el profesor puede borrar una reserva (ej. historial cargado
       // por error) — un alumno no debe poder borrarse una clase propia.
       allow delete: if request.auth != null &&
@@ -109,13 +140,39 @@ service cloud.firestore {
     }
 
     match /paquetes/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      // CERRADO: el alumno ve solo SUS paquetes; el profesor, todos y los administra.
+      allow read: if request.auth != null && (
+        resource.data.alumnoId == request.auth.uid || esProfesor() || esAlumnoSinCuenta(resource.data.alumnoId)
+      );
+      allow create, delete: if esProfesor();
+      // Excepción angosta: al cancelar con 24 h o más de anticipación, el alumno se devuelve
+      // UNA clase de su propio paquete, y solo por una reserva suya ya cancelada que usaba ese
+      // paquete y que todavía no se devolvió (así no puede devolverse clases sin cancelar nada).
+      allow update: if esProfesor() || (
+        request.auth != null
+        && resource.data.alumnoId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clasesUsadas', 'devueltas', 'ultimaDevolucion'])
+        && request.resource.data.clasesUsadas == resource.data.clasesUsadas - 1
+        && request.resource.data.clasesUsadas >= 0
+        && request.resource.data.ultimaDevolucion is string
+        && !(request.resource.data.ultimaDevolucion in resource.data.get('devueltas', []))
+        && request.resource.data.devueltas == resource.data.get('devueltas', []).concat([request.resource.data.ultimaDevolucion])
+        && get(/databases/$(database)/documents/reservas/$(request.resource.data.ultimaDevolucion)).data.estado == 'cancelada'
+        && get(/databases/$(database)/documents/reservas/$(request.resource.data.ultimaDevolucion)).data.alumnoId == request.auth.uid
+        && get(/databases/$(database)/documents/reservas/$(request.resource.data.ultimaDevolucion)).data.paqueteId == resource.id
+      ) || (
+        // Activación de cuenta: reapunta el paquete del alumno sin cuenta a su uid nuevo.
+        request.auth != null
+        && esAlumnoSinCuenta(resource.data.alumnoId)
+        && request.resource.data.alumnoId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['alumnoId'])
+      );
     }
 
     match /esperas/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      // El alumno solo se anota (create, a su nombre); lo demás es del profesor.
+      allow create: if request.auth != null && request.resource.data.alumnoId == request.auth.uid;
+      allow read, update, delete: if esProfesor();
     }
 
     match /partidos/{id} {
@@ -131,8 +188,15 @@ service cloud.firestore {
       // puede leer y escribir. No se exige el custom claim de admin como
       // en pistas/turnos_grupales para no repetir el mismo candado que
       // bloquea todo mientras no lo configures.
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      // CERRADO: es tuyo (incluye el monto que cobras por grupo). Lectura de UN grupo por id
+      // y cambio de miembros solo para la activación de cuenta de un alumno del grupo.
+      allow get: if request.auth != null;
+      allow list, create, delete: if esProfesor();
+      allow update: if esProfesor() || (
+        request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['miembroIds'])
+        && request.auth.uid in request.resource.data.miembroIds
+      );
     }
 
     // ---------- Grupo nuevo (widget público "¿Eres nuevo en el pádel?") ----------
@@ -444,6 +508,11 @@ service cloud.firestore {
         && request.resource.data.origen in ['disponibilidad', 'widget', 'manual']
         && request.resource.data.estado == 'nuevo'
         && request.resource.data.creadoEn == request.time;
+    }
+
+    // Tu costo por hora como profesor: PRIVADO (el perfil usuarios/{uid} lo leen los alumnos).
+    match /costos_profesor/{uid} {
+      allow read, write: if esProfesor();
     }
 
     // Costo de cancha de cada clase: PRIVADO (el alumno puede leer su reserva, pero no esto).
