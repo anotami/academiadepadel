@@ -44,6 +44,66 @@ function parseCSV(texto) {
 
 const sinTildes = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
+// ---------- Limpieza de textos (el CSV viene de varias fuentes y con mayúsculas dispares) ----------
+const MINUSCULAS = new Set(["de", "del", "la", "el", "los", "las", "y", "con", "para", "por", "en", "a"]);
+const capitalizar = (w) => w.toLowerCase().replace(/\p{L}+/gu, (x, i) => (i === 0 ? x[0].toUpperCase() + x.slice(1) : x[0].toUpperCase() + x.slice(1)));
+const aTitulo = (t) => t.split(" ").map((w, i) => (i > 0 && MINUSCULAS.has(w.toLowerCase()) ? w.toLowerCase() : capitalizar(w))).join(" ");
+
+function limpiarMarca(marca) {
+  const m = (marca || "").trim();
+  return m && m === m.toUpperCase() ? aTitulo(m) : m;
+}
+
+function limpiarNombre(nombre, marca) {
+  let n = (nombre || "").trim();
+  const escapada = (marca || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // Se sacan, en cualquier orden, la marca repetida y los prefijos "Pala"/"Padel" del inicio.
+  for (let i = 0; i < 4; i++) {
+    const antes = n;
+    if (escapada) n = n.replace(new RegExp("^" + escapada + "\\b\\s*[-–:]?\\s*", "i"), "");
+    n = n.replace(/^[-–:]\s*/, "").replace(/^(pala de p[aá]del|pala|padel)\b\s*/i, "").trim();
+    if (n === antes) break;
+  }
+  const letras = n.replace(/[^\p{L}]/gu, "");
+  const mayus = n.replace(/[^\p{Lu}]/gu, "");
+  const casiTodoMayus = letras.length > 0 && mayus.length > letras.length * 0.6;
+  n = n.split(" ").map((w, i) => {
+    if (/\d/.test(w)) return w;                                   // modelos y tallas (V2, X24, 2026)
+    const soloLetras = w.replace(/[^\p{L}]/gu, "");
+    const gritando = soloLetras === soloLetras.toUpperCase() && soloLetras.length > 0;
+    if (!gritando) return w;
+    if (casiTodoMayus || soloLetras.length > 3) return i > 0 && MINUSCULAS.has(w.toLowerCase()) ? w.toLowerCase() : capitalizar(w);
+    return w;                                                      // siglas cortas sueltas (XL, BK, CMF)
+  }).join(" ");
+  return n.trim();
+}
+
+// Las descripciones traen a veces listas tipo ['a', 'b'] y terminan cortadas con "…".
+function limpiarDescripcion(texto) {
+  let d = (texto || "").trim();
+  d = d.replace(/\[[^\]]*$/, "").trim();   // lista cortada a la mitad: se descarta
+  if (d.endsWith("…")) {
+    const corte = d.lastIndexOf(". ");
+    if (corte > 60) d = d.slice(0, corte + 1);
+  }
+  return d;
+}
+
+function pintarDescripcion(contenedor, texto) {
+  contenedor.replaceChildren();
+  const lista = /\[((?:'[^']*'|"[^"]*")(?:\s*,\s*(?:'[^']*'|"[^"]*"))*)\]/g;
+  let desde = 0, m;
+  const parrafo = (t) => { t = t.trim(); if (t) contenedor.appendChild(el("p", "", t)); };
+  while ((m = lista.exec(texto))) {
+    parrafo(texto.slice(desde, m.index));
+    const ul = el("ul", "m-lista");
+    (m[1].match(/'[^']*'|"[^"]*"/g) || []).forEach((it) => ul.appendChild(el("li", "", it.slice(1, -1))));
+    contenedor.appendChild(ul);
+    desde = m.index + m[0].length;
+  }
+  parrafo(texto.slice(desde));
+}
+
 function aProductos(filas) {
   if (filas.length < 2) return [];
   const cab = filas[0].map((h) => sinTildes(h).replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, ""));
@@ -57,23 +117,31 @@ function aProductos(filas) {
   return filas.slice(1).map((f, orden) => {
     const precio = Number(val(f, "precio").replace(/[^\d.,-]/g, "").replace(",", ".")) || 0;
     const nivel = sinTildes(val(f, "nivel")) || "sin_dato";
+    const marca = limpiarMarca(val(f, "marca"));
     return {
       orden,
       codigo: val(f, "codigo"),
       categoria: val(f, "categoria"),
-      marca: val(f, "marca"),
-      nombre: val(f, "nombre"),
+      marca,
+      nombre: limpiarNombre(val(f, "nombre"), val(f, "marca")) || val(f, "nombre"),
       precio,
       nivel: nivel === "intermedio" ? "medio" : nivel,
       masVendido: sinTildes(val(f, "vendido")) === "si",
       agotado: sinTildes(val(f, "disponible")) === "no",
       imagen: val(f, "imagen"),
-      descripcion: val(f, "descripcion")
+      descripcion: limpiarDescripcion(val(f, "descripcion"))
     };
   }).filter((p) => p.codigo && p.nombre);
 }
 
 // ---------- Formato ----------
+// "Todos los niveles" solo tiene sentido en palas; en accesorios y ropa sería ruido.
+function etiquetaNivel(p) {
+  if (p.nivel === "sin_dato" || !ETIQUETA_NIVEL[p.nivel]) return null;
+  if (p.nivel === "todos" && p.categoria !== "Palas") return null;
+  return ETIQUETA_NIVEL[p.nivel];
+}
+
 function soles(n) {
   const entero = Math.floor(n);
   const dec = Math.round((n - entero) * 100);
@@ -100,6 +168,7 @@ function imagen(p, tam) {
   img.alt = `${p.marca} ${p.nombre}`;
   img.width = tam; img.height = tam;
   img.loading = "lazy"; img.decoding = "async";
+  img.referrerPolicy = "no-referrer"; // varios sitios de fotos bloquean según desde dónde se pide
   img.addEventListener("error", () => { img.src = PLACEHOLDER; img.classList.add("sin-foto"); }, { once: true });
   img.src = p.imagen || PLACEHOLDER;
   if (!p.imagen) img.classList.add("sin-foto");
@@ -114,7 +183,7 @@ function tarjeta(p) {
   abrir.setAttribute("aria-label", `Ver ${p.marca} ${p.nombre}`);
   const foto = el("div", "card-foto");
   foto.appendChild(imagen(p, 300));
-  if (p.nivel !== "sin_dato" && ETIQUETA_NIVEL[p.nivel]) foto.appendChild(el("span", `tag tag-${p.nivel}`, ETIQUETA_NIVEL[p.nivel]));
+  if (etiquetaNivel(p)) foto.appendChild(el("span", `tag tag-${p.nivel}`, etiquetaNivel(p)));
   if (p.masVendido) foto.appendChild(el("span", "tag tag-top", "Más vendido"));
   abrir.appendChild(foto);
   const cuerpo = el("div", "card-cuerpo");
@@ -200,11 +269,11 @@ function abrirFicha(p, { sinHash = false } = {}) {
   $("m-cod").textContent = p.codigo;
   $("m-precio").textContent = soles(p.precio);
   const tagNivel = $("m-nivel");
-  const hayNivel = p.nivel !== "sin_dato" && ETIQUETA_NIVEL[p.nivel];
+  const hayNivel = etiquetaNivel(p);
   tagNivel.hidden = !hayNivel;
-  if (hayNivel) { tagNivel.textContent = ETIQUETA_NIVEL[p.nivel]; tagNivel.className = `tag tag-${p.nivel}`; }
+  if (hayNivel) { tagNivel.textContent = hayNivel; tagNivel.className = `tag tag-${p.nivel}`; }
   $("m-agotado").hidden = !p.agotado;
-  $("m-desc").textContent = p.descripcion || "Consultame por WhatsApp los colores, tamaños y el stock que tengo disponible.";
+  pintarDescripcion($("m-desc"), p.descripcion || "Consultame por WhatsApp los colores, tamaños y el stock que tengo disponible.");
   const wa = $("m-wa");
   wa.href = linkWhatsApp(p);
   wa.textContent = p.agotado ? "Consultar por WhatsApp" : "Pedir por WhatsApp";
