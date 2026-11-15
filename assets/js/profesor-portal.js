@@ -14,7 +14,7 @@ import {
   hoyLima, sumarDiasFecha, diaSemanaIdxFecha, diasEntreFechas, montoTopPadelPorAlumno
 } from "./portal-common.js?v=30";
 import { escapeHtml } from "./utils.js?v=1";
-import { temaDelDia } from "./historias-data.js?v=1";
+import { temaDelDia } from "./historias-data.js?v=3";
 import { iniciarLibretaTienda } from "./libreta-tienda.js?v=1";
 import { REFERIDOS, REGEX_CODIGO, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 

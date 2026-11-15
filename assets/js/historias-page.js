@@ -1,10 +1,9 @@
 // historias.html: arma las láminas (1080×1920) con TUS fotos de fondo y las deja listas para descargar o compartir.
 // Las fotos y los momentos de video se guardan solo en este navegador (IndexedDB); no se suben a ningún lado.
 import { hoyLima, sumarDiasFecha, formatearFechaLarga } from "./portal-common.js?v=30";
-import { historiaDeFecha, HORARIOS_DEFECTO, PRECIOS, SITIO, indiceDeDia, CANTIDAD_TEMAS } from "./historias-data.js?v=2";
+import { historiaDeFecha, HORARIOS_DEFECTO, indiceDeDia, CANTIDAD_TEMAS } from "./historias-data.js?v=3";
+import { W, H, dibujarLamina, FOCOS, ENC_DEFECTO } from "./historias-render.js?v=1";
 
-const W = 1080, H = 1920;
-const LIMA = "#c8e94c";
 const $ = (id) => document.getElementById(id);
 const CLAVE_HORARIOS = "gp_hist_horarios";
 const claveHecha = (f) => `gp_hist_hecha_${f}`;
@@ -24,8 +23,11 @@ let actual = null;
 let logo = null;
 let biblioteca = [];                    // [{id, nombre, propia, img(HTMLImageElement), url}]
 const claveEnc = (f) => `gp_hist_enc_${f}`;
-const ENC0 = { x: 0.5, y: 0.4, z: 1 };    // posición horizontal, vertical (0..1) y zoom (1 = foto completa) por lámina
-function encDe(i) { try { return { ...ENC0, ...(JSON.parse(localStorage.getItem(claveEnc(fecha)) || "{}")[i] || {}) }; } catch { return { ...ENC0 }; } }
+// Encuadre por lámina: fx, fy = punto de la foto que queda en el centro (0..1) y z = zoom. Por defecto, el foco de cada foto.
+function encDe(i) {
+  const base = { ...ENC_DEFECTO, ...((fotoDeLamina(i) && FOCOS[fotoDeLamina(i).id]) || {}) };
+  try { return { ...base, ...(JSON.parse(localStorage.getItem(claveEnc(fecha)) || "{}")[i] || {}) }; } catch { return base; }
+}
 function guardarEnc(i, e) { try { const t = JSON.parse(localStorage.getItem(claveEnc(fecha)) || "{}"); t[i] = e; localStorage.setItem(claveEnc(fecha), JSON.stringify(t)); } catch { /* sin almacenamiento */ } }
 
 function leerHorarios() {
@@ -76,126 +78,6 @@ async function reducir(archivo, maxLado = 2400) {
   c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
   URL.revokeObjectURL(url);
   return new Promise((res) => c.toBlob(res, "image/jpeg", 0.92));
-}
-
-// ---------- Dibujo ----------
-function rect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-function partir(ctx, texto, ancho) {
-  const res = []; let actual = "";
-  String(texto).split(" ").forEach((p) => {
-    const prueba = actual ? actual + " " + p : p;
-    if (ctx.measureText(prueba).width > ancho && actual) { res.push(actual); actual = p; } else actual = prueba;
-  });
-  if (actual) res.push(actual);
-  return res;
-}
-
-// Foto a pantalla completa: recorte vertical con zoom y posición ajustables (así recortas a donde apareces tú).
-function fotoDeFondo(ctx, foto, enc) {
-  if (!foto) { const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#0d3140"); g.addColorStop(1, "#14495a"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); return; }
-  const img = foto.img;
-  const k = Math.max(W / img.naturalWidth, H / img.naturalHeight) * enc.z;
-  const w = img.naturalWidth * k, h = img.naturalHeight * k;
-  ctx.drawImage(img, -(w - W) * enc.x, -(h - H) * enc.y, w, h);
-}
-
-function oscurecer(ctx, fuerte) {
-  const a = ctx.createLinearGradient(0, 0, 0, 560);
-  a.addColorStop(0, "rgba(6,16,26,0.72)"); a.addColorStop(1, "rgba(6,16,26,0)");
-  ctx.fillStyle = a; ctx.fillRect(0, 0, W, 560);
-  const desde = fuerte ? 380 : 760;
-  const b = ctx.createLinearGradient(0, desde, 0, H);
-  b.addColorStop(0, "rgba(6,16,26,0)"); b.addColorStop(0.45, `rgba(6,16,26,${fuerte ? 0.86 : 0.8})`); b.addColorStop(1, "rgba(6,16,26,0.95)");
-  ctx.fillStyle = b; ctx.fillRect(0, desde, W, H - desde);
-}
-
-function marca(ctx, etiqueta) {
-  if (logo) ctx.drawImage(logo, 72, 236, 84, 84);
-  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#fff";
-  ctx.font = '700 40px "Sora", sans-serif';
-  ctx.fillText("Academia de Pádel GP", 174, 292);
-  if (etiqueta) {
-    ctx.font = '800 32px "Manrope", sans-serif';
-    const t = etiqueta.toUpperCase(), ancho = ctx.measureText(t).width + 56;
-    ctx.fillStyle = LIMA; rect(ctx, 72, 350, ancho, 64, 32); ctx.fill();
-    ctx.fillStyle = "#0f1e2e"; ctx.fillText(t, 100, 394);
-  }
-}
-
-// Texto con sombra suave para que se lea sobre cualquier foto.
-function texto(ctx, t, x, y, ancho, interlineado, fuente, color) {
-  ctx.font = fuente; ctx.fillStyle = color; ctx.textAlign = "left";
-  ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 3;
-  const ls = partir(ctx, t, ancho);
-  ls.forEach((l, i) => ctx.fillText(l, x, y + i * interlineado));
-  ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-  return y + ls.length * interlineado;
-}
-
-function lamina(canvas, h, i, foto) {
-  const ctx = canvas.getContext("2d");
-  const l = h.laminas[i];
-  ctx.clearRect(0, 0, W, H);
-  fotoDeFondo(ctx, foto, encDe(i));
-  oscurecer(ctx, l.tipo !== "gancho");
-  marca(ctx, l.tipo === "gancho" ? h.tema.nombre : "");
-
-  if (l.tipo === "gancho") {
-    // Título grande abajo; la foto se ve completa arriba.
-    ctx.font = '800 112px "Sora", sans-serif';
-    const ls = partir(ctx, l.titulo, W - 144);
-    let y = 1500 - (ls.length - 1) * 128 - (l.sub ? 110 : 0);
-    y = texto(ctx, l.titulo, 72, y, W - 144, 128, '800 112px "Sora", sans-serif', "#fff");
-    if (l.sub) texto(ctx, l.sub, 72, y + 18, W - 144, 66, '700 54px "Manrope", sans-serif', LIMA);
-  } else if (l.tipo === "detalle") {
-    // Título + tarjetas translúcidas con los datos.
-    let y = 760;
-    y = texto(ctx, l.titulo, 72, y, W - 144, 96, '800 84px "Sora", sans-serif', "#fff") + 8;
-    ctx.font = '700 46px "Manrope", sans-serif';
-    (l.chips || []).forEach((c) => {
-      const ancho = Math.min(W - 144, ctx.measureText(c).width + 72);
-      ctx.fillStyle = LIMA; rect(ctx, 72, y, ancho, 88, 44); ctx.fill();
-      ctx.fillStyle = "#0f1e2e"; ctx.fillText(c, 108, y + 60);
-      y += 104;
-    });
-    (l.lineas || []).slice(0, 4).forEach((t) => {
-      ctx.font = '600 44px "Manrope", sans-serif';
-      const ls = partir(ctx, t, W - 144 - 72);
-      const alto = ls.length * 58 + 44;
-      ctx.fillStyle = "rgba(255,255,255,0.16)"; rect(ctx, 72, y, W - 144, alto, 28); ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.28)"; ctx.lineWidth = 2; rect(ctx, 72, y, W - 144, alto, 28); ctx.stroke();
-      ctx.fillStyle = "#fff"; ctx.textAlign = "left";
-      ls.forEach((x, k) => ctx.fillText(x, 108, y + 62 + k * 58));
-      y += alto + 18;
-    });
-  } else {
-    // Llamado a la acción: precios + "Toca el link".
-    let y = texto(ctx, "Elige tu horario", 72, 930, W - 144, 118, '800 108px "Sora", sans-serif', "#fff");
-    y = texto(ctx, "Cuéntanos cuándo puedes jugar y armamos tu grupo o tu clase individual.", 72, y + 4, W - 144, 62, '600 46px "Manrope", sans-serif', "#e8f0f4");
-    const cajas = [["Grupales desde", PRECIOS.grupalDesde, "por persona"], ["Individual", PRECIOS.individual, "la clase"]];
-    const w = (W - 144 - 32) / 2;
-    cajas.forEach((c, k) => {
-      const x = 72 + k * (w + 32), yy = y + 44;
-      ctx.fillStyle = LIMA; rect(ctx, x, yy, w, 232, 34); ctx.fill();
-      ctx.fillStyle = "#0f1e2e"; ctx.textAlign = "center";
-      ctx.font = '700 32px "Manrope", sans-serif'; ctx.fillText(c[0], x + w / 2, yy + 58);
-      ctx.font = '800 80px "Sora", sans-serif'; ctx.fillText(c[1], x + w / 2, yy + 148);
-      ctx.font = '600 30px "Manrope", sans-serif'; ctx.fillText(c[2], x + w / 2, yy + 196);
-    });
-    ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.font = '800 54px "Sora", sans-serif';
-    ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 14;
-    ctx.fillText("Toca el link 👇", W / 2, 1530);
-    ctx.shadowColor = "transparent"; ctx.shadowBlur = 0;
-    ctx.fillStyle = "#cfdde4"; ctx.font = '700 34px "Manrope", sans-serif'; ctx.fillText(SITIO, W / 2, 1590);
-    ctx.textAlign = "left";
-  }
 }
 
 // ---------- Elecciones de foto por lámina ----------
@@ -287,15 +169,15 @@ async function pintar() {
       const r = document.createElement("input"); r.type = "range"; r.min = String(min); r.max = String(max);
       r.value = String(Math.round(encDe(i)[campo] * escala));
       r.setAttribute("aria-label", `${etiqueta} de la lámina ${i + 1}`);
-      r.addEventListener("input", () => { const e = encDe(i); e[campo] = r.value / escala; guardarEnc(i, e); lamina(canvas, h, i, fotoDeLamina(i)); });
+      r.addEventListener("input", () => { const e = encDe(i); e[campo] = r.value / escala; guardarEnc(i, e); dibujarLamina(canvas, h, i, fotoDeLamina(i), encDe(i), logo); });
       l.appendChild(r); enc.appendChild(l);
     };
     control("Zoom", "z", 100, 300, 100);
-    control("← →", "x", 0, 100, 100);
-    control("↑ ↓", "y", 0, 100, 100);
+    control("← →", "fx", 0, 100, 100);
+    control("↑ ↓", "fy", 0, 100, 100);
     caja.append(canvas, botones, enc);
     grid.appendChild(caja);
-    lamina(canvas, h, i, fotoDeLamina(i));
+    dibujarLamina(canvas, h, i, fotoDeLamina(i), encDe(i), logo);
   });
   pintarPlan();
 }
