@@ -101,6 +101,19 @@ await t("profesor lee costos_profesor", "ok", () => getDoc(doc(prof, "costos_pro
 await t("profesor lista/escribe grupos", "ok", () => getDocs(collection(prof, "grupos")));
 await t("profesor lee las esperas", "ok", () => getDocs(collection(prof, "esperas")));
 
+
+// ---- profesor sin claim de admin (cuenta del asistente) ----
+await t("profesor crea la ficha de un alumno nuevo (sin claim admin)", "ok", () => setDoc(doc(prof, "usuarios/nuevoAlumno"), { rol: "alumno", nombre: "Nuevo", cuentaPropia: false }));
+await t("profesor edita la ficha de un alumno", "ok", () => updateDoc(doc(prof, "usuarios/alu2"), { nivel: "Intermedio" }));
+await t("profesor borra la ficha de un alumno", "ok", () => deleteDoc(doc(prof, "usuarios/nuevoAlumno")));
+await t("profesor NO crea a otro profesor", "fail", () => setDoc(doc(prof, "usuarios/otroProf"), { rol: "profesor", nombre: "X" }));
+await t("profesor NO convierte a un alumno en profesor", "fail", () => updateDoc(doc(prof, "usuarios/alu2"), { rol: "profesor" }));
+await t("alumno NO crea fichas de otros", "fail", () => setDoc(doc(alu1, "usuarios/colado"), { rol: "alumno", nombre: "Colado" }));
+await t("alumno NO se hace profesor", "fail", () => updateDoc(doc(alu1, "usuarios/alu1"), { rol: "profesor" }));
+await t("visitante NO se registra como profesor", "fail", () => setDoc(doc(env.authenticatedContext("nuevo1").firestore(), "usuarios/nuevo1"), { rol: "profesor", nombre: "Intruso" }));
+await t("visitante se registra como alumno", "ok", () => setDoc(doc(env.authenticatedContext("nuevo2").firestore(), "usuarios/nuevo2"), { rol: "alumno", nombre: "Ok", cuentaPropia: true }));
+await t("árbitro se registra como árbitro", "ok", () => setDoc(doc(env.authenticatedContext("nuevo3").firestore(), "usuarios/nuevo3"), { rol: "arbitro", nombre: "Ref" }));
+await t("profesor actualiza su propio perfil", "ok", () => updateDoc(doc(prof, "usuarios/prof"), { bio: "hola" }));
 console.log(`\n${total - fallos}/${total} pasan` + (fallos ? `  ·  ${fallos} FALLAN` : ""));
 await env.cleanup();
 process.exit(fallos ? 1 : 0);
