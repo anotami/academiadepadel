@@ -50,6 +50,7 @@
         <button class="portal-tab" type="button" role="tab" data-tab="comunidad"><span class="tab-num">6</span>Comunidad</button>
         <button class="portal-tab" type="button" role="tab" data-tab="informes"><span class="tab-num">7</span>Informes<span id="inf-badge"></span></button>
         <button class="portal-tab" type="button" role="tab" data-tab="datos"><span class="tab-num">8</span>Mis datos</button>
+        <button class="portal-tab" type="button" role="tab" data-tab="tienda"><span class="tab-num">9</span>🔒 Tienda</button>
       </nav>
 
       <!-- HOY: lo accionable primero -->
@@ -937,6 +938,39 @@
       </div>
 
       <!-- MIS DATOS -->
+      <!-- TIENDA (privado): proveedores, siglas, costo y margen. Datos en Firestore, no en el sitio público -->
+      <div data-tabpanel="tienda" hidden>
+        <div class="portal-card" id="card-tienda-interno">
+          <h2>🔒 Proveedores de la tienda (solo tú)</h2>
+          <p class="field-hint">La sigla es lo que ves en “Ref:” de cada pedido de WhatsApp. Costos, márgenes y enlaces solo se guardan en tu base privada; nada de esto se publica en la web.</p>
+          <div class="table-scroll" style="overflow-x:auto;">
+            <table class="detalle-table">
+              <thead><tr><th>Sigla</th><th>Tienda</th><th>Productos</th><th>Costo prom.</th><th>Margen prom.</th></tr></thead>
+              <tbody id="ti-resumen"></tbody>
+            </table>
+          </div>
+          <div class="field" style="margin-top:14px;">
+            <label for="ti-archivo">Cargar o actualizar el CSV interno (interno_proveedores_web_v1.csv)</label>
+            <input type="file" id="ti-archivo" accept=".csv,text/csv">
+            <p class="form-msg" id="ti-msg"></p>
+          </div>
+        </div>
+        <div class="portal-card">
+          <h2>Productos y enlace de origen</h2>
+          <div class="hist-fila" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+            <input type="search" id="ti-buscar" placeholder="Buscar por código o nombre" aria-label="Buscar producto" style="max-width:260px;">
+            <select id="ti-filtro-tienda" aria-label="Filtrar por tienda"><option value="">Todas las tiendas</option></select>
+          </div>
+          <p class="field-hint" id="ti-cuenta"></p>
+          <div class="table-scroll" style="overflow-x:auto;">
+            <table class="detalle-table">
+              <thead><tr><th>Código</th><th>Producto</th><th>Sigla</th><th>Costo</th><th>Web</th><th>Margen</th><th>Origen</th></tr></thead>
+              <tbody id="ti-productos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <div data-tabpanel="datos" hidden>
         <div class="portal-card" id="card-mis-datos">
           <h2>Mis datos</h2>
@@ -990,7 +1024,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=95"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=96"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=5"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=4"></script>
 </body>

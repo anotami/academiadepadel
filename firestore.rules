@@ -550,6 +550,11 @@ service cloud.firestore {
       allow read, write: if esProfesor();
     }
 
+    // Proveedores, costos y enlaces de origen de la tienda: solo el profesor.
+    match /tienda_interno/{codigo} {
+      allow read, write: if esProfesor();
+    }
+
     // ---------- Todo lo demás: denegado ----------
     match /{document=**} {
       allow read, write: if false;

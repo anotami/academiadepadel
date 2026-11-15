@@ -1,6 +1,6 @@
 // Recalcula precio_venta_PEN de tienda/productos.csv desde el CSV interno de proveedores.
-// Uso: node scripts/tienda-precios.mjs RUTA/interno_proveedores_web_v1.csv [--aplicar]
-// Además agrega ref_tienda: 4 letras de la tienda de origen (RAQU, WILS, PSHO, PHOU, BULL, MASP, LIMA, MERC), que viaja en el pedido de WhatsApp.
+// Uso: node scripts/tienda-precios.mjs RUTA/interno_proveedores_web_v1.csv [--aplicar] [--siglas privado.json]
+// Con --siglas ARCHIVO.json además fija ref_tienda (4 letras de la tienda de origen), que viaja como "Ref:" en el pedido de WhatsApp.
 // Regla: costo >= 400 -> costo x 1.10 ; costo < 400 -> costo x 1.15 ; redondeo al sol entero.
 // El archivo interno (costos y proveedores) NO debe vivir en este repo: la web es pública.
 import fs from "node:fs";
@@ -21,9 +21,10 @@ const esc = (v) => /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
 const [interno, flag] = process.argv.slice(2);
 if (!interno) { console.error("Falta la ruta del CSV interno"); process.exit(1); }
 const int = parse(fs.readFileSync(interno, "utf8")); const ih = int.shift();
-const COD = { "Raqueton": "RAQU", "Wilson Store Perú": "WILS", "PadelShop Perú": "PSHO", "Padel House": "PHOU", "Bullpadel Perú": "BULL", "Más Padel Perú": "MASP", "LimaPadel": "LIMA", "Mercado Pádel Perú": "MERC" };
+// Nombre de tienda -> sigla: archivo PRIVADO (no va al repo), ej. {"NombreTienda":"ABCD"}. Opcional: sin él se conservan los ref_tienda actuales.
+const COD = process.argv.includes("--siglas") ? JSON.parse(fs.readFileSync(process.argv[process.argv.indexOf("--siglas") + 1], "utf8")) : null;
 const costo = {}, ref = {};
-for (const r of int) if (r[0]) { costo[r[0]] = parseFloat(r[ih.indexOf("precio_costo")]); ref[r[0]] = COD[r[ih.indexOf("tienda_origen")]] || ""; }
+for (const r of int) if (r[0]) { costo[r[0]] = parseFloat(r[ih.indexOf("precio_costo")]); ref[r[0]] = COD ? (COD[r[ih.indexOf("tienda_origen")]] || "") : null; }
 const url = new URL("../tienda/productos.csv", import.meta.url);
 const crudo = fs.readFileSync(url, "utf8"); const EOL = crudo.includes("\r\n") ? "\r\n" : "\n";
 const web = parse(crudo); const wh = web.shift();
@@ -33,7 +34,7 @@ for (const r of web) {
   if (!r[0]) continue;
   const c = costo[r[0]]; if (!(c > 0)) { sinCosto.push(r[0]); continue; }
   while (r.length <= ir) r.push("");
-  if (r[ir] !== ref[r[0]]) { r[ir] = ref[r[0]]; cambios++; }
+  if (ref[r[0]] !== null && r[ir] !== ref[r[0]]) { r[ir] = ref[r[0]]; cambios++; }
   const nuevo = String(Math.round(c * (c >= 400 ? 1.10 : 1.15)));
   if (r[ip] !== nuevo) { cambios++; r[ip] = nuevo; }
 }
