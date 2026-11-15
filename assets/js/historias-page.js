@@ -23,7 +23,10 @@ let horarios = leerHorarios();
 let actual = null;
 let logo = null;
 let biblioteca = [];                    // [{id, nombre, propia, img(HTMLImageElement), url}]
-const encuadres = {};                   // índice de lámina -> 0..1 (posición horizontal de la foto)
+const claveEnc = (f) => `gp_hist_enc_${f}`;
+const ENC0 = { x: 0.5, y: 0.4, z: 1 };    // posición horizontal, vertical (0..1) y zoom (1 = foto completa) por lámina
+function encDe(i) { try { return { ...ENC0, ...(JSON.parse(localStorage.getItem(claveEnc(fecha)) || "{}")[i] || {}) }; } catch { return { ...ENC0 }; } }
+function guardarEnc(i, e) { try { const t = JSON.parse(localStorage.getItem(claveEnc(fecha)) || "{}"); t[i] = e; localStorage.setItem(claveEnc(fecha), JSON.stringify(t)); } catch { /* sin almacenamiento */ } }
 
 function leerHorarios() {
   try { const v = JSON.parse(localStorage.getItem(CLAVE_HORARIOS) || "null"); if (Array.isArray(v) && v.length) return v; } catch { /* usa los de siempre */ }
@@ -94,13 +97,13 @@ function partir(ctx, texto, ancho) {
   return res;
 }
 
-// Foto a pantalla completa (recorte vertical, con posición horizontal ajustable).
+// Foto a pantalla completa: recorte vertical con zoom y posición ajustables (así recortas a donde apareces tú).
 function fotoDeFondo(ctx, foto, enc) {
   if (!foto) { const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#0d3140"); g.addColorStop(1, "#14495a"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); return; }
   const img = foto.img;
-  const k = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+  const k = Math.max(W / img.naturalWidth, H / img.naturalHeight) * enc.z;
   const w = img.naturalWidth * k, h = img.naturalHeight * k;
-  ctx.drawImage(img, -(w - W) * enc, -(h - H) / 2, w, h);
+  ctx.drawImage(img, -(w - W) * enc.x, -(h - H) * enc.y, w, h);
 }
 
 function oscurecer(ctx, fuerte) {
@@ -140,7 +143,7 @@ function lamina(canvas, h, i, foto) {
   const ctx = canvas.getContext("2d");
   const l = h.laminas[i];
   ctx.clearRect(0, 0, W, H);
-  fotoDeFondo(ctx, foto, encuadres[i] ?? 0.5);
+  fotoDeFondo(ctx, foto, encDe(i));
   oscurecer(ctx, l.tipo !== "gancho");
   marca(ctx, l.tipo === "gancho" ? h.tema.nombre : "");
 
@@ -278,11 +281,18 @@ async function pintar() {
       });
       botones.appendChild(comp);
     }
-    const enc = document.createElement("label"); enc.className = "hist-encuadre"; enc.append("Encuadre ");
-    const rango = document.createElement("input"); rango.type = "range"; rango.min = "0"; rango.max = "100"; rango.value = String(Math.round((encuadres[i] ?? 0.5) * 100));
-    rango.setAttribute("aria-label", `Encuadre horizontal de la lámina ${i + 1}`);
-    rango.addEventListener("input", () => { encuadres[i] = rango.value / 100; lamina(canvas, h, i, fotoDeLamina(i)); });
-    enc.appendChild(rango);
+    const enc = document.createElement("div"); enc.className = "hist-encuadre-caja";
+    const control = (etiqueta, campo, min, max, escala) => {
+      const l = document.createElement("label"); l.className = "hist-encuadre"; l.append(etiqueta + " ");
+      const r = document.createElement("input"); r.type = "range"; r.min = String(min); r.max = String(max);
+      r.value = String(Math.round(encDe(i)[campo] * escala));
+      r.setAttribute("aria-label", `${etiqueta} de la lámina ${i + 1}`);
+      r.addEventListener("input", () => { const e = encDe(i); e[campo] = r.value / escala; guardarEnc(i, e); lamina(canvas, h, i, fotoDeLamina(i)); });
+      l.appendChild(r); enc.appendChild(l);
+    };
+    control("Zoom", "z", 100, 300, 100);
+    control("← →", "x", 0, 100, 100);
+    control("↑ ↓", "y", 0, 100, 100);
     caja.append(canvas, botones, enc);
     grid.appendChild(caja);
     lamina(canvas, h, i, fotoDeLamina(i));

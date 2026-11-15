@@ -35,3 +35,5 @@
 .hist-lamina-botones .btn { white-space: nowrap; }
 .hist-encuadre { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--ink-soft); }
 .hist-encuadre input { flex: 1; min-width: 0; }
+.hist-encuadre-caja { display: grid; gap: 2px; }
+.hist-encuadre > :first-child { min-width: 0; }
