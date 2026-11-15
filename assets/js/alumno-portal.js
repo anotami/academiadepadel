@@ -1,7 +1,7 @@
 import {
   auth, db,
   onAuthStateChanged, signOut,
-  doc, getDoc, updateDoc, addDoc, collection,
+  doc, getDoc, setDoc, updateDoc, addDoc, collection,
   query, where, orderBy, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=18";
 import {
@@ -10,6 +10,7 @@ import {
   calcularProgresoAlumno, GOLPES_DESBLOQUEABLES, calcularInsignias, MOSTRAR_VIDEO_ALUMNO, videoClaseHtml
 } from "./portal-common.js?v=28";
 import { escapeHtml } from "./utils.js?v=1";
+import { REFERIDOS, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -41,9 +42,54 @@ onAuthStateChanged(auth, async (user) => {
   await cargarProfesor();
   cargarReservas(user.uid);
   cargarPaquete(user.uid);
+  renderInvitar();
   cargarProgreso(user.uid);
   cargarJugar();
 });
+
+// ---- Invita a un amigo ----
+async function crearMiCodigo() {
+  for (let intento = 0; intento < 6; intento++) {
+    const codigo = generarCodigo(currentPerfil.nombre);
+    const ref = doc(db, "codigos_referido", codigo);
+    if ((await getDoc(ref)).exists()) continue;
+    await setDoc(ref, { codigo, alumnoId: currentUid, alumnoNombre: (currentPerfil.nombre || "").slice(0, 60), creadoEn: serverTimestamp() });
+    await updateDoc(doc(db, "usuarios", currentUid), { codigoReferido: codigo });
+    currentPerfil.codigoReferido = codigo;
+    return codigo;
+  }
+  throw new Error("No se pudo generar tu código, intenta de nuevo.");
+}
+
+function renderInvitar() {
+  const wrap = document.getElementById("invitar-contenido");
+  if (!wrap) return;
+  const beneficios = `<p class="field-hint">Si un amigo se anota con tu código, <strong>él recibe ${escapeHtml(REFERIDOS.textoBeneficioInvitadoTercera)}</strong> y <strong>tú ganas ${escapeHtml(REFERIDOS.textoBeneficioInvitador)}</strong> cuando pague su primer paquete.</p>`;
+  const codigo = currentPerfil.codigoReferido;
+  if (!codigo) {
+    wrap.innerHTML = `${beneficios}<button class="btn btn-primary btn-small" type="button" id="btn-mi-codigo">Obtener mi código</button><p class="form-msg" id="mi-codigo-msg"></p>`;
+    document.getElementById("btn-mi-codigo").addEventListener("click", async (e) => {
+      e.target.disabled = true;
+      try { await crearMiCodigo(); renderInvitar(); }
+      catch (err) {
+        const msg = document.getElementById("mi-codigo-msg");
+        msg.textContent = err.message; msg.className = "form-msg error"; e.target.disabled = false;
+      }
+    });
+    return;
+  }
+  const texto = mensajeInvitacion(codigo, (currentPerfil.nombre || "").split(" ")[0]);
+  wrap.innerHTML = `${beneficios}
+    <p style="margin:8px 0;">Tu código: <strong style="font-family:Sora,sans-serif; letter-spacing:0.05em; font-size:1.2rem;">${escapeHtml(codigo)}</strong></p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(texto)}">Compartir por WhatsApp</a>
+      <button class="btn btn-outline btn-small" type="button" id="btn-copiar-invitacion">Copiar mi link</button>
+    </div>`;
+  document.getElementById("btn-copiar-invitacion").addEventListener("click", async (e) => {
+    try { await navigator.clipboard.writeText(linkInvitacion(codigo)); e.target.textContent = "¡Copiado!"; }
+    catch { e.target.textContent = "No se pudo copiar"; }
+  });
+}
 
 // ---- Busco con quién jugar ----
 document.getElementById("form-jugar").addEventListener("submit", async (e) => {

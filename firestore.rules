@@ -401,6 +401,51 @@ service cloud.firestore {
       allow read, write: if esProfesor();
     }
 
+    // ---------- Invita a un amigo (códigos de referido) ----------
+    // codigos_referido/{CODIGO}: el código personal de un alumno (ej. KARLA-7QX2).
+    // Cualquiera puede LEER un código si lo conoce (para mostrar "te invitó Karla"),
+    // pero nadie puede listarlos salvo el profesor. Lo crea el propio alumno desde su
+    // portal, o el profesor para cualquier alumno. Nadie lo modifica: solo el profesor.
+    match /codigos_referido/{codigo} {
+      allow get: if true;
+      allow list, update, delete: if esProfesor();
+      allow create: if request.auth != null
+        && codigo.matches('^[A-Z]{1,8}-[A-Z0-9]{4}$')
+        && request.resource.data.keys().hasOnly(['codigo', 'alumnoId', 'alumnoNombre', 'creadoEn'])
+        && request.resource.data.codigo == codigo
+        && request.resource.data.alumnoId is string
+        && request.resource.data.alumnoNombre is string
+        && request.resource.data.alumnoNombre.size() <= 60
+        && request.resource.data.creadoEn == request.time
+        && (esProfesor() || request.resource.data.alumnoId == request.auth.uid);
+    }
+
+    // referidos/{id}: "esta persona llegó con el código de aquel alumno". Lo crean los
+    // formularios públicos (el invitado) o el profesor a mano; solo se acepta si el código
+    // existe y pertenece a ese invitador. Solo el profesor los lee y los gestiona.
+    match /referidos/{id} {
+      allow read, update, delete: if esProfesor();
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly([
+          'codigo', 'invitadorId', 'invitadorNombre', 'invitadoNombre', 'invitadoWhatsapp',
+          'origen', 'estado', 'creadoEn'
+        ])
+        && request.resource.data.codigo is string
+        && exists(/databases/$(database)/documents/codigos_referido/$(request.resource.data.codigo))
+        && get(/databases/$(database)/documents/codigos_referido/$(request.resource.data.codigo)).data.alumnoId == request.resource.data.invitadorId
+        && request.resource.data.invitadorNombre is string
+        && request.resource.data.invitadorNombre.size() <= 60
+        && request.resource.data.invitadoNombre is string
+        && request.resource.data.invitadoNombre.size() >= 1
+        && request.resource.data.invitadoNombre.size() <= 60
+        && request.resource.data.invitadoWhatsapp is string
+        && request.resource.data.invitadoWhatsapp.size() >= 6
+        && request.resource.data.invitadoWhatsapp.size() <= 20
+        && request.resource.data.origen in ['disponibilidad', 'widget', 'manual']
+        && request.resource.data.estado == 'nuevo'
+        && request.resource.data.creadoEn == request.time;
+    }
+
     // ---------- Todo lo demás: denegado ----------
     match /{document=**} {
       allow read, write: if false;

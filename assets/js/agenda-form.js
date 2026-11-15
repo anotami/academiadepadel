@@ -17,7 +17,8 @@
       "Programa: " + programa + "\n" +
       "Día preferido: " + dia + "\n" +
       "Horario preferido: " + horario + "\n" +
-      "Cancha preferida: " + cancha;
+      "Cancha preferida: " + cancha +
+      (window.gpRefTexto ? window.gpRefTexto() : "");
 
     if (typeof gtag === "function") {
       gtag("event", "agenda_solicitud", { programa: programa, cancha: cancha });

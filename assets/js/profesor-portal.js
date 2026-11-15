@@ -13,6 +13,7 @@ import {
   calcularProgresoAlumno, esPistaBeelup, CANCHAS_BEELUP, DURACIONES_CLASE, videoClaseHtml
 } from "./portal-common.js?v=28";
 import { escapeHtml } from "./utils.js?v=1";
+import { REFERIDOS, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -60,6 +61,7 @@ onAuthStateChanged(auth, async (user) => {
   cargarEsperas();
   cargarTurnosGrupales();
   cargarInteresadosGrupo();
+  cargarReferidos();
   cargarHistorialClases(user.uid);
   cargarGrupos();
   generarReservasDeGrupos();
@@ -323,6 +325,177 @@ document.getElementById("form-perfil").addEventListener("submit", async (e) => {
   }
 });
 
+// ---- Invitaciones: códigos de referido y seguimiento ----
+let referidosCache = [];
+
+const ESTADOS_REFERIDO = {
+  nuevo: { label: "Nuevo", badge: "badge-pendiente" },
+  convertido: { label: "Ya pagó su paquete", badge: "badge-confirmada" },
+  beneficio_entregado: { label: "Regalo entregado", badge: "badge-confirmada" },
+  descartado: { label: "Descartado", badge: "badge-rechazada" }
+};
+const ORIGEN_REFERIDO = { disponibilidad: "formulario de disponibilidad", widget: "formulario de la home", manual: "registrado a mano" };
+
+document.getElementById("ref-benef-invitado").textContent = REFERIDOS.textoBeneficioInvitadoTercera;
+document.getElementById("ref-benef-invitador").textContent = REFERIDOS.textoBeneficioInvitador;
+
+function poblarSelectsReferidos() {
+  const opciones = alumnosCache.slice().sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"))
+    .map((a) => `<option value="${a.id}">${escapeHtml(a.nombre || "(sin nombre)")}</option>`).join("");
+  ["ref-alumno", "rm-invitador"].forEach((id) => {
+    const select = document.getElementById(id);
+    const previo = select.value;
+    select.innerHTML = opciones;
+    if (previo) select.value = previo;
+  });
+}
+
+// Devuelve el código del alumno; si todavía no tiene, crea uno único.
+async function obtenerOCrearCodigo(alumno) {
+  if (alumno.codigoReferido) return alumno.codigoReferido;
+  for (let intento = 0; intento < 6; intento++) {
+    const codigo = generarCodigo(alumno.nombre);
+    const ref = doc(db, "codigos_referido", codigo);
+    if ((await getDoc(ref)).exists()) continue;
+    await setDoc(ref, { codigo, alumnoId: alumno.id, alumnoNombre: (alumno.nombre || "").slice(0, 60), creadoEn: serverTimestamp() });
+    await updateDoc(doc(db, "usuarios", alumno.id), { codigoReferido: codigo });
+    alumno.codigoReferido = codigo;
+    return codigo;
+  }
+  throw new Error("No se pudo generar un código único, intenta de nuevo.");
+}
+
+document.getElementById("btn-ref-generar").addEventListener("click", async () => {
+  const wrap = document.getElementById("ref-codigo-resultado");
+  const alumno = alumnosCache.find((a) => a.id === document.getElementById("ref-alumno").value);
+  if (!alumno) { wrap.innerHTML = '<p class="form-msg error">Elige un alumno.</p>'; return; }
+  wrap.innerHTML = '<p class="form-msg">Generando...</p>';
+  try {
+    const codigo = await obtenerOCrearCodigo(alumno);
+    const paraAlumno = `Hola ${alumno.nombre}! Te dejo tu código de invitación: ${codigo} 🎁\n` +
+      `Si un amigo se anota con tu link (${linkInvitacion(codigo)}), él tiene ${REFERIDOS.textoBeneficioInvitadoTercera} y tú ganas ${REFERIDOS.textoBeneficioInvitador} cuando pague su primer paquete.`;
+    const tel = soloDigitos(alumno.telefono);
+    wrap.innerHTML = `
+      <div class="request-card" style="margin-top:10px;">
+        <div class="request-info">
+          <p class="request-title">Código de ${escapeHtml(alumno.nombre)}: <span style="font-family:Sora,sans-serif; letter-spacing:0.05em;">${escapeHtml(codigo)}</span></p>
+          <p class="court-meta">Su link: ${escapeHtml(linkInvitacion(codigo))}</p>
+        </div>
+        <div class="request-actions">
+          <button class="btn btn-outline btn-small" type="button" data-copiar-invitacion>Copiar link</button>
+          ${tel ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent(paraAlumno)}">Enviárselo por WhatsApp</a>` : ""}
+        </div>
+      </div>`;
+    wrap.querySelector("[data-copiar-invitacion]").addEventListener("click", async (e) => {
+      try { await navigator.clipboard.writeText(linkInvitacion(codigo)); e.target.textContent = "¡Copiado!"; }
+      catch { e.target.textContent = "No se pudo copiar"; }
+    });
+  } catch (err) {
+    wrap.innerHTML = `<p class="form-msg error">No se pudo: ${escapeHtml(err.message)}</p>`;
+  }
+});
+
+document.getElementById("form-ref-manual").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("rm-msg");
+  const invitador = alumnosCache.find((a) => a.id === document.getElementById("rm-invitador").value);
+  const invitadoNombre = document.getElementById("rm-nombre").value.trim();
+  const invitadoWhatsapp = document.getElementById("rm-whatsapp").value.trim();
+  if (!invitador) { msg.textContent = "Elige quién lo invitó."; msg.className = "form-msg error"; return; }
+  try {
+    const codigo = await obtenerOCrearCodigo(invitador);
+    await addDoc(collection(db, "referidos"), {
+      codigo, invitadorId: invitador.id, invitadorNombre: (invitador.nombre || "").slice(0, 60),
+      invitadoNombre, invitadoWhatsapp, origen: "manual", estado: "nuevo", creadoEn: serverTimestamp()
+    });
+    e.target.reset();
+    poblarSelectsReferidos();
+    msg.textContent = `Registrado: ${invitadoNombre} llegó invitado por ${invitador.nombre}.`;
+    msg.className = "form-msg ok";
+  } catch (err) {
+    msg.textContent = "No se pudo registrar: " + err.message;
+    msg.className = "form-msg error";
+  }
+});
+
+async function regalarClaseAlInvitador(r) {
+  const n = REFERIDOS.clasesRegaloInvitador;
+  const activos = paquetesCache
+    .filter((p) => p.alumnoId === r.invitadorId && p.clasesUsadas < p.clasesTotales)
+    .sort((a, b) => (a.creadoEn?.seconds || 0) - (b.creadoEn?.seconds || 0));
+  let detalle;
+  if (activos.length) {
+    const p = activos[0];
+    if (!confirm(`Se le suma ${n === 1 ? "1 clase" : n + " clases"} de regalo a ${r.invitadorNombre} en su paquete "${p.tipo}" (de ${p.clasesTotales} a ${p.clasesTotales + n}). ¿Confirmas?`)) return;
+    await updateDoc(doc(db, "paquetes", p.id), { clasesTotales: p.clasesTotales + n });
+    detalle = `+${n} clase en su paquete "${p.tipo}"`;
+  } else {
+    if (!confirm(`${r.invitadorNombre} no tiene un paquete activo. ¿Marcar el regalo como entregado igual? Se lo das en su próximo paquete.`)) return;
+    detalle = "Sin paquete activo: se le da en su próximo paquete";
+  }
+  await updateDoc(doc(db, "referidos", r.id), { estado: "beneficio_entregado", beneficio: detalle, entregadoEn: serverTimestamp() });
+}
+
+function renderReferidos() {
+  const wrap = document.getElementById("lista-referidos");
+  if (!referidosCache.length) {
+    wrap.innerHTML = '<p class="empty-state">Todavía nadie llegó con un código. Dale su código a un alumno en el paso 1.</p>';
+    return;
+  }
+  wrap.innerHTML = "";
+  referidosCache.forEach((r) => {
+    const est = ESTADOS_REFERIDO[r.estado] || ESTADOS_REFERIDO.nuevo;
+    const tel = soloDigitos(r.invitadoWhatsapp);
+    const hint = {
+      nuevo: `Cuando pague su primer paquete, aplícale ${REFERIDOS.textoBeneficioInvitadoTercera} y márcalo abajo.`,
+      convertido: `Ya pagó: falta regalarle ${REFERIDOS.textoBeneficioInvitador} a ${escapeHtml(r.invitadorNombre || "")}.`,
+      beneficio_entregado: r.beneficio ? escapeHtml(r.beneficio) : "",
+      descartado: ""
+    }[r.estado] || "";
+    const acciones = {
+      nuevo: `<button class="btn btn-primary btn-small" type="button" data-ref-accion="convertido">Ya pagó su paquete</button>
+              <button class="btn btn-outline btn-small" type="button" data-ref-accion="descartado">Descartar</button>`,
+      convertido: `<button class="btn btn-primary btn-small" type="button" data-ref-accion="regalar">Regalar clase a ${escapeHtml(r.invitadorNombre || "")}</button>`,
+      beneficio_entregado: "",
+      descartado: '<button class="btn btn-outline btn-small" type="button" data-ref-accion="nuevo">Reabrir</button>'
+    }[r.estado] || "";
+    const card = document.createElement("div");
+    card.className = "request-card";
+    card.innerHTML = `
+      <div class="request-info">
+        <p class="request-title">${escapeHtml(r.invitadoNombre || "")} <span class="badge ${est.badge}">${est.label}</span></p>
+        <p class="court-meta">Invitado por <strong>${escapeHtml(r.invitadorNombre || "")}</strong> · código ${escapeHtml(r.codigo || "")} · ${ORIGEN_REFERIDO[r.origen] || r.origen || ""}</p>
+        <p class="court-meta">${escapeHtml(r.invitadoWhatsapp || "")}</p>
+        ${hint ? `<p class="field-hint" style="margin:4px 0 0;">${hint}</p>` : ""}
+        <p class="form-msg"></p>
+      </div>
+      <div class="request-actions">
+        ${tel && r.estado === "nuevo" ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent(`Hola ${r.invitadoNombre}! Te escribo de Academia de Pádel GP: ${r.invitadorNombre} te recomendó con su código ${r.codigo}. Tienes ${REFERIDOS.textoBeneficioInvitado}. ¿Coordinamos tu primera clase?`)}">Escribirle</a>` : ""}
+        ${acciones}
+      </div>`;
+    const msg = card.querySelector(".form-msg");
+    card.querySelectorAll("[data-ref-accion]").forEach((btn) => btn.addEventListener("click", async () => {
+      const accion = btn.dataset.refAccion;
+      try {
+        if (accion === "regalar") await regalarClaseAlInvitador(r);
+        else await updateDoc(doc(db, "referidos", r.id), { estado: accion });
+      } catch (err) {
+        msg.textContent = "No se pudo: " + err.message;
+        msg.className = "form-msg error";
+      }
+    }));
+    wrap.appendChild(card);
+  });
+}
+
+function cargarReferidos() {
+  onSnapshot(query(collection(db, "referidos"), orderBy("creadoEn", "desc")), (snap) => {
+    referidosCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderReferidos();
+    recalcularGuia();
+  }, (err) => mostrarErrorConsulta(document.getElementById("lista-referidos"), err));
+}
+
 // ---- Solicitudes pendientes ----
 // ---- Ciclo de una clase: ① Nueva clase → ② Por dar → ③ Por cerrar → ④ Cerrada ----
 // "Cerrar" una clase = marcar asistencia y dejar feedback (reserva.registrada).
@@ -421,6 +594,22 @@ function construirTareasGuia() {
       titulo: alumnosPorRenovar.length === 1 ? `Ofrece renovar el paquete de ${alumnosPorRenovar[0]}` : `Ofrece renovar el paquete a ${alumnosPorRenovar.length} alumnos`,
       detalle: "Ya usó (o casi) todas sus clases.",
       boton: "Ver renovaciones", destino: ["alumnos", "seg-renovar"]
+    });
+  }
+  const porRegalar = referidosCache.filter((r) => r.estado === "convertido");
+  if (porRegalar.length) {
+    tareas.push({
+      titulo: porRegalar.length === 1 ? `Entrega el regalo a ${porRegalar[0].invitadorNombre}` : `Entrega ${porRegalar.length} regalos por invitaciones`,
+      detalle: porRegalar.length === 1 ? `Invitó a ${porRegalar[0].invitadoNombre}, que ya pagó su paquete: le corresponde ${REFERIDOS.textoBeneficioInvitador}.` : "Sus invitados ya pagaron su paquete.",
+      boton: "Entregar regalo", destino: ["captacion", "mkt-referidos"]
+    });
+  }
+  const invitadosNuevos = referidosCache.filter((r) => r.estado === "nuevo");
+  if (invitadosNuevos.length) {
+    tareas.push({
+      titulo: invitadosNuevos.length === 1 ? `Escríbele a ${invitadosNuevos[0].invitadoNombre}, invitado por ${invitadosNuevos[0].invitadorNombre}` : `Escríbeles a ${invitadosNuevos.length} invitados`,
+      detalle: `Les corresponde ${REFERIDOS.textoBeneficioInvitadoTercera}.`,
+      boton: "Ver invitaciones", destino: ["captacion", "mkt-referidos"]
     });
   }
   const nuevos = interesadosGrupoCache.filter((i) => i.estado === "nuevo");
@@ -2080,6 +2269,7 @@ async function cargarAlumnos() {
   const todos = snapAlumnos.docs.map((d) => ({ id: d.id, ...d.data() }));
   const migrados = new Set(todos.map((a) => a.migradoDe).filter(Boolean));
   alumnosCache = todos.filter((a) => !migrados.has(a.id));
+  poblarSelectsReferidos();
   recalcularGuia();
 
   // Qué tipos de clase tomó cada alumno hasta ahora — un alumno no queda

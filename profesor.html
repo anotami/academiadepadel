@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=61">
+<link rel="stylesheet" href="assets/css/style.css?v=62">
 </head>
 <body>
 
@@ -369,6 +369,7 @@
         <!-- Accesos directos para no tener que scrollear toda la pestaña -->
         <nav class="mkt-quicknav" aria-label="Ir a sección de Captación">
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-interesados">Interesados</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-referidos">Invitaciones</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-turnos">Turnos</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-cruce">Cruce de disponibilidad</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-leads">Leads</button>
@@ -427,6 +428,44 @@
             <button class="btn btn-outline btn-small" type="button" data-filtro-interesado="todos">Todos</button>
           </div>
           <div id="lista-interesados"><p class="empty-state">Cargando...</p></div>
+        </div>
+
+        <!-- Invitaciones: "Invita a un amigo" (códigos de referido) -->
+        <div class="portal-card" id="mkt-referidos">
+          <h2>Invitaciones — invita a un amigo</h2>
+          <p class="field-hint">El invitado recibe <strong id="ref-benef-invitado"></strong>. Quien lo invitó recibe <strong id="ref-benef-invitador"></strong> cuando el invitado paga su primer paquete. (Los beneficios se cambian en <code>assets/js/referidos-config.js</code>.)</p>
+
+          <span class="paso-titulo"><span class="paso-badge">1</span>Dale su código a un alumno</span>
+          <div class="form-grid">
+            <div class="field">
+              <label for="ref-alumno">Alumno</label>
+              <select id="ref-alumno"></select>
+            </div>
+            <button class="btn btn-primary btn-small" type="button" id="btn-ref-generar" style="align-self:end;">Ver o crear su código</button>
+          </div>
+          <div id="ref-codigo-resultado"></div>
+
+          <span class="paso-titulo"><span class="paso-badge">2</span>Registra a un invitado que te escribió</span>
+          <p class="field-hint">Si alguien te escribe por WhatsApp diciendo que lo invitó un alumno (o con su código), regístralo acá. Si entra por el link de invitación y llena el formulario, aparece solo en el paso 3.</p>
+          <form id="form-ref-manual" class="form-grid">
+            <div class="field">
+              <label for="rm-invitador">¿Quién lo invitó?</label>
+              <select id="rm-invitador" required></select>
+            </div>
+            <div class="field">
+              <label for="rm-nombre">Nombre del invitado</label>
+              <input type="text" id="rm-nombre" required maxlength="60">
+            </div>
+            <div class="field">
+              <label for="rm-whatsapp">WhatsApp del invitado</label>
+              <input type="text" id="rm-whatsapp" required maxlength="20" placeholder="+51 999 111 222">
+            </div>
+            <button class="btn btn-outline btn-small" type="submit" style="align-self:end;">Registrar invitado</button>
+            <p class="form-msg" id="rm-msg"></p>
+          </form>
+
+          <span class="paso-titulo"><span class="paso-badge">3</span>Seguimiento: cuando paga, regala la clase</span>
+          <div id="lista-referidos"><p class="empty-state">Cargando...</p></div>
         </div>
 
         <!-- Turnos -->
@@ -851,7 +890,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=82"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=83"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=3"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=2"></script>
 </body>

@@ -159,7 +159,8 @@ if (enviarBtn) {
       "Programa: " + programa + "\n" +
       "Cancha: " + pista.nombre + "\n" +
       "Día: " + dia + "\n" +
-      "Horario: " + franja;
+      "Horario: " + franja +
+      (window.gpRefTexto ? window.gpRefTexto() : "");
 
     if (typeof gtag === "function") {
       gtag("event", "agenda_solicitud", { programa, cancha: pista.nombre, via: "calendario" });

@@ -17,6 +17,8 @@ import {
   collection, getDocs, addDoc, serverTimestamp
 } from "./firebase-app.js?v=18";
 import { construirGrillaDisponibilidad, prioridadNombreSede, SEDES_PRINCIPALES } from "./portal-common.js?v=27";
+import { registrarReferidoSiHay } from "./referidos-registro.js?v=1";
+import { textoRef } from "./referidos-config.js?v=1";
 
 const WHATSAPP_NUMBER = "51957085531";
 const alumnoId = new URLSearchParams(location.search).get("alumno");
@@ -148,6 +150,7 @@ form.addEventListener("submit", async (e) => {
     if (canchaInteresadaId) datos.canchaInteresadaId = canchaInteresadaId;
     if (instagram) datos.instagram = instagram;
     await addDoc(collection(db, "interesados_grupo"), datos);
+    await registrarReferidoSiHay({ nombre, whatsapp, origen: "disponibilidad" });
 
     if (typeof gtag === "function") gtag("event", "disponibilidad_enviada");
 
@@ -155,7 +158,7 @@ form.addEventListener("submit", async (e) => {
     const mensaje = "Hola, ya completé mi disponibilidad.\n" +
       "Nombre: " + nombre + "\n" +
       (canchaInteresada ? "Cancha: " + canchaInteresada + "\n" : "") +
-      "Disponible: " + resumen;
+      "Disponible: " + resumen + textoRef();
     window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(mensaje), "_blank", "noopener");
 
     formCard.hidden = true;

@@ -13,6 +13,8 @@ import {
   collection, query, where, getDocs, addDoc, updateDoc, doc, increment, serverTimestamp
 } from "./firebase-app.js?v=18";
 import { formatearFechaLarga, fechaYaPaso } from "./portal-common.js?v=22";
+import { registrarReferidoSiHay } from "./referidos-registro.js?v=1";
+import { textoRef } from "./referidos-config.js?v=1";
 
 const WHATSAPP_NUMBER = "51957085531";
 
@@ -130,6 +132,7 @@ if (confirmarBtn) {
         estado: "nuevo",
         creadoEn: serverTimestamp()
       });
+      await registrarReferidoSiHay({ nombre, whatsapp, origen: "widget" });
       try {
         await updateDoc(doc(db, "turnos_grupales", turnoSeleccionado.id), { cupoUsado: increment(1) });
       } catch {
@@ -144,7 +147,7 @@ if (confirmarBtn) {
       const mensaje = "Hola, quiero empezar a jugar pádel y armar grupo.\n" +
         "Nombre: " + nombre + "\n" +
         "Nivel: " + nivelSeleccionado + "\n" +
-        "Turno: " + turnoSeleccionado.nombre + " (" + cuando + ")";
+        "Turno: " + turnoSeleccionado.nombre + " (" + cuando + ")" + textoRef();
       window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(mensaje), "_blank", "noopener");
       estadoMsg.textContent = "¡Listo! Te escribimos por WhatsApp para confirmar tu cupo.";
     } catch (err) {
