@@ -2033,3 +2033,26 @@ span.disp-toggle.on { background: var(--court); }
   color: var(--ink);
   cursor: pointer;
 }
+
+/* Ficha "Cómo funciona" (profesor.html, pestaña Hoy) */
+.como-funciona summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; list-style: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.como-funciona summary::-webkit-details-marker { display: none; }
+.como-funciona summary::after { content: "▾"; margin-left: auto; color: var(--ink-soft); }
+.como-funciona[open] summary::after { content: "▴"; }
+.como-icono { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--ink); font-size: 0.9rem; font-weight: 800; }
+.como-sub { font-weight: 500; font-size: 0.9rem; color: var(--ink-soft); }
+.como-regla { margin: 14px 0 6px; padding: 10px 14px; border-left: 4px solid var(--accent-dark); background: var(--callout-bg); border-radius: 6px; color: var(--ink); }
+.como-funciona h3 { margin: 16px 0 8px; font-size: 1rem; }
+.como-tabla td, .como-tabla th { vertical-align: top; text-align: left; }
+.como-tabla td:first-child { white-space: nowrap; }
+.como-caminos { padding-left: 20px; display: grid; gap: 6px; list-style: decimal; color: var(--ink-soft); }
+.como-tabla td:last-child { text-align: right; }
+@media (max-width: 640px) {
+  .como-tabla, .como-tabla tbody, .como-tabla tr, .como-tabla td { display: block; width: 100%; }
+  .como-tabla thead { display: none; }
+  .como-tabla tr { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .como-tabla td { padding: 0 !important; border: 0 !important; text-align: left !important; white-space: normal !important; }
+  .como-tabla td:first-child { font-size: 1rem; }
+  .como-tabla td:last-child { font-size: 0.8rem; color: var(--ink-soft); margin-top: 4px; }
+  .como-tabla td:last-child::before { content: "📍 "; }
+}

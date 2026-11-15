@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=62">
+<link rel="stylesheet" href="assets/css/style.css?v=64">
 </head>
 <body>
 
@@ -66,6 +66,38 @@
           <div id="lista-pendientes-asistente"></div>
         </div>
 
+        <!-- Ficha "Cómo funciona": el mapa de conceptos, siempre a mano -->
+        <details class="portal-card como-funciona" id="card-como-funciona">
+          <summary><span class="como-icono" aria-hidden="true">?</span> Cómo funciona el panel <span class="como-sub">— la regla y los 3 caminos</span></summary>
+          <p class="como-regla"><strong>Una clase es: un alumno, en una cancha, a una hora.</strong> Todo lo demás sirve para preparar o llenar clases.</p>
+
+          <h3>Los conceptos</h3>
+          <table class="detalle-table como-tabla">
+            <thead><tr><th>Se llama</th><th>Qué es</th><th>Dónde</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Pista</strong></td><td>La cancha donde das clase (X3, La Once, Top Padel…).</td><td>Pistas</td></tr>
+              <tr><td><strong>Disponibilidad</strong></td><td>Bloques de 2 horas en que alguien <em>puede</em> jugar. Hay tres: la tuya, la de cada alumno y la de cada pista.</td><td>8 Mis datos · 3 Alumnos · Pistas</td></tr>
+              <tr><td><strong>Clase</strong></td><td>Un alumno + pista + fecha + hora. Si van 4 alumnos son 4 clases iguales, y el panel las muestra juntas como una sola.</td><td>2 Mis clases</td></tr>
+              <tr><td><strong>Pedido de clase</strong></td><td>Un alumno pide una clase desde su portal. Tú la confirmas o la rechazas.</td><td>1 Hoy</td></tr>
+              <tr><td><strong>Paquete</strong></td><td>Clases prepagadas (ej. 4). Cada clase a la que el alumno asiste descuenta una; si no asiste, se le devuelve.</td><td>3 Alumnos y pagos</td></tr>
+              <tr><td><strong>Clase semanal fija</strong></td><td>Una clase que se repite cada semana (mismo día, hora y pista) con sus alumnos. El sistema crea solo las próximas.</td><td>2 Mis clases</td></tr>
+              <tr><td><strong>Convocatoria</strong></td><td><strong>No es una clase.</strong> Es una oferta pública en la web (ej. "Clínica gratuita 20 nov") con cupos, para juntar gente interesada.</td><td>5 Captación</td></tr>
+              <tr><td><strong>Interesado</strong></td><td>Alguien que dejó sus datos (por una convocatoria, el formulario o WhatsApp). Todavía no es alumno.</td><td>5 Captación</td></tr>
+              <tr><td><strong>Invitación</strong></td><td>Un alumno invita a un amigo con su código: el amigo tiene 10% en su primer paquete y el alumno gana una clase.</td><td>5 Captación</td></tr>
+              <tr><td><strong>Jornada</strong></td><td>Evento mensual para principiantes, con inscripción y pago por Yape. Es un sistema aparte.</td><td>4 Jornadas</td></tr>
+            </tbody>
+          </table>
+          <p class="field-hint"><strong>Convocatoria ≠ horario.</strong> El horario es la hora concreta de una clase en una cancha. La convocatoria es una oferta con cupos: de ella sale un interesado, y recién cuando lo contactas sale una clase.</p>
+
+          <h3>Los 3 caminos</h3>
+          <ol class="como-caminos">
+            <li><strong>Alguien nuevo:</strong> convocatoria en la web → interesado → lo contactas por WhatsApp → "Convertir en alumno" → <em>Nueva clase</em> → paquete.</li>
+            <li><strong>Alumno que viene seguido:</strong> clase semanal fija → el sistema crea las clases → ② Por dar → ③ Por cerrar → ④ Cerrada.</li>
+            <li><strong>Clase suelta:</strong> Nueva clase → ② Por dar → ③ Por cerrar → ④ Cerrada.</li>
+          </ol>
+          <p class="field-hint">Cerrar una clase = marcar si el alumno asistió y dejar feedback. Si no asistió, no se cuenta ni se cobra. Si usas sobre todo los caminos 2 y 3, puedes ignorar las convocatorias.</p>
+        </details>
+
         <!-- Ciclo de una clase: pasos numerados (lo llena profesor-portal.js) -->
         <div class="portal-card ciclo-card">
           <h2>Ciclo de una clase</h2>
@@ -74,7 +106,7 @@
 
         <!-- Solicitudes pendientes -->
         <div class="portal-card" id="card-solicitudes">
-          <h2>Solicitudes de clase</h2>
+          <h2>Pedidos de clase</h2>
           <p class="field-hint">Confirma según la disponibilidad real de la pista — ya se avisa si otra clase ya está confirmada en el mismo horario.</p>
           <div id="lista-pendientes"><p class="empty-state">Cargando...</p></div>
         </div>
@@ -202,14 +234,14 @@
 
         <!-- Grupos fijos (clase recurrente con roster) -->
         <div class="portal-card">
-          <h2>Mis grupos</h2>
-          <p class="field-hint">Un grupo es una clase fija semanal (mismo día, hora y pista) con un roster de alumnos. Cada vez que entras acá, se completan solas las próximas clases confirmadas de cada grupo activo — sin tener que registrarlas una por una.</p>
+          <h2>Clases semanales fijas</h2>
+          <p class="field-hint">Una clase semanal fija se repite todas las semanas (mismo día, hora y pista) con sus alumnos. Cada vez que entras acá, el sistema crea solo las próximas clases de cada una activa — sin registrarlas una por una.</p>
           <div class="form-msg" id="grupos-gen-msg"></div>
 
-          <h3 style="margin-top:4px;">Nuevo grupo</h3>
+          <h3 style="margin-top:4px;">Nueva clase semanal fija</h3>
           <form id="form-grupo" class="form-grid">
             <div class="field">
-              <label for="gr-nombre">Nombre del grupo</label>
+              <label for="gr-nombre">Nombre (ej. Martes 7pm adultos)</label>
               <input type="text" id="gr-nombre" required maxlength="60" placeholder="Ej: Lunes 6pm — X3">
             </div>
             <div class="field">
@@ -387,7 +419,7 @@
         <nav class="mkt-quicknav" aria-label="Ir a sección de Captación">
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-interesados">Interesados</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-referidos">Invitaciones</button>
-          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-turnos">Turnos</button>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-turnos">Convocatorias</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-cruce">Cruce de disponibilidad</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-leads">Leads</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-comunidad-whatsapp">Comunidad WhatsApp</button>
@@ -418,7 +450,7 @@
               </select>
             </div>
             <div class="field">
-              <label for="im-turno">Turno (opcional)</label>
+              <label for="im-turno">Convocatoria (opcional)</label>
               <select id="im-turno"></select>
             </div>
             <div class="field field-full">
@@ -487,15 +519,15 @@
 
         <!-- Turnos -->
         <div class="portal-card" id="mkt-turnos">
-          <h2>Turnos</h2>
-          <p class="field-hint">Turnos que ves en "¿Eres nuevo en el pádel?" de la web, y quién se anotó en cada uno. Abre o cierra turnos según la demanda real.</p>
+          <h2>Convocatorias</h2>
+          <p class="field-hint">Una convocatoria NO es una clase: es una oferta pública con cupos (ej. "Clínica gratuita 20 nov", "Mañanas entre semana") que aparece en "¿Eres nuevo en el pádel?" de la web. De ahí salen interesados; la clase recién nace cuando los contactas. Abre o cierra convocatorias según la demanda real.</p>
 
           <div id="sugerencias-grupo"></div>
 
-          <h3 style="margin-top:4px;">Turnos</h3>
+          <h3 style="margin-top:4px;">Nueva convocatoria</h3>
           <form id="form-turno" class="form-grid">
             <div class="field">
-              <label for="tg-nombre">Nombre del turno</label>
+              <label for="tg-nombre">Nombre de la convocatoria</label>
               <input type="text" id="tg-nombre" required maxlength="60" placeholder="Ej: Mañanas entre semana">
             </div>
             <div class="field">
@@ -513,12 +545,12 @@
             <div class="field">
               <label for="tg-tipo">Tipo</label>
               <select id="tg-tipo">
-                <option value="regular">Turno regular</option>
+                <option value="regular">Convocatoria regular</option>
                 <option value="clinica-gratuita">Clínica gratuita mensual</option>
               </select>
             </div>
-            <button class="btn btn-outline" type="submit">Agregar turno</button>
-            <p class="field-hint">Deja la fecha vacía en turnos recurrentes (Mañanas, Tardes, Fin de Semana). Ponle fecha solo a eventos puntuales como la clínica — cada mes crea un turno nuevo con la fecha que toque.</p>
+            <button class="btn btn-outline" type="submit">Agregar convocatoria</button>
+            <p class="field-hint">Deja la fecha vacía en convocatorias recurrentes (Mañanas, Tardes, Fin de Semana). Ponle fecha solo a eventos puntuales como la clínica — cada mes crea una convocatoria nueva con la fecha que toque.</p>
             <p class="form-msg" id="turno-msg"></p>
           </form>
           <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
@@ -907,7 +939,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=86"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=87"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=4"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=3"></script>
 </body>

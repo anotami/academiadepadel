@@ -556,17 +556,17 @@ function actualizarCiclo(parcial) {
 
   const lineas = [];
   if (cargado && porCerrar > 0) lineas.push(`<p>⚠ Tienes ${plural(porCerrar, "clase sin cerrar", "clases sin cerrar")}: falta marcar asistencia y feedback.</p>`);
-  if (solicitudes > 0) lineas.push(`<p>📩 Tienes ${plural(solicitudes, "solicitud de clase", "solicitudes de clase")} por confirmar.</p>`);
+  if (solicitudes > 0) lineas.push(`<p>📩 Tienes ${plural(solicitudes, "pedido de clase", "pedidos de clase")} por confirmar.</p>`);
   const aviso = !cargado && solicitudes === null
     ? '<div class="ciclo-aviso">Revisando tus clases...</div>'
     : lineas.length
       ? `<div class="ciclo-aviso alerta">${lineas.join("")}
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
             ${porCerrar > 0 ? '<button class="btn btn-primary btn-small" type="button" data-ir-tab="hoy" data-ir-a="card-por-cerrar">Cerrarlas ahora →</button>' : ""}
-            ${solicitudes > 0 ? '<button class="btn btn-outline btn-small" type="button" data-ir-tab="hoy" data-ir-a="card-solicitudes">Ver solicitudes →</button>' : ""}
+            ${solicitudes > 0 ? '<button class="btn btn-outline btn-small" type="button" data-ir-tab="hoy" data-ir-a="card-solicitudes">Ver pedidos →</button>' : ""}
           </div>
         </div>`
-      : '<div class="ciclo-aviso ok">✓ Todo al día: no tienes clases sin cerrar ni solicitudes por confirmar.</div>';
+      : '<div class="ciclo-aviso ok">✓ Todo al día: no tienes clases sin cerrar ni pedidos de clase por confirmar.</div>';
 
   const paso = (n, titulo, detalle, cantidad, destino, estado) => `
     <button class="ciclo-paso ${estado || ""}" type="button" data-ir-tab="${destino[0]}" data-ir-a="${destino[1]}">
@@ -610,9 +610,9 @@ function construirTareasGuia() {
   const sol = guiaDatos.solicitudesLista;
   if (sol.length) {
     tareas.push({
-      titulo: sol.length === 1 ? `Confirma la solicitud de ${sol[0].alumnoNombre}` : `Confirma ${sol.length} solicitudes de clase`,
+      titulo: sol.length === 1 ? `Confirma el pedido de clase de ${sol[0].alumnoNombre}` : `Confirma ${sol.length} pedidos de clase`,
       detalle: sol.length === 1 ? `${formatearFecha(sol[0].fecha)} · ${sol[0].hora} hrs — un alumno está esperando tu respuesta.` : "Hay alumnos esperando tu respuesta.",
-      boton: "Ver solicitudes", destino: ["hoy", "card-solicitudes"], urgente: true
+      boton: "Ver pedidos", destino: ["hoy", "card-solicitudes"], urgente: true
     });
   }
   const cerrar = guiaDatos.porCerrarSesiones;
@@ -779,7 +779,7 @@ function cargarPendientes(uid) {
     guiaDatos.solicitudesLista = snap.docs.map((d) => d.data());
     actualizarCiclo({ solicitudes: snap.size });
     if (snap.empty) {
-      wrap.innerHTML = '<p class="empty-state">No hay solicitudes pendientes.</p>';
+      wrap.innerHTML = '<p class="empty-state">No hay pedidos de clase pendientes.</p>';
       return;
     }
     wrap.innerHTML = "";
@@ -856,7 +856,7 @@ async function descontarClaseDePaquete(reservaId, alumnoId) {
   await updateDoc(doc(db, "reservas", reservaId), { paqueteId: paquete.id });
 }
 
-// Las clases de un Grupo fijo se autogeneran directamente como "confirmada"
+// Las clases de una clase semanal fija se autogeneran directamente como "confirmada"
 // con cobro suelto (generarReservasDeGrupos no sabe si el alumno tiene
 // paquete) -- esto recién decide, al registrar la clase ya dictada, si
 // había un paquete activo para usar en vez de cobrarla aparte. Se limita a
@@ -1143,7 +1143,7 @@ function construirTarjetaFuturaGrupal(grupo) {
     }
     try {
       await Promise.all(grupo.map((r) => updateDoc(doc(db, "reservas", r.id), { fecha, hora })));
-      msg.textContent = "Grupo reprogramado.";
+      msg.textContent = "Clase reprogramada.";
       msg.className = "form-msg ok";
     } catch (err) {
       msg.textContent = "No se pudo reprogramar: " + err.message;
@@ -1489,7 +1489,7 @@ function renderHistorial() {
     wrap.innerHTML = '<p class="empty-state">No hay clases ese mes.</p>';
     return;
   }
-  // La consulta trae fecha desc, así que las clases de un Grupo fijo
+  // La consulta trae fecha desc, así que las clases de una clase semanal fija
   // generadas para 3-4 semanas adelante quedaban arriba de todo, tapando la
   // última clase realmente dictada. Separar deja lo ya dictado primero
   // (más reciente primero) y lo que falta, aparte y pintado distinto.
@@ -1553,7 +1553,7 @@ function leerFechaHora(form, r) {
 // un Grupo fijo futuro se vuelve a generar en su fecha de siempre.
 function confirmarMovimientoDeClase(r) {
   if (r.videoUrl && !confirm("Esta clase ya tiene un video de Beelup de su fecha y hora originales. Si la mueves, ese video no corresponde a la nueva hora. ¿Mover igual?")) return false;
-  if (r.grupoId && !fechaYaPaso(r.fecha, r.hora) && !confirm("Esta clase viene de un Grupo fijo: el sistema puede volver a crearla en su fecha original. ¿Mover igual?")) return false;
+  if (r.grupoId && !fechaYaPaso(r.fecha, r.hora) && !confirm("Esta clase viene de una clase semanal fija: el sistema puede volver a crearla en su fecha original. ¿Mover igual?")) return false;
   return true;
 }
 
@@ -2155,7 +2155,7 @@ document.getElementById("form-grupo").addEventListener("submit", async (e) => {
     document.getElementById("gr-cancha-beelup").value = "2";
     document.getElementById("gr-duracion").value = "90";
     actualizarVisibilidadCanchaBeelupGrupo();
-    msg.textContent = "Grupo creado — ahora asígnale alumnos desde \"Tus alumnos\".";
+    msg.textContent = "Clase semanal fija creada — ahora asígnale alumnos desde \"Tus alumnos\".";
     msg.className = "form-msg ok";
   } catch (err) {
     msg.textContent = "No se pudo crear: " + err.message;
@@ -2428,7 +2428,7 @@ async function cargarAlumnos() {
       ${a.apoderado ? `<p class="court-meta">👪 Apoderado: ${escapeHtml(a.apoderado.nombre)} · ${escapeHtml(a.apoderado.telefono)}</p>` : ""}
       ${a.referidoPor ? `<p class="court-meta">🤝 Invitado por: ${escapeHtml(a.referidoPor)}</p>` : ""}
       ${a.observaciones ? `<p class="court-meta">📝 ${escapeHtml(a.observaciones)}</p>` : ""}
-      ${a.grupoNombre ? `<p class="court-meta">👥 Grupo: ${escapeHtml(a.grupoNombre)}</p>` : ""}
+      ${a.grupoNombre ? `<p class="court-meta">👥 Clase semanal fija: ${escapeHtml(a.grupoNombre)}</p>` : ""}
       <p>${chipsDisp || '<span class="court-meta">Sin disponibilidad cargada todavía.</span>'}</p>
       <button class="btn btn-outline btn-small" type="button" data-toggle-editar style="margin-top:8px;">Editar</button>
       ${linkPedirDisponibilidad}
@@ -2465,9 +2465,9 @@ async function cargarAlumnos() {
             ${["Inicial", "Inicial-Intermedio", "Intermedio"].map((n) => `<option ${n === a.nivel ? "selected" : ""}>${n}</option>`).join("")}
           </select>
         </div>
-        <div class="field"><label>Grupo</label>
+        <div class="field"><label>Clase semanal fija</label>
           <select data-campo="grupoId">
-            <option value="">Sin grupo</option>
+            <option value="">Ninguna</option>
             ${gruposCache.map((g) => `<option value="${g.id}" ${g.id === a.grupoId ? "selected" : ""}>${escapeHtml(g.nombre)}</option>`).join("")}
           </select>
         </div>
@@ -2981,7 +2981,7 @@ async function calcularRentabilidad(wrap, reservas) {
 
   // Clases sueltas registradas con su propio monto (ej. "Registrar clase ya
   // dictada"), que no pertenecen a ningún paquete — cuentan aparte. Solo
-  // clases que ya pasaron: una clase de un Grupo fijo se autogenera hasta
+  // clases que ya pasaron: una clase de una clase semanal fija se autogenera hasta
   // 4 semanas por adelantado con su monto ya cargado, así que sin este
   // filtro aparecían como "ingreso ya ganado" clases que ni se dictaron.
   const reservasSueltas = reservas.filter((r) => r.estado === "confirmada" && !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0 && fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r));
@@ -3427,7 +3427,7 @@ document.getElementById("form-turno").addEventListener("submit", async (e) => {
     });
     e.target.reset();
     document.getElementById("tg-cupo").value = 4;
-    msg.textContent = "Turno agregado."; msg.className = "form-msg ok";
+    msg.textContent = "Convocatoria agregada."; msg.className = "form-msg ok";
   } catch (err) {
     msg.textContent = "No se pudo agregar: " + err.message; msg.className = "form-msg error";
   }
@@ -3464,7 +3464,7 @@ function cargarTurnosGrupales() {
 function poblarSelectTurnoManual() {
   const select = document.getElementById("im-turno");
   const valorPrevio = select.value;
-  select.innerHTML = '<option value="">Sin turno por ahora</option>' + turnosGrupalesCache
+  select.innerHTML = '<option value="">Sin convocatoria por ahora</option>' + turnosGrupalesCache
     .map((t) => `<option value="${t.id}">${escapeHtml(t.nombre)} — ${t.fecha ? formatearFechaLarga(t.fecha) + ", " : ""}${escapeHtml(t.horarioTexto)}</option>`)
     .join("");
   if (turnosGrupalesCache.some((t) => t.id === valorPrevio)) select.value = valorPrevio;
@@ -3519,7 +3519,7 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
     }
     e.target.reset();
     dispGridInteresadoManual = construirGrillaDisponibilidad(document.getElementById("im-disponibilidad"));
-    msg.textContent = turno ? `Agregado a "${turno.nombre}".` : `${nombre} agregado como interesado (sin turno).`;
+    msg.textContent = turno ? `Agregado a "${turno.nombre}".` : `${nombre} agregado como interesado (sin convocatoria).`;
     msg.className = "form-msg ok";
   } catch (err) {
     msg.textContent = "No se pudo agregar: " + err.message;
@@ -3530,7 +3530,7 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
 function renderTurnos() {
   const wrap = document.getElementById("lista-turnos");
   if (!turnosGrupalesCache.length) {
-    wrap.innerHTML = '<p class="empty-state">Todavía no creaste ningún turno — agrega uno arriba para que aparezca en la web.</p>';
+    wrap.innerHTML = '<p class="empty-state">Todavía no creaste ninguna convocatoria — agrega una arriba para que aparezca en la web.</p>';
     return;
   }
   wrap.innerHTML = "";
@@ -3549,7 +3549,7 @@ function renderTurnos() {
         <span class="badge ${t.activo ? "badge-confirmada" : "badge-rechazada"}">${t.activo ? "Abierto en la web" : "Cerrado"}</span>
       </p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-        <button class="btn btn-outline btn-small" type="button" data-toggle-activo>${t.activo ? "Cerrar turno" : "Abrir turno"}</button>
+        <button class="btn btn-outline btn-small" type="button" data-toggle-activo>${t.activo ? "Cerrar convocatoria" : "Abrir convocatoria"}</button>
         <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
         <button class="btn btn-outline btn-small" type="button" data-borrar>Borrar</button>
       </div>
@@ -3579,7 +3579,7 @@ function renderTurnos() {
       } catch (err) { msg.textContent = "No se pudo guardar: " + err.message; msg.className = "form-msg error"; }
     });
     card.querySelector("[data-borrar]").addEventListener("click", async () => {
-      if (!confirm(`¿Borrar el turno "${t.nombre}"? Los interesados que ya se anotaron no se borran.`)) return;
+      if (!confirm(`¿Borrar la convocatoria "${t.nombre}"? Los interesados que ya se anotaron no se borran.`)) return;
       try { await deleteDoc(doc(db, "turnos_grupales", t.id)); }
       catch (err) { msg.textContent = "No se pudo borrar: " + err.message; msg.className = "form-msg error"; }
     });
@@ -3697,7 +3697,7 @@ function renderSugerenciasGrupo() {
       <p class="court-meta" style="margin:4px 0 2px;">Pídeles que confirmen (toca el nombre para abrir WhatsApp):</p>
       <p style="margin:0 0 6px;">${chips}</p>
       ${chipsAlumnos ? `<p class="court-meta" style="margin:4px 0 2px;">Alumnos que ya tienen clase y también calzan en ese horario:</p><p style="margin:0 0 6px;">${chipsAlumnos}</p>` : ""}
-      <button class="btn btn-outline btn-small" type="button" data-prefill-turno>Prellenar turno con este horario</button>`;
+      <button class="btn btn-outline btn-small" type="button" data-prefill-turno>Prellenar convocatoria con este horario</button>`;
     card.querySelector("[data-prefill-turno]").addEventListener("click", () => {
       const nombreInput = document.getElementById("tg-nombre");
       document.getElementById("tg-horario").value = `${s.dia}, ${s.franja.replace("–", " - ")} hrs`;
