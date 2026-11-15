@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Historias de Instagram | academiadepadel.pe</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=66">
+<link rel="stylesheet" href="assets/css/historias.css?v=3">
+</head>
+<body>
+<header class="site-header" id="top">
+  <div class="container header-inner">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.svg" alt="academiadepadel.pe" class="brand-logo" width="36" height="36">
+      <span>Academia de Pádel GP</span>
+    </a>
+    <a href="profesor.html" class="test-back-link">← Volver al panel</a>
+  </div>
+</header>
+
+<main>
+  <section class="section portal-section">
+    <div class="container hist-wrap">
+      <p class="eyebrow">Captación</p>
+      <h1>Historias de Instagram</h1>
+      <p class="field-hint hist-intro">Un tema distinto cada día, 3 láminas listas para subir (gancho → detalle → link a tu disponibilidad). Descarga las imágenes, súbelas a tu historia y pon el <strong>sticker de enlace</strong> en la última.</p>
+
+      <div class="portal-card hist-barra">
+        <div class="hist-dia">
+          <button class="btn btn-outline btn-small" type="button" id="h-ant" aria-label="Día anterior">←</button>
+          <div>
+            <p class="hist-fecha" id="h-fecha"></p>
+            <p class="hist-tema" id="h-tema"></p>
+          </div>
+          <button class="btn btn-outline btn-small" type="button" id="h-sig" aria-label="Día siguiente">→</button>
+          <button class="btn btn-outline btn-small" type="button" id="h-hoy">Hoy</button>
+        </div>
+        <label class="avail-slot hist-hecha"><input type="checkbox" id="h-hecha"> Ya la publiqué</label>
+      </div>
+
+      <div class="hist-grid" id="h-grid" aria-live="polite"></div>
+      <div class="hist-acciones">
+        <button class="btn btn-primary" type="button" id="h-todas">Descargar las 3 imágenes</button>
+        <p class="form-msg" id="h-msg"></p>
+      </div>
+
+      <div class="portal-card" id="h-biblioteca">
+        <h2>Tus fotos y videos</h2>
+        <p class="field-hint">Las historias usan tus fotos. Agrega las que quieras (celular o computador): se quedan guardadas en este navegador y nada se sube a internet. De un video puedes sacar el mejor momento, y en cada lámina recortas con Zoom y las flechas para que salgas tú.</p>
+        <div class="hist-fila">
+          <label class="btn btn-primary btn-small" for="h-subir-fotos">＋ Agregar fotos</label>
+          <input type="file" id="h-subir-fotos" accept="image/*" multiple hidden>
+          <label class="btn btn-outline btn-small" for="h-subir-video">🎬 Sacar foto de un video</label>
+          <input type="file" id="h-subir-video" accept="video/*" hidden>
+          <span class="form-msg" id="h-msg-bib"></span>
+        </div>
+        <div class="hist-video" id="h-video-panel" hidden>
+          <video id="h-video" controls playsinline muted preload="metadata"></video>
+          <input type="range" id="h-video-pos" min="0" max="1000" value="0" aria-label="Momento del video">
+          <div class="hist-fila">
+            <button class="btn btn-primary btn-small" type="button" id="h-video-usar">Guardar este momento como foto</button>
+            <button class="btn btn-outline btn-small" type="button" id="h-video-cerrar">Cerrar</button>
+          </div>
+        </div>
+        <div class="hist-fotos" id="h-fotos"></div>
+      </div>
+
+      <div class="portal-card">
+        <h2>Para la historia</h2>
+        <div class="field">
+          <label>Link para el sticker de enlace (ya trae el seguimiento de esta historia)</label>
+          <div class="hist-copiar"><input type="text" id="h-link" readonly><button class="btn btn-outline btn-small" type="button" data-copiar="h-link">Copiar</button></div>
+        </div>
+        <div class="field">
+          <label>Sticker sugerido (encuesta o pregunta)</label>
+          <div class="hist-copiar"><input type="text" id="h-sticker" readonly><button class="btn btn-outline btn-small" type="button" data-copiar="h-sticker">Copiar</button></div>
+        </div>
+        <div class="field">
+          <label>Texto para responder mensajes directos</label>
+          <div class="hist-copiar"><textarea id="h-dm" rows="3" readonly></textarea><button class="btn btn-outline btn-small" type="button" data-copiar="h-dm">Copiar</button></div>
+        </div>
+      </div>
+
+      <div class="portal-card">
+        <h2>Horarios de esta semana</h2>
+        <p class="field-hint">Uno por línea. Se usan en la historia "Horarios de esta semana" y en tus textos. Se guardan en este navegador.</p>
+        <textarea id="h-horarios" rows="6" aria-label="Horarios de esta semana"></textarea>
+        <div class="hist-fila">
+          <button class="btn btn-primary btn-small" type="button" id="h-guardar">Guardar horarios</button>
+          <button class="btn btn-outline btn-small" type="button" id="h-restaurar">Restaurar</button>
+          <span class="form-msg" id="h-msg-h"></span>
+        </div>
+      </div>
+
+      <div class="portal-card">
+        <h2>Plan de los próximos 14 días</h2>
+        <ol class="hist-plan" id="h-plan"></ol>
+        <p class="field-hint">Cada tema aparece una vez cada 14 días, así no se repiten dos semanas seguidas.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog class="hist-picker" id="h-picker" aria-label="Elegir foto">
+  <div class="hist-picker-in">
+    <div class="hist-fila"><strong>Elige la foto de esta lámina</strong><button class="btn btn-outline btn-small" type="button" id="h-picker-cerrar" style="margin-left:auto;">Cerrar</button></div>
+    <div class="hist-fotos" id="h-picker-lista"></div>
+  </div>
+</dialog>
+
+<script type="module" src="assets/js/historias-page.js?v=6"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 // Tienda Academia de Pádel GP: lee productos.csv y arma el catálogo.
 // Sin base de datos, sin carrito, sin pagos online: cada producto termina en un chat de WhatsApp.
-import { WHATSAPP, CSV_URL, SALUDO, POR_PAGINA, MAX_RECOMENDADAS } from "./config.js";
+import { WHATSAPP, CSV_URL, SALUDO, POR_PAGINA, MAX_RECOMENDADAS, TALLES_ZAPATILLAS, TALLES_ROPA, REF_POR_DOMINIO } from "./config.js";
 
 const $ = (id) => document.getElementById(id);
 const ORDEN_CATEGORIAS = ["Palas", "Zapatillas", "Ropa", "Accesorios"];
@@ -44,6 +44,68 @@ function parseCSV(texto) {
 
 const sinTildes = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
+// ---------- Limpieza de textos (el CSV viene de varias fuentes y con mayúsculas dispares) ----------
+const MINUSCULAS = new Set(["de", "del", "la", "el", "los", "las", "y", "con", "para", "por", "en", "a"]);
+const capitalizar = (w) => w.toLowerCase().replace(/\p{L}+/gu, (x, i) => (i === 0 ? x[0].toUpperCase() + x.slice(1) : x[0].toUpperCase() + x.slice(1)));
+const aTitulo = (t) => t.split(" ").map((w, i) => (i > 0 && MINUSCULAS.has(w.toLowerCase()) ? w.toLowerCase() : capitalizar(w))).join(" ");
+
+function limpiarMarca(marca) {
+  const m = (marca || "").trim();
+  return m && m === m.toUpperCase() ? aTitulo(m) : m;
+}
+
+function limpiarNombre(nombre, marca) {
+  let n = (nombre || "").trim();
+  const escapada = (marca || "").trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // Se sacan, en cualquier orden, la marca repetida y los prefijos "Pala"/"Padel" del inicio.
+  for (let i = 0; i < 4; i++) {
+    const antes = n;
+    if (escapada) n = n.replace(new RegExp("^" + escapada + "\\b\\s*[-–:]?\\s*", "i"), "");
+    n = n.replace(/^[-–:]\s*/, "").replace(/^(pala de p[aá]del|pala|padel)\b\s*/i, "").trim();
+    if (n === antes) break;
+  }
+  const letras = n.replace(/[^\p{L}]/gu, "");
+  const mayus = n.replace(/[^\p{Lu}]/gu, "");
+  const casiTodoMayus = letras.length > 0 && mayus.length > letras.length * 0.6;
+  n = n.split(" ").map((w, i) => {
+    if (/\d/.test(w)) return w;                                   // modelos y tallas (V2, X24, 2026)
+    const soloLetras = w.replace(/[^\p{L}]/gu, "");
+    const gritando = soloLetras === soloLetras.toUpperCase() && soloLetras.length > 0;
+    if (!gritando) return w;
+    if (casiTodoMayus || soloLetras.length > 3) return i > 0 && MINUSCULAS.has(w.toLowerCase()) ? w.toLowerCase() : capitalizar(w);
+    return w;                                                      // siglas cortas sueltas (XL, BK, CMF)
+  }).join(" ");
+  return n.trim();
+}
+
+// Las descripciones traen a veces listas tipo ['a', 'b'] y terminan cortadas con "…".
+function limpiarDescripcion(texto) {
+  let d = (texto || "").trim();
+  d = d.replace(/\[[^\]]*$/, "").trim();   // lista cortada a la mitad: se descarta
+  if (d.endsWith("…")) {
+    // Cortada en el origen: se deja hasta la última frase completa; si no hay una decente, se omite.
+    const cuerpo = d.slice(0, -1);
+    const corte = Math.max(cuerpo.lastIndexOf(". "), cuerpo.lastIndexOf("! "), cuerpo.lastIndexOf("? "));
+    d = corte >= 50 ? cuerpo.slice(0, corte + 1) : "";
+  }
+  return d;
+}
+
+function pintarDescripcion(contenedor, texto) {
+  contenedor.replaceChildren();
+  const lista = /\[((?:'[^']*'|"[^"]*")(?:\s*,\s*(?:'[^']*'|"[^"]*"))*)\]/g;
+  let desde = 0, m;
+  const parrafo = (t) => { t = t.trim(); if (t) contenedor.appendChild(el("p", "", t)); };
+  while ((m = lista.exec(texto))) {
+    parrafo(texto.slice(desde, m.index));
+    const ul = el("ul", "m-lista");
+    (m[1].match(/'[^']*'|"[^"]*"/g) || []).forEach((it) => ul.appendChild(el("li", "", it.slice(1, -1))));
+    contenedor.appendChild(ul);
+    desde = m.index + m[0].length;
+  }
+  parrafo(texto.slice(desde));
+}
+
 function aProductos(filas) {
   if (filas.length < 2) return [];
   const cab = filas[0].map((h) => sinTildes(h).replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, ""));
@@ -51,29 +113,48 @@ function aProductos(filas) {
   const col = {
     codigo: idx("codigo"), categoria: idx("categoria"), marca: idx("marca"), nombre: idx("nombre"),
     precio: idx("precio_venta_pen", "precio_venta", "precio"), nivel: idx("nivel"), vendido: idx("mas_vendido"),
-    disponible: idx("disponible"), imagen: idx("imagen_url", "imagen"), descripcion: idx("descripcion")
+    disponible: idx("disponible"), imagen: idx("imagen_url", "imagen"), descripcion: idx("descripcion"),
+    tallas: idx("tallas", "talles"), ref: idx("ref_tienda", "ref")
   };
   const val = (f, k) => (col[k] >= 0 ? (f[col[k]] || "").trim() : "");
   return filas.slice(1).map((f, orden) => {
     const precio = Number(val(f, "precio").replace(/[^\d.,-]/g, "").replace(",", ".")) || 0;
     const nivel = sinTildes(val(f, "nivel")) || "sin_dato";
+    const marca = limpiarMarca(val(f, "marca"));
+    const categoria = val(f, "categoria");
+    const nombreCrudo = val(f, "nombre");
+    // Zapatillas y ropa se piden con talle (salvo que el nombre ya traiga la talla, ej. "Pack x3 Talla 39/42").
+    const pideTalle = (categoria === "Zapatillas" || categoria === "Ropa") && !/\btalla\b/i.test(nombreCrudo);
+    const propias = val(f, "tallas").split(/[;,|]/).map((t) => t.trim()).filter(Boolean);
+    const tallas = !pideTalle ? [] : propias.length ? propias : categoria === "Zapatillas" ? TALLES_ZAPATILLAS : TALLES_ROPA;
+    let ref = val(f, "ref");
+    if (!ref) { try { ref = REF_POR_DOMINIO[new URL(val(f, "imagen")).hostname] || ""; } catch { ref = ""; } }
     return {
       orden,
       codigo: val(f, "codigo"),
-      categoria: val(f, "categoria"),
-      marca: val(f, "marca"),
-      nombre: val(f, "nombre"),
+      categoria,
+      marca,
+      nombre: limpiarNombre(val(f, "nombre"), val(f, "marca")) || val(f, "nombre"),
       precio,
       nivel: nivel === "intermedio" ? "medio" : nivel,
       masVendido: sinTildes(val(f, "vendido")) === "si",
-      agotado: sinTildes(val(f, "disponible")) === "no",
+      sinStock: sinTildes(val(f, "disponible")) === "no",
+      tallas,
+      ref,
       imagen: val(f, "imagen"),
-      descripcion: val(f, "descripcion")
+      descripcion: limpiarDescripcion(val(f, "descripcion"))
     };
-  }).filter((p) => p.codigo && p.nombre);
+  }).filter((p) => p.codigo && p.nombre && !p.sinStock); // lo que no tiene stock no se muestra
 }
 
 // ---------- Formato ----------
+// "Todos los niveles" solo tiene sentido en palas; en accesorios y ropa sería ruido.
+function etiquetaNivel(p) {
+  if (p.nivel === "sin_dato" || !ETIQUETA_NIVEL[p.nivel]) return null;
+  if (p.nivel === "todos" && p.categoria !== "Palas") return null;
+  return ETIQUETA_NIVEL[p.nivel];
+}
+
 function soles(n) {
   const entero = Math.floor(n);
   const dec = Math.round((n - entero) * 100);
@@ -81,11 +162,12 @@ function soles(n) {
   return `S/ ${miles}${dec ? "," + String(dec).padStart(2, "0") : ""}`;
 }
 
-function linkWhatsApp(p) {
-  const texto = p.agotado
-    ? `${SALUDO}, quiero consultar por el producto ${p.codigo} · ${p.marca} ${p.nombre} · ${soles(p.precio)}`
-    : `${SALUDO}, quiero el producto ${p.codigo} · ${p.marca} ${p.nombre} · ${soles(p.precio)}`;
-  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;
+// Mensaje que te llega: código, marca, nombre y el precio que vio el cliente (+ talle y tu referencia privada).
+function linkWhatsApp(p, talle) {
+  const partes = [`${SALUDO}, quiero el producto ${p.codigo} · ${p.marca} ${p.nombre} · ${soles(p.precio)}`];
+  if (talle) partes.push(`Talle: ${talle}`);
+  if (p.ref) partes.push(`Ref: ${p.ref}`);
+  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(partes.join(" · "))}`;
 }
 
 function el(tag, clase, texto) {
@@ -100,6 +182,7 @@ function imagen(p, tam) {
   img.alt = `${p.marca} ${p.nombre}`;
   img.width = tam; img.height = tam;
   img.loading = "lazy"; img.decoding = "async";
+  img.referrerPolicy = "no-referrer"; // varios sitios de fotos bloquean según desde dónde se pide
   img.addEventListener("error", () => { img.src = PLACEHOLDER; img.classList.add("sin-foto"); }, { once: true });
   img.src = p.imagen || PLACEHOLDER;
   if (!p.imagen) img.classList.add("sin-foto");
@@ -114,7 +197,7 @@ function tarjeta(p) {
   abrir.setAttribute("aria-label", `Ver ${p.marca} ${p.nombre}`);
   const foto = el("div", "card-foto");
   foto.appendChild(imagen(p, 300));
-  if (p.nivel !== "sin_dato" && ETIQUETA_NIVEL[p.nivel]) foto.appendChild(el("span", `tag tag-${p.nivel}`, ETIQUETA_NIVEL[p.nivel]));
+  if (etiquetaNivel(p)) foto.appendChild(el("span", `tag tag-${p.nivel}`, etiquetaNivel(p)));
   if (p.masVendido) foto.appendChild(el("span", "tag tag-top", "Más vendido"));
   abrir.appendChild(foto);
   const cuerpo = el("div", "card-cuerpo");
@@ -124,9 +207,17 @@ function tarjeta(p) {
   abrir.appendChild(cuerpo);
   abrir.addEventListener("click", () => abrirFicha(p));
   li.appendChild(abrir);
-  const wa = el("a", "btn btn-wa btn-chico", p.agotado ? "Consultar por WhatsApp" : "Pedir por WhatsApp");
-  wa.href = linkWhatsApp(p); wa.target = "_blank"; wa.rel = "noopener";
-  li.appendChild(wa);
+  if (p.tallas.length) {
+    // Con talle: primero se elige en la ficha, para que el pedido llegue completo.
+    const pedir = el("button", "btn btn-wa btn-chico", "Elegir talle y pedir");
+    pedir.type = "button";
+    pedir.addEventListener("click", () => abrirFicha(p));
+    li.appendChild(pedir);
+  } else {
+    const wa = el("a", "btn btn-wa btn-chico", "Pedir por WhatsApp");
+    wa.href = linkWhatsApp(p); wa.target = "_blank"; wa.rel = "noopener";
+    li.appendChild(wa);
+  }
   return li;
 }
 
@@ -184,7 +275,7 @@ function poblarSelect(id, valores, etiquetaTodos) {
 
 // ---------- Recomendadas ----------
 function pintarRecomendadas() {
-  const base = productos.filter((p) => !p.agotado && ((p.categoria === "Palas" && p.nivel === "inicial") || p.masVendido));
+  const base = productos.filter((p) => ((p.categoria === "Palas" && p.nivel === "inicial") || p.masVendido));
   const lista = base.sort((a, b) => Number(b.masVendido) - Number(a.masVendido) || a.precio - b.precio).slice(0, MAX_RECOMENDADAS);
   $("recomendadas").hidden = lista.length === 0;
   $("carril").replaceChildren(...lista.map((p) => { const c = tarjeta(p); c.setAttribute("role", "listitem"); return c; }));
@@ -200,17 +291,42 @@ function abrirFicha(p, { sinHash = false } = {}) {
   $("m-cod").textContent = p.codigo;
   $("m-precio").textContent = soles(p.precio);
   const tagNivel = $("m-nivel");
-  const hayNivel = p.nivel !== "sin_dato" && ETIQUETA_NIVEL[p.nivel];
+  const hayNivel = etiquetaNivel(p);
   tagNivel.hidden = !hayNivel;
-  if (hayNivel) { tagNivel.textContent = ETIQUETA_NIVEL[p.nivel]; tagNivel.className = `tag tag-${p.nivel}`; }
-  $("m-agotado").hidden = !p.agotado;
-  $("m-desc").textContent = p.descripcion || "Consultame por WhatsApp los colores, tamaños y el stock que tengo disponible.";
-  const wa = $("m-wa");
-  wa.href = linkWhatsApp(p);
-  wa.textContent = p.agotado ? "Consultar por WhatsApp" : "Pedir por WhatsApp";
+  if (hayNivel) { tagNivel.textContent = hayNivel; tagNivel.className = `tag tag-${p.nivel}`; }
+  pintarDescripcion($("m-desc"), p.descripcion || "Consultame por WhatsApp los colores, tamaños y el stock que tengo disponible.");
+  prepararTalles(p);
   if (!modal.open) modal.showModal();
   document.body.classList.add("modal-abierto");
   if (!sinHash && location.hash !== "#" + p.codigo) history.pushState(null, "", "#" + p.codigo);
+}
+
+// Talle obligatorio en zapatillas y ropa: el botón de WhatsApp se activa al elegirlo.
+function prepararTalles(p) {
+  const wa = $("m-wa"), caja = $("m-tallas"), chips = $("m-tallas-lista");
+  chips.replaceChildren();
+  const activar = (talle) => {
+    wa.removeAttribute("aria-disabled");
+    wa.href = linkWhatsApp(p, talle);
+    wa.textContent = talle ? `Pedir por WhatsApp · talle ${talle}` : "Pedir por WhatsApp";
+    wa.target = "_blank";
+  };
+  if (!p.tallas.length) { caja.hidden = true; activar(""); return; }
+  caja.hidden = false;
+  wa.setAttribute("aria-disabled", "true");
+  wa.removeAttribute("href");
+  wa.removeAttribute("target");
+  wa.textContent = "Elegí tu talle para pedir";
+  p.tallas.forEach((t) => {
+    const b = el("button", "talle", t);
+    b.type = "button";
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => {
+      chips.querySelectorAll(".talle").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      activar(t);
+    });
+    chips.appendChild(b);
+  });
 }
 
 function cerrarFicha() {

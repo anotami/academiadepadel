@@ -98,6 +98,16 @@
           <p class="field-hint">Cerrar una clase = marcar si el alumno asistió y dejar feedback. Si no asistió, no se cuenta ni se cobra. Si usas sobre todo los caminos 2 y 3, puedes ignorar las convocatorias.</p>
         </details>
 
+        <!-- Historia de Instagram del día (captar alumnos) -->
+        <div class="portal-card" id="card-historia">
+          <h2>📸 Historia de hoy</h2>
+          <p class="field-hint" id="historia-tema" style="margin-bottom:12px;"></p>
+          <div class="hist-fila" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <a class="btn btn-primary btn-small" href="historias.html" target="_blank" rel="noopener">Abrir las 3 láminas</a>
+            <label class="avail-slot" style="display:inline-flex;"><input type="checkbox" id="historia-hecha"> Ya la publiqué hoy</label>
+          </div>
+        </div>
+
         <!-- Ciclo de una clase: pasos numerados (lo llena profesor-portal.js) -->
         <div class="portal-card ciclo-card">
           <h2>Ciclo de una clase</h2>
@@ -434,6 +444,8 @@
       <div data-tabpanel="captacion" hidden>
         <!-- Accesos directos para no tener que scrollear toda la pestaña -->
         <nav class="mkt-quicknav" aria-label="Ir a sección de Captación">
+          <a class="btn btn-outline btn-small" href="historias.html" target="_blank" rel="noopener">📸 Historias</a>
+          <button class="btn btn-outline btn-small" type="button" data-ir-a="card-libreta-tienda">🔒 Libreta tienda</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-interesados">Interesados</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-referidos">Invitaciones</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-turnos">Convocatorias</button>
@@ -441,6 +453,28 @@
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-leads">Leads</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-comunidad-whatsapp">Comunidad WhatsApp</button>
         </nav>
+
+        <!-- Libreta privada de la tienda -->
+        <div class="portal-card" id="card-libreta-tienda">
+          <h2>🔒 Libreta de la tienda (solo tú)</h2>
+          <p class="field-hint">Cada pedido que llega por WhatsApp desde la tienda termina en “Ref: T3”. Aquí anotas a qué tienda corresponde cada código; los clientes solo ven el código, no esto. Se guarda en tu base de datos, no en la página pública.</p>
+          <div class="table-scroll" style="overflow-x:auto;">
+            <table class="detalle-table">
+              <thead><tr><th>Ref</th><th>Foto desde</th><th>Tienda</th><th>Notas</th><th></th></tr></thead>
+              <tbody id="lt-filas"></tbody>
+            </table>
+          </div>
+          <div class="hist-fila" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+            <input type="text" id="lt-nuevo" maxlength="12" placeholder="Código nuevo (ej. T8)" aria-label="Código nuevo" style="max-width:190px;">
+            <button class="btn btn-outline btn-small" type="button" id="lt-agregar">Agregar código</button>
+          </div>
+          <p class="form-msg" id="lt-msg"></p>
+          <div class="field" style="margin-top:14px;">
+            <label for="lt-pegado">¿De qué tienda es este pedido? Pega aquí el mensaje de WhatsApp</label>
+            <textarea id="lt-pegado" rows="3" placeholder="Hola Gabo, quiero el producto GP-PAL-105 · … · Ref: T3"></textarea>
+            <p class="field-hint" id="lt-resultado" style="font-weight:700; color:var(--ink);"></p>
+          </div>
+        </div>
 
         <!-- Interesados -->
         <div class="portal-card" id="mkt-interesados">
@@ -956,7 +990,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=92"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=95"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=5"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=4"></script>
 </body>

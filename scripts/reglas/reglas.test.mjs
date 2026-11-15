@@ -114,6 +114,10 @@ await t("visitante NO se registra como profesor", "fail", () => setDoc(doc(env.a
 await t("visitante se registra como alumno", "ok", () => setDoc(doc(env.authenticatedContext("nuevo2").firestore(), "usuarios/nuevo2"), { rol: "alumno", nombre: "Ok", cuentaPropia: true }));
 await t("árbitro se registra como árbitro", "ok", () => setDoc(doc(env.authenticatedContext("nuevo3").firestore(), "usuarios/nuevo3"), { rol: "arbitro", nombre: "Ref" }));
 await t("profesor actualiza su propio perfil", "ok", () => updateDoc(doc(prof, "usuarios/prof"), { bio: "hola" }));
+await t("alumno NO lee la libreta de la tienda", "fail", () => getDocs(collection(alu1, "libreta_tienda")));
+await t("alumno NO escribe en la libreta de la tienda", "fail", () => setDoc(doc(alu1, "libreta_tienda/T1"), { tienda: "x" }));
+await t("anónimo NO lee la libreta de la tienda", "fail", () => getDocs(collection(anon, "libreta_tienda")));
+await t("profesor escribe y lee la libreta de la tienda", "ok", () => setDoc(doc(prof, "libreta_tienda/T1"), { ref: "T1", tienda: "Mi proveedor" }));
 console.log(`\n${total - fallos}/${total} pasan` + (fallos ? `  ·  ${fallos} FALLAN` : ""));
 await env.cleanup();
 process.exit(fallos ? 1 : 0);

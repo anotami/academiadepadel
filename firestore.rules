@@ -545,6 +545,11 @@ service cloud.firestore {
       allow read, write: if esProfesor();
     }
 
+    // Libreta privada de la tienda: a qué tienda corresponde cada "Ref: Tn" de los pedidos.
+    match /libreta_tienda/{ref} {
+      allow read, write: if esProfesor();
+    }
+
     // ---------- Todo lo demás: denegado ----------
     match /{document=**} {
       allow read, write: if false;

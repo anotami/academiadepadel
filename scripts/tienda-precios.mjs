@@ -22,7 +22,8 @@ if (!interno) { console.error("Falta la ruta del CSV interno"); process.exit(1);
 const int = parse(fs.readFileSync(interno, "utf8")); const ih = int.shift();
 const costo = {}; for (const r of int) if (r[0]) costo[r[0]] = parseFloat(r[ih.indexOf("precio_costo")]);
 const url = new URL("../tienda/productos.csv", import.meta.url);
-const web = parse(fs.readFileSync(url, "utf8")); const wh = web.shift();
+const crudo = fs.readFileSync(url, "utf8"); const EOL = crudo.includes("\r\n") ? "\r\n" : "\n";
+const web = parse(crudo); const wh = web.shift();
 const ip = wh.indexOf("precio_venta_PEN"); let cambios = 0, sinCosto = [];
 for (const r of web) {
   if (!r[0]) continue;
@@ -32,5 +33,5 @@ for (const r of web) {
 }
 const nuevos = Object.keys(costo).filter((c) => !web.some((r) => r[0] === c));
 console.log(`Cambian ${cambios} precios · sin costo: ${sinCosto.length} · en el archivo y no en la tienda: ${nuevos.length}`);
-if (flag === "--aplicar") fs.writeFileSync(url, [wh, ...web].map((r) => r.map(esc).join(",")).join("\n") + "\n");
+if (flag === "--aplicar") fs.writeFileSync(url, [wh, ...web].map((r) => r.map(esc).join(",")).join(EOL) + EOL);
 else console.log("Simulación. Agrega --aplicar para escribir tienda/productos.csv");

@@ -10,8 +10,7 @@ tienda/
 ├── tienda.css      Estilos (primero celular)
 ├── tienda.js       Lee productos.csv, filtros, búsqueda, orden y ficha de producto
 ├── config.js       WHATSAPP, SALUDO y otros ajustes
-├── productos.csv   LOS PRODUCTOS (esto es lo que actualizás)
-└── img/            Fotos: una por producto, con el nombre del código (GP-PAL-001.jpg)
+└── productos.csv   LOS PRODUCTOS (esto es lo que actualizás)
 ```
 
 ## Cómo actualizar los productos
@@ -22,9 +21,9 @@ tienda/
    - `nivel`: inicial, medio, avanzado, todos o sin_dato.
    - `mas_vendido`: sí / no / sin_dato. Los "sí" salen primero y en "Recomendadas para empezar".
    - `disponible`: no → el botón dice "Consultar por WhatsApp" y se avisa "Consultar stock". Cualquier otro valor = disponible.
-   - `imagen_url`: ruta relativa (`img/GP-PAL-001.jpg`) o un link `https://…`. Si falta o no carga, se muestra una imagen de relleno.
+   - `imagen_url`: link `https://…` (o una ruta relativa si subís las fotos a una carpeta `img/` de la tienda). Si falta o no carga, se muestra una imagen de relleno.
    - `descripcion`: opcional; se ve en la ficha del producto.
-3. Para una foto nueva, subila a `img/` con el código del producto como nombre.
+3. La página limpia sola lo que viene desordenado del CSV: marcas en mayúsculas (ADIDAS → Adidas), la marca repetida o "Pala" al inicio del nombre, nombres en MAYÚSCULAS, listas tipo `['a', 'b']` en la descripción y descripciones cortadas con "…".
 4. Publicá el cambio (ver abajo). La página lee el CSV cada vez que se abre.
 
 ## Cambiar tu WhatsApp
@@ -47,3 +46,7 @@ Si la publicás sola, en `index.html` cambiá los links `../assets/img/…` y `.
 ## Que Google la indexe
 
 Hoy tiene `<meta name="robots" content="noindex">` en `index.html` (para revisarla antes). Borrá esa línea cuando quieras que aparezca en Google, y enlazala desde la home.
+
+## Ojo con las fotos
+
+Las fotos del CSV están en servidores de otras tiendas (Shopify, Wix, bullpadel.com.pe, padelhouse.pe, limapadel.pe, mercadopadel y un Supabase). Si esas tiendas cambian o borran una foto, en la tuya se verá la imagen de relleno. Lo más seguro es bajarlas y subirlas a tu propio sitio (por ejemplo a una carpeta `tienda/img/`) y poner esas rutas en `imagen_url`. Revisá también que tengas permiso para usarlas.
