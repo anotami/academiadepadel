@@ -1,0 +1,9 @@
+{
+  "name": "asistente-academia",
+  "private": true,
+  "type": "module",
+  "description": "Herramienta para que Claude registre y modifique alumnos y clases en la base de la academia, siempre en dos pasos (simulacro y aplicar).",
+  "dependencies": {
+    "firebase": "10.14.1"
+  }
+}
