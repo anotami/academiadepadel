@@ -5,7 +5,7 @@ import {
   doc, getDoc, addDoc, updateDoc, deleteDoc, collection, query, where, orderBy, onSnapshot, serverTimestamp
 } from "./firebase-app.js?v=18";
 import { escapeHtml } from "./utils.js?v=1";
-import { formatearFecha, sumarMesesFecha } from "./portal-common.js?v=29";
+import { formatearFecha, sumarMesesFecha } from "./portal-common.js?v=30";
 
 const $ = (id) => document.getElementById(id);
 

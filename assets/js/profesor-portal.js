@@ -11,8 +11,8 @@ import {
   CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD, normalizarTelefonoPeru,
   categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto, elegirMensaje,
   calcularProgresoAlumno, esPistaBeelup, CANCHAS_BEELUP, DURACIONES_CLASE, videoClaseHtml,
-  hoyLima, sumarDiasFecha, diaSemanaIdxFecha, diasEntreFechas
-} from "./portal-common.js?v=29";
+  hoyLima, sumarDiasFecha, diaSemanaIdxFecha, diasEntreFechas, montoTopPadelPorAlumno
+} from "./portal-common.js?v=30";
 import { escapeHtml } from "./utils.js?v=1";
 import { REFERIDOS, REGEX_CODIGO, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 
@@ -2650,6 +2650,22 @@ function actualizarAvisoReferidoPaquete() {
     ? `Monto de lista S/ ${monto} → se cobra S/ ${montoConDescuento(monto)} (el sistema lo guarda ya con el descuento).`
     : (monto > 0 ? `Se cobra S/ ${monto}, sin descuento.` : "Escribe el monto de lista: el descuento se calcula solo.");
 }
+
+// Tarifa de lista de Top Padel: al elegir cuántas personas hay en el grupo, llena el monto por alumno.
+function aplicarTarifaTopPadel() {
+  const personas = Number(document.getElementById("pq-personas").value);
+  const hint = document.getElementById("pq-personas-hint");
+  if (!personas) { hint.textContent = "Llena el monto con la tarifa de lista de Top Padel (paquetes de 4 u 8 clases)."; return; }
+  const clases = Number(document.getElementById("pq-tipo").value.split(" ")[0]);
+  const t = montoTopPadelPorAlumno(clases, personas);
+  if (!t) { hint.textContent = "Top Padel solo tiene tarifa para paquetes de 4 u 8 clases: elige uno de esos."; return; }
+  document.getElementById("pq-monto").value = t.porAlumno;
+  hint.textContent = personas === 1
+    ? `Paquete de ${clases} clases: S/ ${t.total}.`
+    : `Paquete de ${clases} clases para ${personas}: S/ ${t.total} en total → S/ ${t.porAlumno} por alumno.`;
+  actualizarAvisoReferidoPaquete();
+}
+["pq-personas", "pq-tipo"].forEach((id) => document.getElementById(id).addEventListener("change", aplicarTarifaTopPadel));
 
 ["pq-alumno", "pq-monto", "pq-ref-aplicar"].forEach((id) => {
   document.getElementById(id).addEventListener("input", actualizarAvisoReferidoPaquete);

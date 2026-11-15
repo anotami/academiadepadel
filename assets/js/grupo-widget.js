@@ -12,7 +12,7 @@ import {
   auth, db, onAuthStateChanged, signInAnonymously,
   collection, query, where, getDocs, addDoc, updateDoc, doc, increment, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { formatearFechaLarga, fechaYaPaso } from "./portal-common.js?v=29";
+import { formatearFechaLarga, fechaYaPaso } from "./portal-common.js?v=30";
 import { registrarReferidoSiHay, adoptarCodigoManual } from "./referidos-registro.js?v=2";
 import { textoRef } from "./referidos-config.js?v=1";
 

@@ -3,7 +3,7 @@
 // genera una jornada nueva desde el panel, aparece sola.
 import { db, collection, getDocs } from "./firebase-app.js?v=18";
 import { escapeHtml } from "./utils.js?v=1";
-import { formatearFecha, hoyLima } from "./portal-common.js?v=29";
+import { formatearFecha, hoyLima } from "./portal-common.js?v=30";
 
 async function cargarJornadas() {
   const wrap = document.getElementById("lnk-jornadas");

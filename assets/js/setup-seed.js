@@ -4,7 +4,7 @@ import {
   doc, setDoc, deleteDoc, addDoc, collection, getDocs, serverTimestamp
 } from "./firebase-app.js?v=18";
 import { PISTAS_SEED, COSTOS_PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=20";
-import { TIPOS_CLASE, hoyLima, sumarDiasFecha } from "./portal-common.js?v=29";
+import { TIPOS_CLASE, hoyLima, sumarDiasFecha } from "./portal-common.js?v=30";
 
 const logEl = document.getElementById("log");
 function log(msg) {

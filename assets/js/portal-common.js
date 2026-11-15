@@ -75,6 +75,21 @@ export const PRECIOS_CLASE_SUELTA = {
   "Grupal (2-4 personas)": 75
 };
 
+// Tarifas de lista de Top Padel La Molina (cartel de la sede). Cada monto es el
+// TOTAL del paquete para todo el grupo: 2 personas pagan S/ 600 entre las dos.
+// Como el panel guarda un paquete por alumno, el monto por alumno es total / personas.
+export const TARIFAS_TOP_PADEL = {
+  4: { 1: 400, 2: 600, 3: 800, 4: 1000 },
+  8: { 1: 760, 2: 1140, 3: 1520, 4: 1900 },
+  claseIndividual: 120
+};
+
+// Monto por alumno de un paquete de `clases` (4 u 8) en un grupo de `personas`; null si no hay tarifa.
+export function montoTopPadelPorAlumno(clases, personas) {
+  const total = (TARIFAS_TOP_PADEL[clases] || {})[personas];
+  return total ? { total, porAlumno: Math.round((total / personas) * 100) / 100 } : null;
+}
+
 // Día de la semana (en español, como en DIAS) a partir de una fecha "YYYY-MM-DD".
 export function diaDeSemana(fechaStr) {
   const [y, m, d] = fechaStr.split("-").map(Number);

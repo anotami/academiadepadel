@@ -8,7 +8,7 @@ import {
   HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad,
   calcularProgresoAlumno, GOLPES_DESBLOQUEABLES, calcularInsignias, MOSTRAR_VIDEO_ALUMNO, videoClaseHtml, hoyLima
-} from "./portal-common.js?v=29";
+} from "./portal-common.js?v=30";
 import { escapeHtml } from "./utils.js?v=1";
 import { REFERIDOS, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 
