@@ -620,6 +620,18 @@ async function descontarClaseDePaquete(reservaId, alumnoId) {
 // paqueteId (confirmadas por el flujo normal) ni las que el profesor marcó
 // a propósito como sueltas desde "Registrar clase ya dictada" (esas no
 // tienen grupoId).
+// Si esta reserva ya consumió una clase de un paquete (paqueteId), al cancelarla
+// se la devuelve -- igual que "Borrar". Sin esto, un alumno que no viene y al
+// que se le quita de la clase perdía una clase de su paquete.
+async function devolverClaseAlPaquete(r) {
+  if (!r.paqueteId) return false;
+  const ref = doc(db, "paquetes", r.paqueteId);
+  const snap = await getDoc(ref);
+  if (snap.exists()) await updateDoc(ref, { clasesUsadas: Math.max(0, (snap.data().clasesUsadas || 0) - 1) });
+  await updateDoc(doc(db, "reservas", r.id), { paqueteId: null });
+  return true;
+}
+
 async function vincularAPaqueteSiCorresponde(r) {
   if (!r.grupoId || r.paqueteId || !esProgramaRegular(r.tipoClase)) return;
   const snap = await getDocs(query(collection(db, "paquetes"), where("alumnoId", "==", r.alumnoId)));
@@ -744,9 +756,10 @@ function construirTarjetaFutura(r) {
   const msg = card.querySelector(".form-msg");
 
   card.querySelector("[data-cancelar]").addEventListener("click", async () => {
-    if (!confirm(`¿Cancelar la clase de ${r.alumnoNombre} del ${formatearFecha(r.fecha)}?`)) return;
+    if (!confirm(`¿Cancelar la clase de ${r.alumnoNombre} del ${formatearFecha(r.fecha)}?${r.paqueteId ? " Se le devolverá la clase a su paquete." : ""}`)) return;
     try {
       await updateDoc(doc(db, "reservas", r.id), { estado: "cancelada" });
+      await devolverClaseAlPaquete(r);
     } catch (err) {
       msg.textContent = "No se pudo cancelar: " + err.message;
       msg.className = "form-msg error";
@@ -821,8 +834,11 @@ function construirTarjetaFuturaGrupal(grupo) {
   card.querySelectorAll("[data-cancelar-uno]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const r = grupo.find((x) => x.id === btn.dataset.cancelarUno);
-      if (!confirm(`¿Quitar a ${r.alumnoNombre} de esta clase grupal?`)) return;
-      try { await updateDoc(doc(db, "reservas", r.id), { estado: "cancelada" }); }
+      if (!confirm(`¿Quitar a ${r.alumnoNombre} de esta clase grupal?${r.paqueteId ? " Se le devolverá la clase a su paquete." : ""}`)) return;
+      try {
+        await updateDoc(doc(db, "reservas", r.id), { estado: "cancelada" });
+        await devolverClaseAlPaquete(r);
+      }
       catch (err) { msg.textContent = "No se pudo cancelar: " + err.message; msg.className = "form-msg error"; }
     });
   });
@@ -1547,6 +1563,7 @@ function construirTarjetaHistorial(r) {
       if (fh.cambio) { cambios.fecha = fh.fecha; cambios.hora = fh.hora; }
       if (campoCancha) cambios.canchaBeelup = campoCancha.value;
       await updateDoc(doc(db, "reservas", r.id), cambios);
+      if (estado === "cancelada" && r.estado !== "cancelada") await devolverClaseAlPaquete(r);
       msg.textContent = "Actualizado.";
       msg.className = "form-msg ok";
     } catch (err) {
@@ -1743,6 +1760,7 @@ function construirTarjetaHistorialGrupal(grupo) {
         };
         if (fh.cambio) { cambios.fecha = fh.fecha; cambios.hora = fh.hora; }
         await updateDoc(doc(db, "reservas", r.id), cambios);
+        if (estado === "cancelada" && r.estado !== "cancelada") await devolverClaseAlPaquete(r);
         msg.textContent = "Actualizado.";
         msg.className = "form-msg ok";
       } catch (err) {
