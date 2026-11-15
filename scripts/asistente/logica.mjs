@@ -151,7 +151,7 @@ const OPS = {
         alumnoId: alumno.id, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
         profesorId: e.profesor.id, profesorNombre: e.profesor.nombre,
         tipoClase: op.tipoClase, pistaId: pista.id, pistaNombre, fecha: op.fecha, hora: op.hora, estado: "confirmada",
-        modalidad, costoCanchaPagado: costoPorAlumno, duracionMin, creadoEn: SERVER_TS
+        modalidad, duracionMin, creadoEn: SERVER_TS
       };
       if (canchaBeelup) datos.canchaBeelup = canchaBeelup;
       let cobro;
@@ -172,6 +172,8 @@ const OPS = {
       const id = idNuevo("reserva");
       e.reservas.push({ id, ...datos, creadoEn: undefined });
       accion(plan, { tipo: "crear", col: "reservas", id, datos });
+      // El costo de cancha es PRIVADO: va aparte (costos_reservas), no en la reserva que ve el alumno.
+      if (costoPorAlumno !== null) accion(plan, { tipo: "crear", col: "costos_reservas", id, datos: { costoCanchaPagado: costoPorAlumno, profesorId: e.profesor.id } });
       lineas.push(`${alumno.nombre} (${cobro})`);
     }
     return `CREAR clase ${op.tipoClase} · ${fechaCorta(op.fecha)} ${op.hora} · ${pistaNombre} · ${modalidad}${costoPorAlumno === null ? "" : " · cancha " + soles(costoPorAlumno) + " c/u"}\n      ${lineas.join("\n      ")}${avisos.length ? "\n      ⚠ " + avisos.join("; ") : ""}`;
@@ -194,7 +196,12 @@ const OPS = {
       if (!(Number(c.montoCobrado) >= 0)) throw new Error("montoCobrado inválido.");
       cambios.montoCobrado = Number(c.montoCobrado);
     }
-    if (c.costoCanchaPagado !== undefined) cambios.costoCanchaPagado = c.costoCanchaPagado === null ? null : Number(c.costoCanchaPagado);
+    let costoNuevo; // undefined = no se toca
+    if (c.costoCanchaPagado !== undefined) {
+      costoNuevo = c.costoCanchaPagado === null ? null : Number(c.costoCanchaPagado);
+      if (costoNuevo !== null && !(costoNuevo >= 0)) throw new Error("costoCanchaPagado inválido.");
+      if (typeof reserva.costoCanchaPagado === "number") cambios.costoCanchaPagado = null; // limpia el dato viejo que ve el alumno
+    }
     if (c.estado !== undefined) {
       if (!["confirmada", "cancelada"].includes(c.estado)) throw new Error('estado debe ser "confirmada" o "cancelada".');
       cambios.estado = c.estado;
@@ -206,14 +213,19 @@ const OPS = {
       if (reserva.grupoId) avisos.push("viene de un Grupo fijo: puede volver a generarse en su fecha original");
     }
     const antes = {}; Object.keys(cambios).forEach((k) => { antes[k] = reserva[k] ?? null; });
-    accion(plan, { tipo: "actualizar", col: "reservas", id: reserva.id, cambios, antes });
+    if (Object.keys(cambios).length) accion(plan, { tipo: "actualizar", col: "reservas", id: reserva.id, cambios, antes });
+    if (costoNuevo !== undefined) {
+      if (costoNuevo === null) accion(plan, { tipo: "borrar", col: "costos_reservas", id: reserva.id, antes: {} });
+      else accion(plan, { tipo: "crear", col: "costos_reservas", id: reserva.id, datos: { costoCanchaPagado: costoNuevo, profesorId: e.profesor.id } });
+      notas.push(`costo de cancha (privado) → ${costoNuevo === null ? "(vacío)" : soles(costoNuevo)}`);
+    }
     if (cambios.estado === "cancelada" && reserva.estado !== "cancelada" && reserva.paqueteId) {
       devolverClaseAlPaquete(e, plan, reserva, notas);
       accion(plan, { tipo: "actualizar", col: "reservas", id: reserva.id, cambios: { paqueteId: null }, antes: { paqueteId: reserva.paqueteId } });
       reserva.paqueteId = null;
     }
     Object.assign(reserva, cambios);
-    return `MODIFICAR clase de ${alumno.nombre} (${fechaCorta(antes.fecha ?? reserva.fecha)} ${antes.hora ?? reserva.hora}): ${Object.keys(cambios).map((k) => `${k}: ${antes[k] ?? "(vacío)"} → ${cambios[k]}`).join("; ")}${notas.length ? "; " + notas.join("; ") : ""}${avisos.length ? "\n      ⚠ " + avisos.join("; ") : ""}`;
+    return `MODIFICAR clase de ${alumno.nombre} (${fechaCorta(antes.fecha ?? reserva.fecha)} ${antes.hora ?? reserva.hora}): ${[...Object.keys(cambios).filter((k) => k !== "costoCanchaPagado").map((k) => `${k}: ${antes[k] ?? "(vacío)"} → ${cambios[k]}`), ...notas].join("; ")}${avisos.length ? "\n      ⚠ " + avisos.join("; ") : ""}`;
   },
 
   "clase.borrar"(e, plan, op) {
@@ -221,6 +233,7 @@ const OPS = {
     const notas = [];
     devolverClaseAlPaquete(e, plan, reserva, notas);
     accion(plan, { tipo: "borrar", col: "reservas", id: reserva.id, antes: { ...reserva } });
+    accion(plan, { tipo: "borrar", col: "costos_reservas", id: reserva.id, antes: {} });
     e.reservas = e.reservas.filter((r) => r.id !== reserva.id);
     return `BORRAR clase de ${alumno.nombre} · ${fechaCorta(reserva.fecha)} ${reserva.hora} · ${reserva.pistaNombre}${notas.length ? " → " + notas.join("; ") : ""}`;
   },

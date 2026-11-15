@@ -1,7 +1,7 @@
 import {
   auth, db, CONFIG_IS_PLACEHOLDER,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-  doc, setDoc, deleteDoc, addDoc, collection, getDocs, serverTimestamp
+  doc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, serverTimestamp
 } from "./firebase-app.js?v=18";
 import { PISTAS_SEED, COSTOS_PISTAS_SEED, PROFESOR_SEED, ALUMNOS_SEED } from "./seed-data.js?v=20";
 import { TIPOS_CLASE, hoyLima, sumarDiasFecha } from "./portal-common.js?v=30";
@@ -223,6 +223,43 @@ document.getElementById("form-ocultar-costos").addEventListener("submit", async 
     logOcultar(movidas ? `Listo. ${movidas} pista(s) actualizadas.` : "No había nada que mover: tus costos ya estaban ocultos.");
   } catch (err) {
     logOcultar(`✘ No se pudo actualizar: ${err.message}`);
+  } finally {
+    await signOut(auth);
+    btn.disabled = false;
+  }
+});
+
+// ---- Ocultar el costo de cancha de cada clase (mueve costoCanchaPagado a costos_reservas) ----
+const logClasesEl = document.getElementById("log-ocultar-clases");
+function logClases(msg) {
+  logClasesEl.textContent += (logClasesEl.textContent ? "\n" : "") + msg;
+}
+
+document.getElementById("form-ocultar-costos-clases").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (CONFIG_IS_PLACEHOLDER) {
+    logClases("Falta configurar assets/js/firebase-config.js con tu proyecto de Firebase antes de usar esta página.");
+    return;
+  }
+  const password = document.getElementById("pw-profesor-ocultar-clases").value;
+  const btn = document.getElementById("btn-ocultar-costos-clases");
+  btn.disabled = true;
+  logClasesEl.textContent = "";
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, PROFESOR_SEED.email, password);
+    const snap = await getDocs(collection(db, "reservas"));
+    let movidas = 0;
+    for (const d of snap.docs) {
+      const costo = d.data().costoCanchaPagado;
+      if (typeof costo !== "number") continue;
+      await setDoc(doc(db, "costos_reservas", d.id), { costoCanchaPagado: costo, profesorId: d.data().profesorId || cred.user.uid });
+      await updateDoc(doc(db, "reservas", d.id), { costoCanchaPagado: null });
+      movidas++;
+    }
+    logClases(movidas ? `✔ Listo. ${movidas} clase(s): su costo de cancha ahora es privado.` : "No había nada que mover: el costo de cancha de tus clases ya estaba oculto.");
+  } catch (err) {
+    logClases(`✘ No se pudo: ${err.message}` + (/permission/i.test(err.message) ? " — ¿publicaste la regla de costos_reservas?" : ""));
   } finally {
     await signOut(auth);
     btn.disabled = false;

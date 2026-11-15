@@ -49,6 +49,7 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("who-nombre").textContent = currentPerfil.nombre || user.email;
   rellenarPerfil(currentPerfil);
   await cargarPistasCache();
+  await cargarCostosReservas();
   await cargarGruposCache();
   poblarSelectsGrupo();
   cargarPendientes(user.uid);
@@ -195,6 +196,12 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
     msg.className = "form-msg error";
     return;
   }
+  const yaLaDi = document.getElementById("cd-ya-la-di").checked;
+  if (yaLaDi && !fechaYaPaso(fecha, hora)) {
+    msg.textContent = "Esa clase todavía no sucede: desmarca \"Ya la di\" o corrige la fecha y la hora.";
+    msg.className = "form-msg error";
+    return;
+  }
   // El costo de cancha es por sesión, no por persona — se reparte entre
   // todos los alumnos elegidos para que Rentabilidad no lo cuente varias veces.
   const costoCanchaPorAlumno = costoCanchaTotal === null ? null : costoCanchaTotal / alumnosSeleccionados.length;
@@ -233,11 +240,17 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
         profesorId: currentUid, profesorNombre: currentPerfil.nombre,
         tipoClase, pistaId, pistaNombre,
         fecha, hora, estado: "confirmada",
-        modalidad, costoCanchaPagado: costoCanchaPorAlumno,
+        modalidad,
         duracionMin,
         creadoEn: serverTimestamp()
       };
       if (canchaBeelup) datos.canchaBeelup = canchaBeelup;
+      if (yaLaDi) {
+        // Se crea ya cerrada: asistió y con feedback vacío (se puede completar en el Historial).
+        datos.registrada = true;
+        datos.asistio = true;
+        datos.feedback = { nivelTrabajado: NIVELES[0], comentario: "", siguienteObjetivo: "", temas: [], materialUrl: "" };
+      }
       if (paqueteId) {
         // Ya está pagada dentro del paquete -- no se cobra aparte.
         datos.montoCobrado = null;
@@ -249,7 +262,8 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
       } else {
         datos.montoCobrado = montoCobrado;
       }
-      await addDoc(collection(db, "reservas"), datos);
+      const nuevaReserva = await addDoc(collection(db, "reservas"), datos);
+      if (costoCanchaPorAlumno !== null) await guardarCostoCancha(nuevaReserva.id, costoCanchaPorAlumno);
     }
     e.target.reset();
     document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA["Particular"];
@@ -258,7 +272,9 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
     document.getElementById("cd-duracion").value = "90";
     actualizarVisibilidadCanchaBeelup();
     const nombres = alumnosSeleccionados.map((a) => a.nombre).join(", ");
-    msg.textContent = `Clase creada para ${nombres}. Cuando su hora llegue, ciérrala en "Hoy" → "③ Clases por cerrar" marcando asistencia y feedback.`;
+    msg.textContent = yaLaDi
+      ? `Clase creada y cerrada para ${nombres}. Ya está en ④ Cerrada (Historial).`
+      : `Clase creada para ${nombres}. Cuando su hora llegue, ciérrala en "Hoy" → "③ Clases por cerrar" marcando asistencia y feedback.`;
     msg.className = "form-msg ok";
   } catch (err) {
     msg.textContent = "No se pudo crear la clase: " + err.message;
@@ -287,6 +303,36 @@ function costoHoraDeCancha(p, fecha, hora) {
   const dia = diaDeSemana(fecha), franja = horaAFranja(hora);
   const bloque = (p.disponibilidad || []).find((d) => d.dia === dia && d.franja === franja);
   return bloque && bloque.tarifa === "con-luz" ? conLuz : base;
+}
+
+// Costo de cancha de cada clase: PRIVADO. Vive en costos_reservas/{reservaId}
+// (solo el profesor lo lee), no en la reserva, que sí puede ver el alumno.
+// Si una reserva vieja todavía lo trae adentro (antes de ocultarlo con la
+// herramienta de setup.html) se usa como respaldo.
+let costosReservasCache = {};
+
+function costoCanchaDe(r) {
+  const v = costosReservasCache[r.id];
+  if (typeof v === "number") return v;
+  return typeof r.costoCanchaPagado === "number" ? r.costoCanchaPagado : null;
+}
+
+async function cargarCostosReservas() {
+  // Si la regla de costos_reservas todavía no está publicada, el panel igual carga.
+  const snap = await getDocs(collection(db, "costos_reservas")).catch(() => ({ docs: [] }));
+  costosReservasCache = Object.fromEntries(snap.docs.map((d) => [d.id, d.data().costoCanchaPagado]));
+}
+
+async function guardarCostoCancha(reservaId, valor, { limpiarLegacy = false } = {}) {
+  const ref = doc(db, "costos_reservas", reservaId);
+  if (typeof valor === "number" && !isNaN(valor)) {
+    await setDoc(ref, { costoCanchaPagado: valor, profesorId: currentUid });
+    costosReservasCache[reservaId] = valor;
+  } else {
+    await deleteDoc(ref);
+    delete costosReservasCache[reservaId];
+  }
+  if (limpiarLegacy) await updateDoc(doc(db, "reservas", reservaId), { costoCanchaPagado: null });
 }
 
 async function cargarPistasCache() {
@@ -1600,7 +1646,7 @@ function construirFormAgregarAlumno(base) {
         profesorId: currentUid, profesorNombre: currentPerfil.nombre,
         tipoClase: base.tipoClase, pistaId: base.pistaId, pistaNombre: base.pistaNombre,
         fecha: base.fecha, hora: base.hora, estado: "confirmada",
-        modalidad: "Grupal (2-4 personas)", montoCobrado, costoCanchaPagado: null,
+        modalidad: "Grupal (2-4 personas)", montoCobrado,
         // Misma sesión (pista/fecha/hora) que `base` -- hereda su cancha/duración
         // en vez de volver a preguntarlas.
         duracionMin: base.duracionMin ?? 90,
@@ -1692,7 +1738,7 @@ function construirTarjetaHistorial(r) {
       <p>${r.pistaNombre || ""} · ${formatearFecha(r.fecha)} · ${r.hora} hrs
         ${r.modalidad ? "· " + r.modalidad : ""}
         ${typeof r.montoCobrado === "number" ? `· cobrado S/ ${r.montoCobrado}` : ""}
-        ${typeof r.costoCanchaPagado === "number" ? `· cancha S/ ${r.costoCanchaPagado.toFixed(2)}` : ""}
+        ${typeof costoCanchaDe(r) === "number" ? `· cancha S/ ${costoCanchaDe(r).toFixed(2)}` : ""}
       </p>
       ${!esFutura ? `<p>${videoClaseHtml(r)}</p>` : ""}
       <div class="form-grid" data-editar-form hidden style="margin-top:8px;">
@@ -1711,7 +1757,7 @@ function construirTarjetaHistorial(r) {
         </div>
         <div class="field">
           <label>Costo de cancha de ESTA clase (S/)</label>
-          <input type="number" min="0" step="0.01" data-campo="costoCanchaPagado" value="${typeof r.costoCanchaPagado === "number" ? r.costoCanchaPagado.toFixed(2) : ""}">
+          <input type="number" min="0" step="0.01" data-campo="costoCanchaPagado" value="${typeof costoCanchaDe(r) === "number" ? costoCanchaDe(r).toFixed(2) : ""}">
           <p class="field-hint">Si fue grupal, pon aquí la parte que le toca a este alumno (el total de la cancha dividido entre todos), no el total de la sesión.</p>
         </div>
         <div class="field">
@@ -1826,10 +1872,11 @@ function construirTarjetaHistorial(r) {
       const cambios = {
         modalidad,
         montoCobrado,
-        costoCanchaPagado: costoCanchaRaw === "" ? null : Number(costoCanchaRaw),
+        costoCanchaPagado: null, // el costo ya no vive en la reserva (ver guardarCostoCancha)
         estado,
         duracionMin
       };
+      await guardarCostoCancha(r.id, costoCanchaRaw === "" ? null : Number(costoCanchaRaw));
       if (fh.cambio) { cambios.fecha = fh.fecha; cambios.hora = fh.hora; }
       if (campoCancha) cambios.canchaBeelup = campoCancha.value;
       await updateDoc(doc(db, "reservas", r.id), cambios);
@@ -1904,7 +1951,7 @@ function construirTarjetaHistorialGrupal(grupo) {
           <p>
             <strong>${escapeHtml(r.alumnoNombre)}</strong>
             ${typeof r.montoCobrado === "number" ? ` · cobrado S/ ${r.montoCobrado}` : ""}
-            ${typeof r.costoCanchaPagado === "number" ? ` · cancha S/ ${r.costoCanchaPagado.toFixed(2)}` : ""}
+            ${typeof costoCanchaDe(r) === "number" ? ` · cancha S/ ${costoCanchaDe(r).toFixed(2)}` : ""}
             <span class="badge ${r.estado === "confirmada" ? "badge-confirmada" : "badge-pendiente"}">${estadoLabel(r)}</span>${r.asistio === false ? ' <span class="badge badge-rechazada" title="No se cuenta ni se cobra">no asistió</span>' : ""}
           </p>
           <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
@@ -1925,7 +1972,7 @@ function construirTarjetaHistorialGrupal(grupo) {
             </div>
             <div class="field">
               <label>Costo de cancha de ESTE alumno (S/)</label>
-              <input type="number" min="0" step="0.01" data-campo="costoCanchaPagado" value="${typeof r.costoCanchaPagado === "number" ? r.costoCanchaPagado.toFixed(2) : ""}">
+              <input type="number" min="0" step="0.01" data-campo="costoCanchaPagado" value="${typeof costoCanchaDe(r) === "number" ? costoCanchaDe(r).toFixed(2) : ""}">
               <p class="field-hint">La parte que le toca a él (el total de la cancha dividido entre todos).</p>
             </div>
             <div class="field">
@@ -2024,9 +2071,10 @@ function construirTarjetaHistorialGrupal(grupo) {
         const cambios = {
           modalidad,
           montoCobrado,
-          costoCanchaPagado: costoCanchaRaw === "" ? null : Number(costoCanchaRaw),
+          costoCanchaPagado: null, // el costo ya no vive en la reserva (ver guardarCostoCancha)
           estado
         };
+        await guardarCostoCancha(r.id, costoCanchaRaw === "" ? null : Number(costoCanchaRaw));
         if (fh.cambio) { cambios.fecha = fh.fecha; cambios.hora = fh.hora; }
         await updateDoc(doc(db, "reservas", r.id), cambios);
         if (estado === "cancelada" && r.estado !== "cancelada") await devolverClaseAlPaquete(r);
@@ -2066,7 +2114,7 @@ function construirTarjetaHistorialGrupal(grupo) {
     }
     const porAlumno = total / grupo.length;
     try {
-      await Promise.all(grupo.map((r) => updateDoc(doc(db, "reservas", r.id), { costoCanchaPagado: porAlumno })));
+      await Promise.all(grupo.map((r) => guardarCostoCancha(r.id, porAlumno, { limpiarLegacy: true })));
       msgDividir.textContent = `Repartido: S/ ${porAlumno.toFixed(2)} por alumno.`;
       msgDividir.className = "form-msg ok";
     } catch (err) {
@@ -2279,6 +2327,7 @@ async function generarReservasDeGrupos() {
     const fechas = proximasFechasDia(g.dia, SEMANAS_A_GENERAR);
     if (!fechas.length) continue;
     let existentes;
+    let canceladasDelGrupo = [];
     try {
       const snap = await getDocs(query(
         collection(db, "reservas"),
@@ -2286,7 +2335,11 @@ async function generarReservasDeGrupos() {
         where("hora", "==", g.hora),
         where("fecha", "in", fechas)
       ));
-      existentes = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((r) => r.estado !== "cancelada" && r.estado !== "rechazada");
+      const todas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      existentes = todas.filter((r) => r.estado !== "cancelada" && r.estado !== "rechazada");
+      // Si cancelaste la clase de UN alumno una semana (no puede ir), eso ya está decidido:
+      // no se vuelve a crear solo cada vez que abres el panel.
+      canceladasDelGrupo = todas.filter((r) => r.estado === "cancelada" && r.grupoId === g.id);
     } catch (err) {
       mostrarErrorConsulta(msg, err);
       return;
@@ -2294,12 +2347,17 @@ async function generarReservasDeGrupos() {
 
     for (const fecha of fechas) {
       const enEsaFecha = existentes.filter((r) => r.fecha === fecha);
-      if (enEsaFecha.some((r) => !g.miembroIds.includes(r.alumnoId))) {
+      // Alumnos de otro grupo o sueltos en esa misma cancha y hora: si ya hay miembros de este
+      // grupo en esa clase, son invitados/suplentes (ej. alguien faltó y entró otro) y no es
+      // un choque. Solo es choque si la cancha la ocupa otra clase y el grupo todavía no está.
+      const hayMiembrosYa = enEsaFecha.some((r) => g.miembroIds.includes(r.alumnoId)) || canceladasDelGrupo.some((r) => r.fecha === fecha);
+      if (!hayMiembrosYa && enEsaFecha.some((r) => !g.miembroIds.includes(r.alumnoId))) {
         conflictos.push(`"${g.nombre}" el ${formatearFecha(fecha)}: la pista ya tiene otra clase confirmada — revísalo en "Mis clases".`);
         continue;
       }
       for (const alumnoId of g.miembroIds) {
         if (enEsaFecha.some((r) => r.alumnoId === alumnoId)) continue;
+        if (canceladasDelGrupo.some((r) => r.fecha === fecha && r.alumnoId === alumnoId)) continue;
         const alumno = alumnosCache.find((a) => a.id === alumnoId);
         if (!alumno) continue;
         try {
@@ -2308,7 +2366,7 @@ async function generarReservasDeGrupos() {
             profesorId: currentUid, profesorNombre: currentPerfil.nombre,
             tipoClase: g.tipoClase, pistaId: g.pistaId, pistaNombre: g.pistaNombre,
             fecha, hora: g.hora, estado: "confirmada",
-            modalidad: "Grupal (2-4 personas)", montoCobrado: g.montoCobrado, costoCanchaPagado: null,
+            modalidad: "Grupal (2-4 personas)", montoCobrado: g.montoCobrado,
             grupoId: g.id,
             duracionMin: g.duracionMin ?? 90,
             creadoEn: serverTimestamp()
@@ -2896,6 +2954,7 @@ async function cargarMetricas(uid) {
   const wrap = document.getElementById("metricas");
   const wrapRent = document.getElementById("rentabilidad");
   try {
+    await cargarCostosReservas();
     const snap = await getDocs(query(collection(db, "reservas"), where("profesorId", "==", uid)));
     const reservas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     metricasReservasCache = reservas;
@@ -3028,7 +3087,8 @@ async function calcularRentabilidad(wrap, reservas) {
   paquetesPagados.forEach((paquete) => {
     const monto = paquete.monto || 0;
     cobradoEfectivoTotal += monto;
-    detalleCobrado.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")}`, monto });
+    const fechaActivacion = paquete.creadoEn?.seconds ? new Date(paquete.creadoEn.seconds * 1000 - 5 * 3600 * 1000).toISOString().slice(0, 10) : null;
+    detalleCobrado.push({ concepto: `${escapeHtml(paquete.alumnoNombre || "")} — paquete ${escapeHtml(paquete.tipo || "")}`, monto, fecha: fechaActivacion });
 
     const clasesTotales = paquete.clasesTotales || 0;
     const clasesUsadas = Math.min(paquete.clasesUsadas || 0, clasesTotales);
@@ -3083,8 +3143,8 @@ async function calcularRentabilidad(wrap, reservas) {
       // parte ya cargada (costoCanchaPagado), la hora de cancha se reparte
       // entre los alumnos de la sesión en vez de cobrarse completa a cada uno.
       const horaDeCancha = pista ? costoHoraDeCancha(pista, r.fecha, r.hora) : costoPromedioPistas;
-      const costoCancha = typeof r.costoCanchaPagado === "number"
-        ? r.costoCanchaPagado
+      const costoCancha = typeof costoCanchaDe(r) === "number"
+        ? costoCanchaDe(r)
         : horaDeCancha / reservasDeLaSesion.length;
       costoTotal += costoCancha;
       detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha, tipo: "cancha", fecha: r.fecha });
@@ -3098,7 +3158,7 @@ async function calcularRentabilidad(wrap, reservas) {
 
   const margenTotal = ingresoTotal - costoTotal;
   const margenPct = ingresoTotal ? Math.round((margenTotal / ingresoTotal) * 100) : 0;
-  const sinDatos = costoPromedioPistas === 0 && costoProfesorHora === 0 && !confirmadas.some((r) => typeof r.costoCanchaPagado === "number");
+  const sinDatos = costoPromedioPistas === 0 && costoProfesorHora === 0 && !confirmadas.some((r) => typeof costoCanchaDe(r) === "number");
   const pendienteDeDictar = cobradoEfectivoTotal - ingresoTotal;
 
   rentabilidadDetalleCache = { ingreso: detalleIngreso, costo: detalleCosto, cobrado: detalleCobrado, ingresoTotal, costoTotal, cobradoEfectivoTotal, margenTotal, margenPct };
@@ -3140,7 +3200,7 @@ function mostrarDetalleRentabilidad(tipo, cardEl) {
     : '<p class="empty-state">Sin datos.</p>';
 
   // Ingreso: por día (más reciente arriba), con el total de cada día y, adentro, cada alumno.
-  const tablaIngresoPorDia = (filas) => {
+  const tablaIngresoPorDia = (filas, totalLabel = "Total ingreso", itemHtml = (f) => `${f.alumno}${f.nota ? ` <span class="court-meta">· ${f.nota}</span>` : ""}`, ordenInterno = (a, b) => (a.alumno || "").localeCompare(b.alumno || "", "es")) => {
     if (!filas.length) return '<p class="empty-state">Sin datos.</p>';
     const porDia = new Map();
     filas.forEach((f) => {
@@ -3150,26 +3210,26 @@ function mostrarDetalleRentabilidad(tipo, cardEl) {
     });
     const dias = Array.from(porDia.keys()).sort((a, b) => (!a ? 1 : !b ? -1 : b.localeCompare(a)));
     const cuerpo = dias.map((dia) => {
-      const delDia = porDia.get(dia).sort((a, b) => a.alumno.localeCompare(b.alumno, "es"));
+      const delDia = porDia.get(dia).sort(ordenInterno);
       const totalDia = delDia.reduce((sum, f) => sum + f.monto, 0);
       return `<tr class="fila-dia"><td>${dia ? formatearFecha(dia) : "Sin fecha registrada"}</td><td>S/ ${totalDia.toFixed(0)}</td></tr>`
-        + delDia.map((f) => `<tr class="fila-alumno"><td>${f.alumno}${f.nota ? ` <span class="court-meta">· ${f.nota}</span>` : ""}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("");
+        + delDia.map((f) => `<tr class="fila-alumno"><td>${itemHtml(f)}</td><td>S/ ${f.monto.toFixed(0)}</td></tr>`).join("");
     }).join("");
     const total = filas.reduce((sum, f) => sum + f.monto, 0);
-    return `<table class="detalle-table"><thead><tr><th>Día / alumno</th><th>Monto</th></tr></thead><tbody>${cuerpo}<tr class="fila-total"><td>Total ingreso</td><td>S/ ${total.toFixed(0)}</td></tr></tbody></table>`;
+    return `<table class="detalle-table"><thead><tr><th>Día / alumno</th><th>Monto</th></tr></thead><tbody>${cuerpo}<tr class="fila-total"><td>${totalLabel}</td><td>S/ ${total.toFixed(0)}</td></tr></tbody></table>`;
   };
 
   if (tipo === "ingreso") {
     wrap.innerHTML = `<p class="field-hint">Solo lo que ya ganaste por clases realmente dictadas, por día. Cada clase de un paquete vale lo que costó el paquete dividido entre sus clases. Un paquete pagado pero sin empezar no suma acá todavía.</p>${tablaIngresoPorDia(ingreso)}`;
   }
   else if (tipo === "costo") {
-    wrap.innerHTML = `<p class="field-hint"><span style="color:#b02a24; font-weight:700;">● Cancha</span> = plata que le pagas al club &nbsp; <span style="color:#157347; font-weight:700;">● Tu hora</span> = tu ingreso por dictar la clase, no un gasto real</p>${tabla(costo)}`;
+    wrap.innerHTML = `<p class="field-hint"><span style="color:#b02a24; font-weight:700;">● Cancha</span> = plata que le pagas al club &nbsp; <span style="color:#157347; font-weight:700;">● Tu hora</span> = tu ingreso por dictar la clase, no un gasto real</p>${tablaIngresoPorDia(costo, "Total costo", (f) => f.concepto, (a, b) => (a.tipo === b.tipo ? 0 : a.tipo === "cancha" ? -1 : 1))}`;
   }
   else if (tipo === "margen") {
     wrap.innerHTML = `<p>Ingreso devengado <strong>S/ ${(ingresoTotal || 0).toFixed(0)}</strong> − Costo <strong>S/ ${(costoTotal || 0).toFixed(0)}</strong> = Margen <strong>S/ ${(margenTotal || 0).toFixed(0)}</strong> (${margenPct || 0}% sobre el ingreso devengado).</p>`;
   }
   else if (tipo === "cobrado") {
-    wrap.innerHTML = `<p class="field-hint">Plata que ya tienes en la mano, incluidos paquetes con clases todavía por dictar (S/ ${((cobradoEfectivoTotal || 0) - (ingresoTotal || 0)).toFixed(0)} de eso es a futuro).</p>${tabla(cobrado)}`;
+    wrap.innerHTML = `<p class="field-hint">Plata que ya tienes en la mano, incluidos paquetes con clases todavía por dictar (S/ ${((cobradoEfectivoTotal || 0) - (ingresoTotal || 0)).toFixed(0)} de eso es a futuro). Los paquetes van en el día en que los activaste.</p>${tablaIngresoPorDia(cobrado, "Total cobrado", (f) => f.concepto, () => 0)}`;
   }
   wrap.hidden = false;
 }

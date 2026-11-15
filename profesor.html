@@ -219,6 +219,12 @@
               <label for="cd-duracion">Duración (min)</label>
               <select id="cd-duracion"></select>
             </div>
+            <div class="field field-full">
+              <label class="avail-slot" style="display:inline-flex;">
+                <input type="checkbox" id="cd-ya-la-di"> Ya la di: cerrarla ahora (asistieron todos)
+              </label>
+              <p class="field-hint">Solo para clases que ya pasaron. Queda directo en ④ Cerrada, sin pasar por "Por cerrar". Si alguien faltó o quieres dejar feedback, edítala después en el Historial.</p>
+            </div>
           </form>
           <button class="btn btn-primary btn-small" type="submit" form="form-clase-dictada" style="margin-top:10px;">Crear clase</button>
           <p class="field-hint">El monto cobrado se sugiere solo según tu tabla de precios ("Clase suelta") — puedes cambiarlo libremente, pero si un alumno usó una clase de su paquete elegilo arriba en vez de editar el monto: no se cobra aparte y el contador de su paquete sube solo. Queda como clase confirmada; cuando su hora llega, la cierras en "Hoy" → "③ Clases por cerrar" marcando asistencia y feedback.</p>
@@ -950,7 +956,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=89"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=90"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=5"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=4"></script>
 </body>

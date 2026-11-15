@@ -50,7 +50,7 @@ ok(!p.errores.length && r && r.datos.paqueteId === "pq1" && r.datos.montoCobrado
 ok(acc(p, "paquetes", "actualizar")[0]?.cambios.clasesUsadas === 3, "…y sube el contador del paquete (2→3)");
 p = plan([{ op: "clase.crear", alumnos: ["Nicolás", "Bryan"], pista: "X3", fecha: "2026-11-16", hora: "08:00", tipoClase: "Clase grupal", costoCanchaTotal: 80 }]);
 const rs = acc(p, "reservas", "crear");
-ok(!p.errores.length && rs.length === 2 && rs.every((x) => x.datos.costoCanchaPagado === 40), "clase grupal reparte la cancha entre alumnos (80 → 40 c/u)", p.errores.join());
+ok(!p.errores.length && rs.length === 2 && rs.every((x) => x.datos.costoCanchaPagado === undefined) && acc(p, "costos_reservas", "crear").length === 2 && acc(p, "costos_reservas", "crear").every((x) => x.datos.costoCanchaPagado === 40), "clase grupal reparte la cancha (80 → 40 c/u) y la guarda PRIVADA, no en la reserva", p.errores.join());
 ok(rs.every((x) => x.datos.montoCobrado === 75 && x.datos.modalidad === "Grupal (2-4 personas)"), "…cobro suelto de grupal (S/75) si el paquete está agotado");
 p = plan([{ op: "clase.crear", alumnos: ["Bryan"], pista: "La Once", fecha: "2026-11-10", hora: "16:00", tipoClase: "Clase grupal" }]);
 ok(p.errores.length === 1 && /ya tiene esa clase/i.test(p.errores[0]), "clase.crear no duplica una clase existente", p.errores.join());
@@ -92,6 +92,8 @@ p = plan([{ op: "clase.cerrar", alumno: "Karla", fecha: "2026-11-10", asistio: f
 ok(acc(p, "paquetes", "actualizar")[0]?.cambios.clasesUsadas === 1 && acc(p, "reservas", "actualizar").some((a) => a.cambios.paqueteId === null && a.cambios.paqueteDevuelto === "pq1"), "no asistió: devuelve la clase del paquete y lo anota", JSON.stringify(p.acciones));
 p = plan([{ op: "alumno.crear", nombre: "Pedro Nuevo", telefono: "123", pendiente: "Pedirle su DNI" }]);
 ok(p.pendientes.length === 2 && p.pendientes[0].titulo === "Pedirle su DNI" && p.pendientes[1].titulo.startsWith("Revisar:") && p.pendientes[0].destino === "alumnos", "pendientes: los explícitos y los avisos ⚠ quedan listos para el panel", JSON.stringify(p.pendientes));
+p = plan([{ op: "clase.modificar", alumno: "Karla", fecha: "2026-11-10", cambios: { costoCanchaPagado: 55 } }]);
+ok(!p.errores.length && acc(p, "costos_reservas", "crear")[0]?.datos.costoCanchaPagado === 55 && !acc(p, "reservas", "actualizar").some((a) => "costoCanchaPagado" in a.cambios && a.cambios.costoCanchaPagado !== null), "modificar el costo de cancha va a la colección privada", p.errores.join());
 p = plan([{ op: "inventada" }]);
 ok(p.errores.length === 1, "operación desconocida se rechaza");
 

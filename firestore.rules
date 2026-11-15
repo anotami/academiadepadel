@@ -446,6 +446,11 @@ service cloud.firestore {
         && request.resource.data.creadoEn == request.time;
     }
 
+    // Costo de cancha de cada clase: PRIVADO (el alumno puede leer su reserva, pero no esto).
+    match /costos_reservas/{id} {
+      allow read, write: if esProfesor();
+    }
+
     // Pendientes que el asistente deja para el profesor (aparecen en la pestaña Hoy).
     match /pendientes_asistente/{id} {
       allow read, write: if esProfesor();

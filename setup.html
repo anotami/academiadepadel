@@ -95,6 +95,24 @@
       </div>
 
       <div class="portal-card">
+        <h2>Ocultar el costo de cancha de las clases</h2>
+        <p>
+          Cada clase guardaba cuánto te costó la cancha dentro de la reserva, y el alumno puede leer su
+          propia reserva. Esto mueve ese costo a un lugar que solo tu cuenta lee y lo vacía de las
+          reservas. Las clases nuevas ya lo guardan en privado. Úsalo una vez; si lo repites, no pasa nada.
+          Antes de usarlo tienes que haber publicado la regla de <code>costos_reservas</code>.
+        </p>
+        <form id="form-ocultar-costos-clases">
+          <div class="field">
+            <label for="pw-profesor-ocultar-clases">Contraseña del profesor (anotami@gmail.com)</label>
+            <input type="password" id="pw-profesor-ocultar-clases" minlength="6" required autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary" id="btn-ocultar-costos-clases" type="submit" style="margin-top:16px;">Ocultar costo de cancha de las clases</button>
+        </form>
+        <div id="log-ocultar-clases" style="margin-top:16px; font-size:0.88rem; color:var(--ink-soft); white-space:pre-line;"></div>
+      </div>
+
+      <div class="portal-card">
         <h2>Habilitar Top Padel La Molina (fines de semana)</h2>
         <p>
           Actualiza SOLO la pista "Top Padel La Molina" (la crea si no existe): queda habilitada,
@@ -132,6 +150,6 @@
 </main>
 <p style="text-align:center; font-size:0.78rem; color:var(--ink-soft); padding:16px 20px;"><a href="privacidad.html">Privacidad</a></p>
 
-<script type="module" src="assets/js/setup-seed.js?v=22"></script>
+<script type="module" src="assets/js/setup-seed.js?v=23"></script>
 </body>
 </html>
