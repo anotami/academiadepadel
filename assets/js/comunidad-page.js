@@ -9,10 +9,8 @@ import {
 } from "./firebase-app.js?v=18";
 import { HORARIOS_COMUNIDAD, normalizarTelefonoPeru } from "./portal-common.js?v=30";
 
-// PENDIENTE: Gabriel carga acá el link real de cada grupo de WhatsApp
-// (Configuración del grupo -> Invitar a través de link, en WhatsApp).
-// Mientras tanto quedan en "#" -- no rompen el formulario, solo no llevan
-// a ningún lado todavía.
+// Solo existe el grupo del nivel "cero". Los demás quedan en "#" a propósito
+// (no se crearán más grupos): sin link real, el botón "Entrar al grupo" se oculta.
 const LINKS_GRUPO_WHATSAPP = {
   cero: "https://chat.whatsapp.com/CJjPY60FamzCN0FLD81X1K?s=sw&p=i&mlu=4&ilr=4&iam=2",
   principiante: "#",
@@ -87,7 +85,10 @@ form.addEventListener("submit", async (e) => {
 
     if (typeof gtag === "function") gtag("event", "comunidad_whatsapp_sumado");
 
-    document.getElementById("com-grupo-cta").href = LINKS_GRUPO_WHATSAPP[nivel] || "#";
+    const ctaGrupo = document.getElementById("com-grupo-cta");
+    const linkGrupo = LINKS_GRUPO_WHATSAPP[nivel];
+    if (linkGrupo && linkGrupo !== "#") ctaGrupo.href = linkGrupo;
+    else ctaGrupo.hidden = true; // sin grupo para ese nivel: no mostramos un botón que no lleva a ningún lado
     formCard.hidden = true;
     okCard.hidden = false;
   } catch (err) {
