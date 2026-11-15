@@ -2971,6 +2971,15 @@ async function cargarMetricas(uid) {
     const snap = await getDocs(query(collection(db, "reservas"), where("profesorId", "==", uid)));
     const reservas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     metricasReservasCache = reservas;
+    // Migración automática: pasa a privado el costo de cancha que aún estaba dentro de la reserva
+    // (la que lee el alumno). Se hace solo al abrir el panel; no hace falta nada más.
+    const conCostoViejo = reservas.filter((r) => typeof r.costoCanchaPagado === "number" && typeof costosReservasCache[r.id] !== "number");
+    if (conCostoViejo.length) {
+      try {
+        for (const r of conCostoViejo) await guardarCostoCancha(r.id, r.costoCanchaPagado, { limpiarLegacy: true });
+        conCostoViejo.forEach((r) => { r.costoCanchaPagado = null; });
+      } catch { /* regla de costos_reservas aún sin publicar: se reintenta la próxima vez */ }
+    }
 
     // "Confirmada" es el estado de la reserva, no si ya sucedió -- un Grupo
     // fijo tiene semanas adelante ya confirmadas. Separarlas para que
