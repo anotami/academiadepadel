@@ -98,6 +98,16 @@
           <p class="field-hint">Cerrar una clase = marcar si el alumno asistió y dejar feedback. Si no asistió, no se cuenta ni se cobra. Si usas sobre todo los caminos 2 y 3, puedes ignorar las convocatorias.</p>
         </details>
 
+        <!-- Historia de Instagram del día (captar alumnos) -->
+        <div class="portal-card" id="card-historia">
+          <h2>📸 Historia de hoy</h2>
+          <p class="field-hint" id="historia-tema" style="margin-bottom:12px;"></p>
+          <div class="hist-fila" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <a class="btn btn-primary btn-small" href="historias.html" target="_blank" rel="noopener">Abrir las 3 láminas</a>
+            <label class="avail-slot" style="display:inline-flex;"><input type="checkbox" id="historia-hecha"> Ya la publiqué hoy</label>
+          </div>
+        </div>
+
         <!-- Ciclo de una clase: pasos numerados (lo llena profesor-portal.js) -->
         <div class="portal-card ciclo-card">
           <h2>Ciclo de una clase</h2>
@@ -434,6 +444,7 @@
       <div data-tabpanel="captacion" hidden>
         <!-- Accesos directos para no tener que scrollear toda la pestaña -->
         <nav class="mkt-quicknav" aria-label="Ir a sección de Captación">
+          <a class="btn btn-outline btn-small" href="historias.html" target="_blank" rel="noopener">📸 Historias</a>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-interesados">Interesados</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-referidos">Invitaciones</button>
           <button class="btn btn-outline btn-small" type="button" data-ir-a="mkt-turnos">Convocatorias</button>
@@ -956,7 +967,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=92"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=93"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=5"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=4"></script>
 </body>

@@ -1,0 +1,21 @@
+/* historias.html: vista previa de las láminas y herramientas */
+.hist-wrap { max-width: 980px; margin: 0 auto; }
+.hist-intro { max-width: 62ch; margin: 6px 0 16px; }
+.hist-barra { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.hist-dia { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hist-fecha { margin: 0; font-weight: 800; color: var(--ink); }
+.hist-tema { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+.hist-hecha { display: inline-flex; }
+.hist-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+@media (max-width: 760px) { .hist-grid { grid-template-columns: 1fr; max-width: 360px; margin-left: auto; margin-right: auto; } }
+.hist-lamina { display: flex; flex-direction: column; gap: 8px; }
+.hist-lamina canvas { width: 100%; height: auto; aspect-ratio: 9 / 16; border-radius: 16px; box-shadow: var(--shadow); background: #ddd; display: block; }
+.hist-lamina-botones { display: flex; gap: 8px; }
+.hist-lamina-botones .btn { flex: 1; }
+.hist-acciones { margin-bottom: 22px; }
+.hist-copiar { display: flex; gap: 8px; align-items: flex-start; }
+.hist-copiar input, .hist-copiar textarea { flex: 1; min-width: 0; }
+.hist-fila { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.hist-plan { padding-left: 22px; display: grid; gap: 6px; }
+.hist-plan li.hoy { font-weight: 800; color: var(--court); }
+#h-horarios, .hist-copiar textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 12px; font: inherit; }

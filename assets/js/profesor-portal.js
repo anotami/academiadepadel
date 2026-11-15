@@ -14,6 +14,7 @@ import {
   hoyLima, sumarDiasFecha, diaSemanaIdxFecha, diasEntreFechas, montoTopPadelPorAlumno
 } from "./portal-common.js?v=30";
 import { escapeHtml } from "./utils.js?v=1";
+import { temaDelDia } from "./historias-data.js?v=1";
 import { REFERIDOS, REGEX_CODIGO, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 
 let currentUid = null;
@@ -664,6 +665,23 @@ function nombresDeSesion(grupo) {
   return nombres.length > 2 ? `${nombres.slice(0, 2).join(", ")} y ${nombres.length - 2} más` : nombres.join(" y ");
 }
 
+// Historia de Instagram del día (historias.html): se marca como hecha en este navegador.
+const claveHistoria = () => `gp_hist_hecha_${hoyLima()}`;
+function historiaHechaHoy() {
+  try { return localStorage.getItem(claveHistoria()) === "1"; } catch { return false; }
+}
+function iniciarHistoriaDelDia() {
+  const caja = document.getElementById("historia-hecha");
+  if (!caja) return;
+  document.getElementById("historia-tema").textContent = `Tema de hoy: ${temaDelDia()}. Un tema distinto cada día para conseguir alumnos.`;
+  caja.checked = historiaHechaHoy();
+  caja.addEventListener("change", () => {
+    try { localStorage.setItem(claveHistoria(), caja.checked ? "1" : "0"); } catch { /* sin almacenamiento */ }
+    recalcularGuia();
+  });
+}
+iniciarHistoriaDelDia();
+
 function construirTareasGuia() {
   const tareas = [];
   const sol = guiaDatos.solicitudesLista;
@@ -751,6 +769,13 @@ function construirTareasGuia() {
       titulo: enRiesgo.length === 1 ? `${enRiesgo[0].nombre} lleva ${DIAS_RIESGO_ABANDONO}+ días sin clase` : `${enRiesgo.length} alumnos llevan ${DIAS_RIESGO_ABANDONO}+ días sin clase`,
       detalle: "Un mensaje a tiempo evita que se pierdan.",
       boton: "Escribirles", destino: ["alumnos", "seg-riesgo"]
+    });
+  }
+  if (!historiaHechaHoy()) {
+    tareas.push({
+      titulo: "Publica la historia de hoy",
+      detalle: `Tema: ${temaDelDia()}. Son 3 láminas listas para subir a Instagram.`,
+      boton: "Ver la historia", destino: ["hoy", "card-historia"]
     });
   }
   return tareas;
