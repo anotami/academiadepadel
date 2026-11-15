@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Tienda Academia de Pádel GP | Palas, zapatillas, ropa y accesorios</title>
+<meta name="description" content="Palas, zapatillas, ropa y accesorios de pádel. Elegí tu producto y pedilo por WhatsApp. Pagá con Yape, Plin o transferencia.">
+<!-- Quitá esta línea cuando quieras que Google indexe la tienda -->
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14495a">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tienda.css?v=1">
+</head>
+<body>
+
+<a class="skip" href="#catalogo">Ir al catálogo</a>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="marca" href="./" aria-label="Tienda Academia de Pádel GP">
+      <img src="../assets/img/logo.svg" alt="" width="34" height="34">
+      <span>Tienda <b>GP</b></span>
+    </a>
+    <nav class="top-nav" aria-label="Secciones">
+      <a href="#catalogo">Catálogo</a>
+      <a href="#como-comprar">Cómo comprar</a>
+      <a href="../">La academia</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- 1. Portada -->
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Academia de Pádel GP · Lima</p>
+      <h1>Tienda Academia de Pádel GP</h1>
+      <p class="hero-sub">Todo para empezar bien y jugar mejor. Elegí lo que te gusta y pedilo por WhatsApp: yo te confirmo stock y coordinamos la entrega.</p>
+      <ul class="cats" id="cats" aria-label="Categorías">
+        <li><button type="button" class="cat" data-cat="Palas"><span class="cat-ico" aria-hidden="true">🎾</span><span class="cat-nom">Palas</span><span class="cat-n" data-n="Palas"></span></button></li>
+        <li><button type="button" class="cat" data-cat="Zapatillas"><span class="cat-ico" aria-hidden="true">👟</span><span class="cat-nom">Zapatillas</span><span class="cat-n" data-n="Zapatillas"></span></button></li>
+        <li><button type="button" class="cat" data-cat="Ropa"><span class="cat-ico" aria-hidden="true">👕</span><span class="cat-nom">Ropa</span><span class="cat-n" data-n="Ropa"></span></button></li>
+        <li><button type="button" class="cat" data-cat="Accesorios"><span class="cat-ico" aria-hidden="true">🎒</span><span class="cat-nom">Accesorios</span><span class="cat-n" data-n="Accesorios"></span></button></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4. Recomendadas para empezar -->
+  <section class="sec" id="recomendadas" hidden>
+    <div class="wrap">
+      <h2>Recomendadas para empezar</h2>
+      <p class="sec-sub">Palas de nivel inicial y las más pedidas: son una buena primera compra si recién arrancás.</p>
+      <div class="carril" id="carril" role="list"></div>
+    </div>
+  </section>
+
+  <!-- 2 y 3. Listado + filtros -->
+  <section class="sec sec-gris" id="catalogo">
+    <div class="wrap">
+      <h2>Catálogo</h2>
+      <form class="filtros" id="filtros" role="search" autocomplete="off">
+        <label class="f f-busca">
+          <span class="sr">Buscar</span>
+          <input type="search" id="f-q" placeholder="Buscá por nombre, marca o código" enterkeyhint="search">
+        </label>
+        <label class="f"><span>Categoría</span>
+          <select id="f-cat"><option value="">Todas</option></select>
+        </label>
+        <label class="f"><span>Nivel</span>
+          <select id="f-nivel">
+            <option value="">Todos</option>
+            <option value="inicial">Inicial</option>
+            <option value="medio">Medio</option>
+            <option value="avanzado">Avanzado</option>
+          </select>
+        </label>
+        <label class="f"><span>Marca</span>
+          <select id="f-marca"><option value="">Todas</option></select>
+        </label>
+        <label class="f"><span>Ordenar</span>
+          <select id="f-orden">
+            <option value="rec">Recomendados</option>
+            <option value="asc">Precio: menor a mayor</option>
+            <option value="desc">Precio: mayor a menor</option>
+          </select>
+        </label>
+        <button type="button" class="btn-limpiar" id="f-limpiar">Limpiar filtros</button>
+      </form>
+      <p class="cuenta" id="cuenta" aria-live="polite">Cargando productos…</p>
+      <div class="grilla" id="grilla"></div>
+      <p class="vacio" id="vacio" hidden>No encontramos productos con esos filtros. Probá con otra palabra o <button type="button" class="link" id="vacio-limpiar">limpiá los filtros</button>.</p>
+      <div class="mas"><button type="button" class="btn btn-sec" id="mas" hidden>Ver más productos</button></div>
+      <p class="aviso">Precios en soles, sujetos a stock. Confirmá disponibilidad por WhatsApp.</p>
+    </div>
+  </section>
+
+  <!-- 6. Cómo comprar -->
+  <section class="sec" id="como-comprar">
+    <div class="wrap">
+      <h2>Cómo comprar</h2>
+      <ol class="pasos">
+        <li><span class="paso-n">1</span><div><h3>Elegí tu producto</h3><p>Mirá el catálogo y tocá el que te guste para ver la foto grande.</p></div></li>
+        <li><span class="paso-n">2</span><div><h3>Escribime por WhatsApp</h3><p>Tocá “Pedir por WhatsApp”: se abre el chat con el mensaje ya armado. Te confirmo stock y colores.</p></div></li>
+        <li><span class="paso-n">3</span><div><h3>Pagá y coordinamos la entrega</h3><p>Pagás con Yape, Plin o transferencia bancaria, y coordinamos la entrega por WhatsApp.</p></div></li>
+      </ol>
+      <ul class="pagos" aria-label="Formas de pago">
+        <li>Yape</li><li>Plin</li><li>Transferencia bancaria</li>
+      </ul>
+      <p class="aviso">Precios sujetos a stock; confirmá disponibilidad por WhatsApp.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="pie">
+  <div class="wrap">
+    <p><b>Academia de Pádel GP</b> · Lima, Perú</p>
+    <p><a href="../">Volver a la academia</a> · <a id="pie-wa" target="_blank" rel="noopener">WhatsApp</a></p>
+  </div>
+</footer>
+
+<!-- 7. Botón flotante de WhatsApp -->
+<a class="wa-flotante" id="wa-flotante" target="_blank" rel="noopener" aria-label="Escribime por WhatsApp">
+  <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M16.02 3C9.4 3 4 8.4 4 15.02c0 2.26.62 4.38 1.7 6.2L4 29l7.94-1.65a12 12 0 0 0 4.08.71h.01c6.62 0 12.02-5.4 12.02-12.02C28.05 8.4 22.64 3 16.02 3Zm0 21.8h-.01a9.8 9.8 0 0 1-5-1.37l-.36-.21-4.71.98 1-4.6-.23-.37a9.76 9.76 0 0 1-1.5-5.2c0-5.4 4.4-9.8 9.82-9.8 5.4 0 9.8 4.4 9.8 9.8s-4.4 9.8-9.81 9.8Zm5.4-7.34c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.5h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.2 1.88.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35Z"/></svg>
+  <span>WhatsApp</span>
+</a>
+
+<!-- 5. Ficha de producto -->
+<dialog class="modal" id="modal" aria-labelledby="m-nombre">
+  <div class="modal-in">
+    <button type="button" class="m-cerrar" id="m-cerrar" aria-label="Cerrar">×</button>
+    <div class="m-foto"><img id="m-img" alt="" width="600" height="600"></div>
+    <div class="m-info">
+      <p class="m-marca" id="m-marca"></p>
+      <h2 id="m-nombre"></h2>
+      <p class="m-tags"><span class="tag" id="m-nivel" hidden></span><span class="tag tag-ag" id="m-agotado" hidden>Consultar stock</span><span class="m-cod" id="m-cod"></span></p>
+      <p class="m-precio" id="m-precio"></p>
+      <p class="m-desc" id="m-desc"></p>
+      <a class="btn btn-wa" id="m-wa" target="_blank" rel="noopener">Pedir por WhatsApp</a>
+      <p class="aviso">Precio sujeto a stock; confirmá disponibilidad por WhatsApp.</p>
+    </div>
+  </div>
+</dialog>
+
+<script type="module" src="tienda.js?v=1"></script>
+</body>
+</html>
