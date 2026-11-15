@@ -1,6 +1,6 @@
 // Recalcula precio_venta_PEN de tienda/productos.csv desde el CSV interno de proveedores.
 // Uso: node scripts/tienda-precios.mjs RUTA/interno_proveedores_web_v1.csv [--aplicar]
-// Además agrega ref_tienda: 3 letras de la tienda de origen (RAQ, WIL, PSP, PHO, BUL, MAS, LIM, MER), que viaja en el pedido de WhatsApp.
+// Además agrega ref_tienda: 4 letras de la tienda de origen (RAQU, WILS, PSHO, PHOU, BULL, MASP, LIMA, MERC), que viaja en el pedido de WhatsApp.
 // Regla: costo >= 400 -> costo x 1.10 ; costo < 400 -> costo x 1.15 ; redondeo al sol entero.
 // El archivo interno (costos y proveedores) NO debe vivir en este repo: la web es pública.
 import fs from "node:fs";
@@ -21,7 +21,7 @@ const esc = (v) => /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
 const [interno, flag] = process.argv.slice(2);
 if (!interno) { console.error("Falta la ruta del CSV interno"); process.exit(1); }
 const int = parse(fs.readFileSync(interno, "utf8")); const ih = int.shift();
-const COD = { "Raqueton": "RAQ", "Wilson Store Perú": "WIL", "PadelShop Perú": "PSP", "Padel House": "PHO", "Bullpadel Perú": "BUL", "Más Padel Perú": "MAS", "LimaPadel": "LIM", "Mercado Pádel Perú": "MER" };
+const COD = { "Raqueton": "RAQU", "Wilson Store Perú": "WILS", "PadelShop Perú": "PSHO", "Padel House": "PHOU", "Bullpadel Perú": "BULL", "Más Padel Perú": "MASP", "LimaPadel": "LIMA", "Mercado Pádel Perú": "MERC" };
 const costo = {}, ref = {};
 for (const r of int) if (r[0]) { costo[r[0]] = parseFloat(r[ih.indexOf("precio_costo")]); ref[r[0]] = COD[r[ih.indexOf("tienda_origen")]] || ""; }
 const url = new URL("../tienda/productos.csv", import.meta.url);

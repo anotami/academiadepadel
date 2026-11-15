@@ -5,8 +5,8 @@ import { escapeHtml } from "./utils.js?v=1";
 
 // Códigos que ya genera la tienda según el servidor de la foto (tienda/config.js).
 // Se siembran la primera vez; la columna "Tienda" la completas tú.
-// Códigos de 3 letras que la web pone en "Ref:" (columna ref_tienda de tienda/productos.csv).
-const TIENDAS_3L = { RAQ: "Raqueton", WIL: "Wilson Store Perú", PSP: "PadelShop Perú", PHO: "Padel House", BUL: "Bullpadel Perú", MAS: "Más Padel Perú", LIM: "LimaPadel", MER: "Mercado Pádel Perú" };
+// Códigos de 4 letras que la web pone en "Ref:" (columna ref_tienda de tienda/productos.csv).
+const TIENDAS_4L = { RAQU: "Raqueton", WILS: "Wilson Store Perú", PSHO: "PadelShop Perú", PHOU: "Padel House", BULL: "Bullpadel Perú", MASP: "Más Padel Perú", LIMA: "LimaPadel", MERC: "Mercado Pádel Perú" };
 const SEMILLA = [
   ["T1", "bullpadel.com.pe"], ["T2", "cms.limapadel.pe"], ["T3", "padelhouse.pe"], ["T4", "mercadopadelperu.com"],
   ["T5", "cdn.shopify.com"], ["T6", "static.wixstatic.com"], ["T7", "Supabase (nizmaeaiphwrtxtsowpq)"]
@@ -62,7 +62,7 @@ function decodificar() {
   const talle = (texto.match(/Talle:\s*([^·\n]+)/i) || [])[1];
   if (!ref) { salida.textContent = "Ese mensaje no trae un “Ref: …” (no viene de la tienda, o es un pedido viejo)."; return; }
   const f = filas[ref.toUpperCase()];
-  const tienda = TIENDAS_3L[ref.toUpperCase()] || (f && f.tienda ? f.tienda : "(sin nombre todavía: complétalo en la tabla)");
+  const tienda = TIENDAS_4L[ref.toUpperCase()] || (f && f.tienda ? f.tienda : "(sin nombre todavía: complétalo en la tabla)");
   salida.textContent = `Tienda: ${tienda}  ·  Ref ${ref.toUpperCase()}` + (producto ? `  ·  ${producto}` : "") + (precio ? `  ·  precio de la web ${precio}` : "") + (talle ? `  ·  talle ${talle.trim()}` : "") + (f && f.notas ? `  ·  ${f.notas}` : "");
 }
 
