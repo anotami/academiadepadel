@@ -235,6 +235,28 @@ const OPS = {
     accion(plan, { tipo: "actualizar", col: "reservas", id: reserva.id, cambios, antes: { registrada: reserva.registrada ?? false, asistio: reserva.asistio ?? null } });
     Object.assign(reserva, cambios);
     let extra = "";
+    // Si NO asistió: no se cuenta ni se cobra -> se devuelve la clase al paquete.
+    if (!asistio && reserva.paqueteId) {
+      const idPaq = reserva.paqueteId;
+      const notasNoShow = [];
+      devolverClaseAlPaquete(e, plan, reserva, notasNoShow);
+      accion(plan, { tipo: "actualizar", col: "reservas", id: reserva.id, cambios: { paqueteId: null, paqueteDevuelto: idPaq }, antes: { paqueteId: idPaq, paqueteDevuelto: reserva.paqueteDevuelto ?? null } });
+      reserva.paqueteId = null; reserva.paqueteDevuelto = idPaq;
+      extra = "; " + notasNoShow.join("; ");
+    }
+    // Corrección "sí asistió" de una clase que se había devuelto: se vuelve a descontar.
+    if (asistio && reserva.paqueteDevuelto && !reserva.paqueteId) {
+      const p = e.paquetes.find((x) => x.id === reserva.paqueteDevuelto);
+      const idPaq = reserva.paqueteDevuelto;
+      if (p && (p.clasesUsadas || 0) < p.clasesTotales) {
+        const antes = p.clasesUsadas || 0;
+        p.clasesUsadas = antes + 1;
+        accion(plan, { tipo: "actualizar", col: "paquetes", id: p.id, cambios: { clasesUsadas: p.clasesUsadas }, antes: { clasesUsadas: antes } });
+        accion(plan, { tipo: "actualizar", col: "reservas", id: reserva.id, cambios: { paqueteId: p.id, paqueteDevuelto: null }, antes: { paqueteId: null, paqueteDevuelto: idPaq } });
+        reserva.paqueteId = p.id; reserva.paqueteDevuelto = null;
+        extra = `; vuelve a descontar de su paquete "${p.tipo}" (${antes}/${p.clasesTotales} → ${p.clasesUsadas}/${p.clasesTotales})`;
+      }
+    }
     if (asistio && reserva.grupoId && !reserva.paqueteId && esProgramaRegular(reserva.tipoClase)) {
       const activos = paquetesActivos(e, alumno.id);
       if (activos.length) {
@@ -243,17 +265,22 @@ const OPS = {
         accion(plan, { tipo: "actualizar", col: "paquetes", id: p.id, cambios: { clasesUsadas: p.clasesUsadas }, antes: { clasesUsadas: antes } });
         accion(plan, { tipo: "actualizar", col: "reservas", id: reserva.id, cambios: { paqueteId: p.id, montoCobrado: null }, antes: { paqueteId: null, montoCobrado: reserva.montoCobrado ?? null } });
         reserva.paqueteId = p.id; reserva.montoCobrado = null;
-        extra = `; descuenta de su paquete "${p.tipo}" (${antes}/${p.clasesTotales} → ${p.clasesUsadas}/${p.clasesTotales})`;
+        extra += `; descuenta de su paquete "${p.tipo}" (${antes}/${p.clasesTotales} → ${p.clasesUsadas}/${p.clasesTotales})`;
       }
     }
     return `CERRAR clase de ${alumno.nombre} · ${fechaCorta(reserva.fecha)} ${reserva.hora} · ${asistio ? "asistió" : "NO asistió"}${op.comentario ? ` · "${op.comentario}"` : ""}${extra}${op.nivelTrabajado ? "" : "  (⚠ nivel trabajado por defecto: " + nivelTrabajado + ")"}`;
   }
 };
 
+// Pestaña del panel a la que lleva el pendiente.
+function destinoDeOp(nombreOp) {
+  return String(nombreOp).startsWith("alumno.") ? "alumnos" : "clases";
+}
+
 // ---------- Planificar un lote ----------
 export function planificar(estadoReal, lote) {
   let e = clonarEstado(estadoReal);
-  const plan = { acciones: [], lineas: [], errores: [] };
+  const plan = { acciones: [], lineas: [], errores: [], pendientes: [] };
   (Array.isArray(lote) ? lote : lote.operaciones || []).forEach((op, i) => {
     const etiqueta = `#${i + 1} ${op.op}`;
     const fn = OPS[op.op];
@@ -261,7 +288,16 @@ export function planificar(estadoReal, lote) {
     const antesAcciones = plan.acciones.length;
     const copia = clonarEstado(e);
     try {
-      plan.lineas.push(`${etiqueta}: ${fn(e, plan, op)}`);
+      const linea = `${etiqueta}: ${fn(e, plan, op)}`;
+      plan.lineas.push(linea);
+      // Pendientes para que Gabriel avance desde el panel: los que pide el lote
+      // (op.pendiente) y los avisos (⚠) que dejó la simulación.
+      if (op.pendiente) {
+        const p = typeof op.pendiente === "string" ? { titulo: op.pendiente } : op.pendiente;
+        plan.pendientes.push({ titulo: String(p.titulo || "Pendiente del asistente").slice(0, 140), detalle: String(p.detalle || linea).slice(0, 400), destino: p.destino || destinoDeOp(op.op) });
+      }
+      const aviso = linea.match(/⚠ ([^)\n]+)/);
+      if (aviso) plan.pendientes.push({ titulo: `Revisar: ${aviso[1].trim()}`.slice(0, 140), detalle: linea.split("\n")[0].slice(0, 400), destino: destinoDeOp(op.op) });
     } catch (err) {
       // Una operación con error no deja nada a medias: ni acciones ni cambios en la copia de trabajo.
       plan.acciones.length = antesAcciones;

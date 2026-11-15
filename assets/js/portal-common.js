@@ -243,6 +243,34 @@ function ahoraEnLima() {
   return { fecha: iso.slice(0, 10), hora: iso.slice(11, 16) };
 }
 
+// Fecha de hoy en Lima, "YYYY-MM-DD". Úsala SIEMPRE en vez de
+// new Date().toISOString() (UTC) o new Date() (zona del navegador).
+export function hoyLima() { return ahoraEnLima().fecha; }
+
+// Suma `n` días (puede ser negativo) a "YYYY-MM-DD" sin depender de la zona.
+export function sumarDiasFecha(fechaStr, n) {
+  const [y, m, d] = fechaStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+}
+
+// Suma `n` meses (mismo día del mes) a "YYYY-MM-DD".
+export function sumarMesesFecha(fechaStr, n) {
+  const [y, m, d] = fechaStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1 + n, d)).toISOString().slice(0, 10);
+}
+
+// Día de la semana de "YYYY-MM-DD": 0=Lunes … 6=Domingo.
+export function diaSemanaIdxFecha(fechaStr) {
+  const [y, m, d] = fechaStr.split("-").map(Number);
+  return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
+}
+
+// Días entre dos fechas "YYYY-MM-DD" (b - a).
+export function diasEntreFechas(a, b) {
+  const t = (s) => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((t(b) - t(a)) / 86400000);
+}
+
 // ¿La clase "YYYY-MM-DD" (+ hora "HH:MM", opcional) ya pasó? Un día anterior
 // siempre sí. Hoy: sí si se pasa la hora y esa hora ya empezó; sin hora, hoy
 // todavía no cuenta como pasado.
@@ -319,7 +347,7 @@ function calcularRachaSemanas(fechas) {
 // reservasAlumno: reservas (ya filtradas por ese alumnoId) tal como vienen
 // de Firestore -- usa solo r.registrada, r.fecha y r.feedback.temas.
 export function calcularProgresoAlumno(reservasAlumno) {
-  const registradas = (reservasAlumno || []).filter((r) => r.registrada);
+  const registradas = (reservasAlumno || []).filter((r) => r.registrada && r.asistio !== false);
   const conteoTemas = {};
   registradas.forEach((r) => {
     (r.feedback?.temas || []).forEach((t) => { conteoTemas[t] = (conteoTemas[t] || 0) + 1; });
@@ -470,11 +498,7 @@ export function esPistaBeelup(pistaNombre) {
 
 // Días transcurridos desde "YYYY-MM-DD" hasta hoy (puede ser negativo si es futura).
 export function diasDesdeFecha(fechaStr) {
-  const [y, m, d] = fechaStr.split("-").map(Number);
-  const fecha = new Date(y, m - 1, d);
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  return Math.round((hoy - fecha) / 86400000);
+  return diasEntreFechas(fechaStr, hoyLima());
 }
 
 // HTML del bloque de video de una reserva: botón si ya hay video, aviso

@@ -12,8 +12,8 @@ import {
   auth, db, onAuthStateChanged, signInAnonymously,
   collection, query, where, getDocs, addDoc, updateDoc, doc, increment, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { formatearFechaLarga, fechaYaPaso } from "./portal-common.js?v=22";
-import { registrarReferidoSiHay } from "./referidos-registro.js?v=1";
+import { formatearFechaLarga, fechaYaPaso } from "./portal-common.js?v=29";
+import { registrarReferidoSiHay, adoptarCodigoManual } from "./referidos-registro.js?v=2";
 import { textoRef } from "./referidos-config.js?v=1";
 
 const WHATSAPP_NUMBER = "51957085531";
@@ -120,8 +120,18 @@ if (confirmarBtn) {
     if (!nombre) { nombreInput.focus(); return; }
     if (!whatsapp) { whatsappInput.focus(); return; }
     if (!email) { emailInput.focus(); return; }
+    const codigoInput = document.getElementById("grupoCodigo");
 
     confirmarBtn.disabled = true;
+    if (codigoInput && codigoInput.value.trim()) {
+      const res = await adoptarCodigoManual(codigoInput.value);
+      if (res === "invalido") {
+        estadoMsg.textContent = "Ese código de invitación no existe. Revísalo o déjalo en blanco.";
+        confirmarBtn.disabled = false;
+        codigoInput.focus();
+        return;
+      }
+    }
     estadoMsg.textContent = "Enviando...";
     try {
       await addDoc(collection(db, "interesados_grupo"), {

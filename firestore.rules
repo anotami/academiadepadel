@@ -446,6 +446,11 @@ service cloud.firestore {
         && request.resource.data.creadoEn == request.time;
     }
 
+    // Pendientes que el asistente deja para el profesor (aparecen en la pestaña Hoy).
+    match /pendientes_asistente/{id} {
+      allow read, write: if esProfesor();
+    }
+
     // ---------- Todo lo demás: denegado ----------
     match /{document=**} {
       allow read, write: if false;

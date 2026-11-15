@@ -10,10 +10,11 @@ import {
   formatearFecha, formatearFechaLarga, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, construirGrillaDisponibilidad,
   CATEGORIAS_COMUNIDAD, DISTRITOS_COMUNIDAD, HORARIOS_COMUNIDAD, POSICIONES_COMUNIDAD, normalizarTelefonoPeru,
   categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto, elegirMensaje,
-  calcularProgresoAlumno, esPistaBeelup, CANCHAS_BEELUP, DURACIONES_CLASE, videoClaseHtml
-} from "./portal-common.js?v=28";
+  calcularProgresoAlumno, esPistaBeelup, CANCHAS_BEELUP, DURACIONES_CLASE, videoClaseHtml,
+  hoyLima, sumarDiasFecha, diaSemanaIdxFecha, diasEntreFechas
+} from "./portal-common.js?v=29";
 import { escapeHtml } from "./utils.js?v=1";
-import { REFERIDOS, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
+import { REFERIDOS, REGEX_CODIGO, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 
 let currentUid = null;
 let currentPerfil = null;
@@ -62,6 +63,7 @@ onAuthStateChanged(auth, async (user) => {
   cargarTurnosGrupales();
   cargarInteresadosGrupo();
   cargarReferidos();
+  cargarPendientesAsistente();
   cargarHistorialClases(user.uid);
   cargarGrupos();
   generarReservasDeGrupos();
@@ -273,6 +275,18 @@ let costosPistasCache = {};
 
 function costoSinLuzDePista(p) {
   return ((costosPistasCache[p.id] || p).costoHoraSinLuz) || 0;
+}
+
+// Costo de UNA hora de cancha en una fecha/hora concretas: si ese bloque de la
+// pista es "con luz" (de noche) cuesta costoHoraConLuz (ej. La Once: 100 de
+// noche vs 80 de día); si no hay tarifa con luz cargada, cae al costo normal.
+function costoHoraDeCancha(p, fecha, hora) {
+  const base = costoSinLuzDePista(p);
+  const conLuz = ((costosPistasCache[p.id] || p).costoHoraConLuz) || 0;
+  if (!conLuz || !fecha || !hora) return base;
+  const dia = diaDeSemana(fecha), franja = horaAFranja(hora);
+  const bloque = (p.disponibilidad || []).find((d) => d.dia === dia && d.franja === franja);
+  return bloque && bloque.tarifa === "con-luz" ? conLuz : base;
 }
 
 async function cargarPistasCache() {
@@ -488,6 +502,39 @@ function renderReferidos() {
   });
 }
 
+// ---- Pendientes que deja el asistente (colección pendientes_asistente) ----
+function cargarPendientesAsistente() {
+  const card = document.getElementById("card-pendientes-asistente");
+  const lista = document.getElementById("lista-pendientes-asistente");
+  onSnapshot(collection(db, "pendientes_asistente"), (snap) => {
+    const abiertos = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((x) => !x.resuelto)
+      .sort((a, b) => (a.creadoEn?.seconds || 0) - (b.creadoEn?.seconds || 0));
+    guiaDatos.pendientesAsistente = abiertos;
+    card.hidden = abiertos.length === 0;
+    lista.innerHTML = "";
+    abiertos.forEach((x) => {
+      const fila = document.createElement("div");
+      fila.className = "request-card";
+      fila.innerHTML = `
+        <div class="request-info">
+          <p class="request-title">☐ ${escapeHtml(x.titulo || "")}</p>
+          ${x.detalle ? `<p class="court-meta">${escapeHtml(x.detalle)}</p>` : ""}
+          <p class="form-msg"></p>
+        </div>
+        <div class="request-actions">
+          <button class="btn btn-outline btn-small" type="button" data-ir-tab="${escapeHtml(x.destino || "clases")}">Ir →</button>
+          <button class="btn btn-primary btn-small" type="button" data-hecho>Hecho ✓</button>
+        </div>`;
+      fila.querySelector("[data-hecho]").addEventListener("click", async () => {
+        try { await updateDoc(doc(db, "pendientes_asistente", x.id), { resuelto: true, resueltoEn: serverTimestamp() }); }
+        catch (err) { const m = fila.querySelector(".form-msg"); m.textContent = "No se pudo: " + err.message; m.className = "form-msg error"; }
+      });
+      lista.appendChild(fila);
+    });
+    recalcularGuia();
+  }, () => { card.hidden = true; }); // si la regla todavía no está publicada, el panel sigue igual
+}
+
 function cargarReferidos() {
   onSnapshot(query(collection(db, "referidos"), orderBy("creadoEn", "desc")), (snap) => {
     referidosCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -551,7 +598,7 @@ document.addEventListener("click", (e) => {
 // Junta lo pendiente que ya calculan las demás secciones y lo muestra como una
 // lista numerada: el primero con un botón directo, el resto debajo. Se
 // recalcula solo cada vez que cambia algo (clases, paquetes, interesados...).
-const guiaDatos = { solicitudesLista: [], porCerrarSesiones: [], porDarSesiones: [], confirmadas: [] };
+const guiaDatos = { solicitudesLista: [], porCerrarSesiones: [], porDarSesiones: [], confirmadas: [], pendientesAsistente: [] };
 
 function nombresDeSesion(grupo) {
   const nombres = [...new Set(grupo.map((r) => r.alumnoNombre || ""))];
@@ -575,6 +622,14 @@ function construirTareasGuia() {
       titulo: cerrar.length === 1 ? `Cierra la clase de ${nombresDeSesion(masVieja)}` : `Cierra ${cerrar.length} clases que ya diste`,
       detalle: `Falta marcar asistencia y dejar feedback. ${cerrar.length === 1 ? "Fue el" : "La más antigua es del"} ${formatearFecha(masVieja[0].fecha)} a las ${masVieja[0].hora}.`,
       boton: "Cerrar clases", destino: ["hoy", "card-por-cerrar"], urgente: true
+    });
+  }
+  const pend = guiaDatos.pendientesAsistente;
+  if (pend.length) {
+    tareas.push({
+      titulo: pend.length === 1 ? `El asistente te dejó un pendiente: ${pend[0].titulo}` : `El asistente te dejó ${pend.length} pendientes`,
+      detalle: pend.length === 1 ? (pend[0].detalle || "Márcalo como hecho cuando lo termines.") : `El primero: ${pend[0].titulo}`,
+      boton: "Ver pendientes", destino: ["hoy", "card-pendientes-asistente"]
     });
   }
   const sinPagar = paquetesCache.filter((p) => !p.pagado);
@@ -627,10 +682,10 @@ function construirTareasGuia() {
       boton: "Ir a Mis datos", destino: ["datos", "card-mis-datos"]
     });
   }
-  const hoyMs = Date.now();
+  const hoyStr = hoyLima();
   const enRiesgo = alumnosCache.filter((a) => {
     const ultima = guiaDatos.confirmadas.filter((r) => r.alumnoId === a.id).map((r) => r.fecha).sort().pop();
-    return ultima && Math.floor((hoyMs - new Date(ultima + "T00:00:00").getTime()) / 86400000) >= DIAS_RIESGO_ABANDONO;
+    return ultima && diasEntreFechas(ultima, hoyStr) >= DIAS_RIESGO_ABANDONO;
   });
   if (enRiesgo.length) {
     tareas.push({
@@ -821,6 +876,42 @@ async function devolverClaseAlPaquete(r) {
   return true;
 }
 
+// Una reserva cuenta como clase dada/cobrable salvo que se haya marcado que el
+// alumno NO asistió (asistio === false). Las no registradas aún cuentan normal.
+const cuentaComoDada = (r) => r.asistio !== false;
+
+// Guarda asistencia + feedback de UNA reserva. Si el alumno NO asistió, la
+// clase no se le cuenta ni se le cobra: se le devuelve la clase del paquete
+// (queda anotado en paqueteDevuelto por si después se corrige a "asistió").
+// Lee la reserva fresca para no devolver dos veces si se guarda dos veces.
+async function guardarAsistencia(r, asistio, feedback) {
+  const ref = doc(db, "reservas", r.id);
+  const fresca = await getDoc(ref);
+  const actual = fresca.exists() ? { id: r.id, ...fresca.data() } : r;
+  const cambios = { registrada: true, asistio, feedback };
+  await updateDoc(ref, cambios);
+  if (asistio === false) {
+    if (actual.paqueteId) {
+      const pref = doc(db, "paquetes", actual.paqueteId);
+      const psnap = await getDoc(pref);
+      if (psnap.exists()) await updateDoc(pref, { clasesUsadas: Math.max(0, (psnap.data().clasesUsadas || 0) - 1) });
+      await updateDoc(ref, { paqueteId: null, paqueteDevuelto: actual.paqueteId });
+    }
+    return;
+  }
+  if (actual.paqueteDevuelto && !actual.paqueteId) {
+    const pref = doc(db, "paquetes", actual.paqueteDevuelto);
+    const psnap = await getDoc(pref);
+    if (psnap.exists() && (psnap.data().clasesUsadas || 0) < (psnap.data().clasesTotales || 0)) {
+      await updateDoc(pref, { clasesUsadas: (psnap.data().clasesUsadas || 0) + 1 });
+      await updateDoc(ref, { paqueteId: actual.paqueteDevuelto, paqueteDevuelto: null });
+      return;
+    }
+    await updateDoc(ref, { paqueteDevuelto: null });
+  }
+  await vincularAPaqueteSiCorresponde({ ...actual, asistio });
+}
+
 async function vincularAPaqueteSiCorresponde(r) {
   if (!r.grupoId || r.paqueteId || !esProgramaRegular(r.tipoClase)) return;
   const snap = await getDocs(query(collection(db, "paquetes"), where("alumnoId", "==", r.alumnoId)));
@@ -884,7 +975,7 @@ function cargarConfirmadas(uid) {
     const ordenarSesiones = (grupos) => grupos.sort((a, b) => a[0].fecha.localeCompare(b[0].fecha) || (a[0].hora || "").localeCompare(b[0].hora || ""));
     guiaDatos.porCerrarSesiones = ordenarSesiones(agruparPorSesion(porRegistrar));
     guiaDatos.porDarSesiones = ordenarSesiones(agruparPorSesion(futuras.filter((r) => !fechaYaPaso(r.fecha, r.hora))));
-    guiaDatos.confirmadas = snap.docs.map((d) => d.data());
+    guiaDatos.confirmadas = snap.docs.map((d) => d.data()).filter(cuentaComoDada);
     actualizarCiclo({
       cargado: true,
       porCerrar: guiaDatos.porCerrarSesiones.length,
@@ -1248,13 +1339,8 @@ function construirTarjetaRegistro(r) {
     const temas = temasSeleccionados(card);
     const feedback = { nivelTrabajado, comentario, siguienteObjetivo, temas, materialUrl };
     try {
-      await updateDoc(doc(db, "reservas", r.id), {
-        registrada: true,
-        asistio,
-        feedback
-      });
-      if (asistio) await vincularAPaqueteSiCorresponde(r);
-      msg.textContent = "Clase cerrada. El alumno ya puede verla.";
+      await guardarAsistencia(r, asistio, feedback);
+      msg.textContent = asistio ? "Clase cerrada. El alumno ya puede verla." : "Clase cerrada como NO asistió: no se cuenta ni se cobra.";
       msg.className = "form-msg ok";
       mostrarAvisoFeedback({ nombre: r.alumnoNombre, telefono: r.alumnoTelefono, feedback });
     } catch (err) {
@@ -1323,13 +1409,8 @@ function construirTarjetaRegistroGrupal(grupo) {
       const temas = temasSeleccionados(fila);
       const feedback = { nivelTrabajado, comentario, siguienteObjetivo, temas, materialUrl };
       try {
-        await updateDoc(doc(db, "reservas", r.id), {
-          registrada: true,
-          asistio,
-          feedback
-        });
-        if (asistio) await vincularAPaqueteSiCorresponde(r);
-        msg.textContent = "Clase cerrada. El alumno ya puede verla.";
+        await guardarAsistencia(r, asistio, feedback);
+        msg.textContent = asistio ? "Clase cerrada. El alumno ya puede verla." : "Clase cerrada como NO asistió: no se cuenta ni se cobra.";
         msg.className = "form-msg ok";
         mostrarAvisoFeedback({ nombre: r.alumnoNombre, telefono: r.alumnoTelefono, feedback });
       } catch (err) {
@@ -1434,7 +1515,8 @@ function renderHistorial() {
 
 let historialSesionesCache = [];
 // Etiqueta de en qué parte del ciclo está una clase (individual o de una sesión).
-function badgeCiclo(esFutura, cerrada) {
+function badgeCiclo(esFutura, cerrada, noAsistio) {
+  if (noAsistio && !esFutura) return '<span class="badge badge-rechazada" title="No se cuenta ni se cobra">④ No asistió</span>';
   if (esFutura) return '<span class="badge badge-pendiente">② Por dar</span>';
   return cerrada
     ? '<span class="badge badge-confirmada">④ Cerrada</span>'
@@ -1606,7 +1688,7 @@ function construirTarjetaHistorial(r) {
   const estadoLabel = { confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado;
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)} ${badgeCiclo(esFutura, !!r.registrada)}</p>
+      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)} ${badgeCiclo(esFutura, !!r.registrada, r.asistio === false)}</p>
       <p>${r.pistaNombre || ""} · ${formatearFecha(r.fecha)} · ${r.hora} hrs
         ${r.modalidad ? "· " + r.modalidad : ""}
         ${typeof r.montoCobrado === "number" ? `· cobrado S/ ${r.montoCobrado}` : ""}
@@ -1722,8 +1804,7 @@ function construirTarjetaHistorial(r) {
     const temas = temasSeleccionados(form);
     const feedback = { nivelTrabajado, comentario, siguienteObjetivo, temas, materialUrl };
     try {
-      await updateDoc(doc(db, "reservas", r.id), { registrada: true, asistio, feedback });
-      if (asistio) await vincularAPaqueteSiCorresponde({ ...r, asistio });
+      await guardarAsistencia(r, asistio, feedback);
       msg.textContent = "Feedback actualizado.";
       msg.className = "form-msg ok";
     } catch (err) {
@@ -1824,7 +1905,7 @@ function construirTarjetaHistorialGrupal(grupo) {
             <strong>${escapeHtml(r.alumnoNombre)}</strong>
             ${typeof r.montoCobrado === "number" ? ` · cobrado S/ ${r.montoCobrado}` : ""}
             ${typeof r.costoCanchaPagado === "number" ? ` · cancha S/ ${r.costoCanchaPagado.toFixed(2)}` : ""}
-            <span class="badge ${r.estado === "confirmada" ? "badge-confirmada" : "badge-pendiente"}">${estadoLabel(r)}</span>
+            <span class="badge ${r.estado === "confirmada" ? "badge-confirmada" : "badge-pendiente"}">${estadoLabel(r)}</span>${r.asistio === false ? ' <span class="badge badge-rechazada" title="No se cuenta ni se cobra">no asistió</span>' : ""}
           </p>
           <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
           <button class="btn btn-outline btn-small" type="button" data-borrar-fila>Borrar</button>
@@ -1923,8 +2004,7 @@ function construirTarjetaHistorialGrupal(grupo) {
       const temas = temasSeleccionados(form);
       const feedback = { nivelTrabajado, comentario, siguienteObjetivo, temas, materialUrl };
       try {
-        await updateDoc(doc(db, "reservas", r.id), { registrada: true, asistio, feedback });
-        if (asistio) await vincularAPaqueteSiCorresponde({ ...r, asistio });
+        await guardarAsistencia(r, asistio, feedback);
         msg.textContent = "Feedback actualizado.";
         msg.className = "form-msg ok";
       } catch (err) {
@@ -2173,11 +2253,8 @@ function renderGrupos() {
 function proximasFechasDia(diaNombre, cantidad) {
   const primera = proximaFechaDia(diaNombre);
   if (!primera) return [];
-  const [y, m, d] = primera.split("-").map(Number);
   const fechas = [];
-  for (let i = 0; i < cantidad; i++) {
-    fechas.push(new Date(y, m - 1, d + i * 7).toISOString().slice(0, 10));
-  }
+  for (let i = 0; i < cantidad; i++) fechas.push(sumarDiasFecha(primera, i * 7));
   return fechas;
 }
 
@@ -2526,14 +2603,86 @@ function renderLogrosRecientes(subieronNivel) {
 }
 
 // ---- Paquetes de clases ----
+// Invitación: si el alumno llegó invitado (un referido "nuevo" que calza por
+// WhatsApp o nombre, o un código tipeado a mano) y es su PRIMER paquete, se
+// ofrece el descuento ya aplicado al monto, y al pagar el referido pasa a
+// "Ya pagó su paquete" (queda pendiente solo regalarle la clase a quien invitó).
+let refManual = null; // { codigo, invitadorId, invitadorNombre } validado en codigos_referido
+
+function normalizarNombre(t) {
+  return (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+}
+
+function referidoDeAlumno(alumno) {
+  if (!alumno) return null;
+  const tel = normalizarTelefonoPeru(alumno.telefono);
+  const nom = normalizarNombre(alumno.nombre);
+  return referidosCache.find((r) => r.estado === "nuevo" && !r.paqueteId && (
+    (tel && normalizarTelefonoPeru(r.invitadoWhatsapp) === tel) ||
+    (nom && normalizarNombre(r.invitadoNombre) === nom)
+  )) || null;
+}
+
+function descuentoReferidoPara(alumnoId) {
+  const alumno = alumnosCache.find((a) => a.id === alumnoId);
+  if (!alumno) return null;
+  if (paquetesCache.some((p) => p.alumnoId === alumnoId)) return null; // solo el primer paquete
+  const existente = referidoDeAlumno(alumno);
+  if (existente) return { referido: existente, invitadorNombre: existente.invitadorNombre, codigo: existente.codigo };
+  if (refManual && refManual.invitadorId !== alumnoId) return { referido: null, invitadorNombre: refManual.invitadorNombre, codigo: refManual.codigo };
+  return null;
+}
+
+function montoConDescuento(monto) {
+  return Math.round(monto * (1 - REFERIDOS.descuentoInvitadoPct / 100));
+}
+
+function actualizarAvisoReferidoPaquete() {
+  const wrap = document.getElementById("pq-ref-wrap");
+  const info = descuentoReferidoPara(document.getElementById("pq-alumno").value);
+  if (!info) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+  document.getElementById("pq-ref-texto").textContent =
+    `Llegó invitado por ${info.invitadorNombre || "un alumno"} (${info.codigo}): aplicar ${REFERIDOS.descuentoInvitadoPct}% de descuento a su primer paquete`;
+  const monto = Number(document.getElementById("pq-monto").value);
+  const aplicar = document.getElementById("pq-ref-aplicar").checked;
+  document.getElementById("pq-ref-preview").textContent = monto > 0 && aplicar
+    ? `Monto de lista S/ ${monto} → se cobra S/ ${montoConDescuento(monto)} (el sistema lo guarda ya con el descuento).`
+    : (monto > 0 ? `Se cobra S/ ${monto}, sin descuento.` : "Escribe el monto de lista: el descuento se calcula solo.");
+}
+
+["pq-alumno", "pq-monto", "pq-ref-aplicar"].forEach((id) => {
+  document.getElementById(id).addEventListener("input", actualizarAvisoReferidoPaquete);
+  document.getElementById(id).addEventListener("change", actualizarAvisoReferidoPaquete);
+});
+
+document.getElementById("pq-codigo").addEventListener("input", async (ev) => {
+  const codigo = ev.target.value.trim().toUpperCase();
+  refManual = null;
+  if (REGEX_CODIGO.test(codigo)) {
+    try {
+      const snap = await getDoc(doc(db, "codigos_referido", codigo));
+      if (snap.exists() && document.getElementById("pq-codigo").value.trim().toUpperCase() === codigo) {
+        const d = snap.data();
+        refManual = { codigo, invitadorId: d.alumnoId, invitadorNombre: d.alumnoNombre || "" };
+      }
+    } catch { /* sin permiso o sin red: queda sin código */ }
+  }
+  actualizarAvisoReferidoPaquete();
+});
+
 document.getElementById("form-paquete").addEventListener("submit", async (e) => {
   e.preventDefault();
   const msg = document.getElementById("paquete-msg");
   const alumnoId = document.getElementById("pq-alumno").value;
   const alumno = alumnosCache.find((a) => a.id === alumnoId);
   const tipo = document.getElementById("pq-tipo").value;
-  const monto = Number(document.getElementById("pq-monto").value);
+  let monto = Number(document.getElementById("pq-monto").value);
   const pagado = document.getElementById("pq-pagado").checked;
+  const infoRef = descuentoReferidoPara(alumnoId);
+  const aplicarRef = !!infoRef && document.getElementById("pq-ref-aplicar").checked;
+  const montoLista = monto;
+  if (aplicarRef) monto = montoConDescuento(monto);
 
   if (!alumno) {
     msg.textContent = "Elige un alumno (primero debe existir al menos uno registrado).";
@@ -2542,7 +2691,17 @@ document.getElementById("form-paquete").addEventListener("submit", async (e) => 
   }
 
   try {
-    await addDoc(collection(db, "paquetes"), {
+    // Si llegó con un código tipeado a mano, se registra la invitación.
+    let referidoId = infoRef?.referido?.id || null;
+    if (infoRef && !referidoId) {
+      const nuevo = await addDoc(collection(db, "referidos"), {
+        codigo: refManual.codigo, invitadorId: refManual.invitadorId, invitadorNombre: refManual.invitadorNombre,
+        invitadoNombre: alumno.nombre, invitadoWhatsapp: alumno.telefono || "sin-whatsapp",
+        origen: "manual", estado: "nuevo", creadoEn: serverTimestamp()
+      });
+      referidoId = nuevo.id;
+    }
+    const datosPaquete = {
       alumnoId,
       alumnoNombre: alumno.nombre,
       tipo,
@@ -2551,11 +2710,24 @@ document.getElementById("form-paquete").addEventListener("submit", async (e) => 
       monto,
       pagado,
       creadoEn: serverTimestamp()
-    });
-    msg.textContent = `Paquete de ${alumno.nombre} activado.`;
+    };
+    if (aplicarRef && referidoId) {
+      datosPaquete.descuentoPct = REFERIDOS.descuentoInvitadoPct;
+      datosPaquete.montoLista = montoLista;
+      datosPaquete.referidoId = referidoId;
+    }
+    const nuevoPaquete = await addDoc(collection(db, "paquetes"), datosPaquete);
+    if (aplicarRef && referidoId) {
+      await updateDoc(doc(db, "referidos", referidoId), pagado
+        ? { estado: "convertido", alumnoId, paqueteId: nuevoPaquete.id, convertidoEn: serverTimestamp() }
+        : { alumnoId, paqueteId: nuevoPaquete.id });
+    }
+    msg.textContent = `Paquete de ${alumno.nombre} activado.` + (aplicarRef ? ` Se aplicó el ${REFERIDOS.descuentoInvitadoPct}% de invitación (S/ ${montoLista} → S/ ${monto}).` : "");
     msg.className = "form-msg ok";
     e.target.reset();
+    refManual = null;
     document.getElementById("pq-pagado").checked = true;
+    actualizarAvisoReferidoPaquete();
   } catch (err) {
     msg.textContent = "No se pudo activar: " + err.message;
     msg.className = "form-msg error";
@@ -2649,6 +2821,11 @@ function construirFilaPaquete(p) {
     const pagado = form.querySelector('[data-campo="pagado"]').checked;
     try {
       await updateDoc(doc(db, "paquetes", p.id), { clasesUsadas, monto, pagado });
+      // Si este paquete traía el descuento de una invitación y recién se pagó, el referido ya convirtió.
+      if (pagado && !p.pagado && p.referidoId) {
+        const ref = referidosCache.find((x) => x.id === p.referidoId);
+        if (ref && ref.estado === "nuevo") await updateDoc(doc(db, "referidos", ref.id), { estado: "convertido", convertidoEn: serverTimestamp() });
+      }
       msg.textContent = "Guardado.";
       msg.className = "form-msg ok";
     } catch (err) {
@@ -2711,13 +2888,13 @@ async function cargarMetricas(uid) {
     // fijo tiene semanas adelante ya confirmadas. Separarlas para que
     // "dictadas" sea de verdad lo ya dado, no una mezcla con lo que falta.
     const confirmadasTodas = reservas.filter((r) => r.estado === "confirmada");
-    const dictadas = agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha, r.hora))).length;
-    const proximas = agruparSesiones(confirmadasTodas.filter((r) => !fechaYaPaso(r.fecha, r.hora))).length;
+    const dictadas = agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r))).length;
+    const proximas = agruparSesiones(confirmadasTodas.filter((r) => !fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r))).length;
     const rechazadas = reservas.filter((r) => r.estado === "rechazada").length;
     const pendientes = reservas.filter((r) => r.estado === "pendiente").length;
 
     const conteoPistas = {};
-    agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha, r.hora))).forEach((ses) => {
+    agruparSesiones(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r))).forEach((ses) => {
       conteoPistas[ses.pistaNombre] = (conteoPistas[ses.pistaNombre] || 0) + 1;
     });
     const pistaTop = Object.entries(conteoPistas).sort((a, b) => b[1] - a[1])[0];
@@ -2727,7 +2904,7 @@ async function cargarMetricas(uid) {
       ? (conNps.reduce((sum, r) => sum + r.nps, 0) / conNps.length).toFixed(1)
       : "—";
 
-    const alumnosActivos = new Set(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha, r.hora)).map((r) => r.alumnoId)).size;
+    const alumnosActivos = new Set(confirmadasTodas.filter((r) => fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r)).map((r) => r.alumnoId)).size;
 
     wrap.innerHTML = `
       <div class="card clickable" data-detalle-metrica="dictadas"><div class="card-icon">✅</div><h3>${dictadas}</h3><p>Clases dictadas</p></div>
@@ -2763,8 +2940,8 @@ function mostrarDetalleMetrica(tipo, cardEl) {
 
   if (tipo === "dictadas" || tipo === "proximas" || tipo === "rechazadas" || tipo === "pendientes") {
     let filtradas;
-    if (tipo === "dictadas") filtradas = reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora));
-    else if (tipo === "proximas") filtradas = reservas.filter((r) => r.estado === "confirmada" && !fechaYaPaso(r.fecha, r.hora));
+    if (tipo === "dictadas") filtradas = reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r));
+    else if (tipo === "proximas") filtradas = reservas.filter((r) => r.estado === "confirmada" && !fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r));
     else filtradas = reservas.filter((r) => r.estado === { rechazadas: "rechazada", pendientes: "pendiente" }[tipo]);
     const porSesion = tipo === "dictadas" || tipo === "proximas";
     // dictadas/próximas se cuentan por clase (una compartida = 1); rechazadas y pendientes son pedidos de cada alumno.
@@ -2775,7 +2952,7 @@ function mostrarDetalleMetrica(tipo, cardEl) {
       : '<p class="empty-state">Sin registros.</p>';
   } else if (tipo === "pistas") {
     const conteo = {};
-    agruparSesiones(reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora))).forEach((ses) => { conteo[ses.pistaNombre] = (conteo[ses.pistaNombre] || 0) + 1; });
+    agruparSesiones(reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r))).forEach((ses) => { conteo[ses.pistaNombre] = (conteo[ses.pistaNombre] || 0) + 1; });
     const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
     wrap.innerHTML = filas.length
       ? `<table class="detalle-table"><thead><tr><th>Pista</th><th>Clases dictadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
@@ -2787,7 +2964,7 @@ function mostrarDetalleMetrica(tipo, cardEl) {
       : '<p class="empty-state">Todavía no hay respuestas de NPS.</p>';
   } else if (tipo === "alumnos") {
     const conteo = {};
-    reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora)).forEach((r) => { conteo[r.alumnoNombre] = (conteo[r.alumnoNombre] || 0) + 1; });
+    reservas.filter((r) => r.estado === "confirmada" && fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r)).forEach((r) => { conteo[r.alumnoNombre] = (conteo[r.alumnoNombre] || 0) + 1; });
     const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
     wrap.innerHTML = filas.length
       ? `<table class="detalle-table"><thead><tr><th>Alumno</th><th>Clases dictadas</th></tr></thead><tbody>${filas.map(([nombre, n]) => `<tr><td>${escapeHtml(nombre)}</td><td>${n}</td></tr>`).join("")}</tbody></table>`
@@ -2807,7 +2984,7 @@ async function calcularRentabilidad(wrap, reservas) {
   // clases que ya pasaron: una clase de un Grupo fijo se autogenera hasta
   // 4 semanas por adelantado con su monto ya cargado, así que sin este
   // filtro aparecían como "ingreso ya ganado" clases que ni se dictaron.
-  const reservasSueltas = reservas.filter((r) => r.estado === "confirmada" && !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0 && fechaYaPaso(r.fecha, r.hora));
+  const reservasSueltas = reservas.filter((r) => r.estado === "confirmada" && !r.paqueteId && typeof r.montoCobrado === "number" && r.montoCobrado > 0 && fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r));
 
   if (paquetesPagados.length === 0 && reservasSueltas.length === 0) {
     wrap.innerHTML = '<p class="empty-state">Todavía no hay paquetes pagados ni clases sueltas con monto cargado para calcular rentabilidad.</p>';
@@ -2849,7 +3026,7 @@ async function calcularRentabilidad(wrap, reservas) {
       const alumnoHtml = escapeHtml(paquete.alumnoNombre || "");
       const notaPaquete = `paquete ${escapeHtml(paquete.tipo || "")}`;
       const dictadasConFecha = reservas
-        .filter((r) => r.estado === "confirmada" && r.paqueteId === paquete.id && fechaYaPaso(r.fecha, r.hora))
+        .filter((r) => r.estado === "confirmada" && r.paqueteId === paquete.id && fechaYaPaso(r.fecha, r.hora) && cuentaComoDada(r))
         .sort((a, b) => a.fecha.localeCompare(b.fecha) || (a.hora || "").localeCompare(b.hora || ""))
         .slice(0, clasesUsadas);
       dictadasConFecha.forEach((r) => detalleIngreso.push({ fecha: r.fecha, alumno: alumnoHtml, nota: notaPaquete, monto: valorClase }));
@@ -2889,13 +3066,15 @@ async function calcularRentabilidad(wrap, reservas) {
       // Una clase compartida usa UNA sola cancha: si el alumno no trae su
       // parte ya cargada (costoCanchaPagado), la hora de cancha se reparte
       // entre los alumnos de la sesión en vez de cobrarse completa a cada uno.
-      const horaDeCancha = pista ? costoSinLuzDePista(pista) : costoPromedioPistas;
+      const horaDeCancha = pista ? costoHoraDeCancha(pista, r.fecha, r.hora) : costoPromedioPistas;
       const costoCancha = typeof r.costoCanchaPagado === "number"
         ? r.costoCanchaPagado
         : horaDeCancha / reservasDeLaSesion.length;
       costoTotal += costoCancha;
       detalleCosto.push({ concepto: `${escapeHtml(r.alumnoNombre || "")} — ${formatearFecha(r.fecha)} (cancha)`, monto: costoCancha, tipo: "cancha", fecha: r.fecha });
     });
+    // Si NADIE asistió, no hubo clase: la cancha igual se pagó, pero no tu hora.
+    if (!reservasDeLaSesion.some(cuentaComoDada)) return;
     costoTotal += costoProfesorHora;
     const primera = reservasDeLaSesion[0];
     detalleCosto.push({ concepto: `${formatearFecha(primera.fecha)} ${primera.hora} — tu hora de clase`, monto: costoProfesorHora, tipo: "hora", fecha: primera.fecha });
@@ -2986,7 +3165,7 @@ function renderEstadisticas() {
   const wrap = document.getElementById("estadisticas");
   if (!wrap || !metricasReservasCache) return;
 
-  const confirmadas = metricasReservasCache.filter((r) => r.estado === "confirmada");
+  const confirmadas = metricasReservasCache.filter((r) => r.estado === "confirmada" && cuentaComoDada(r));
 
   const porNivel = {};
   alumnosCache.forEach((a) => { porNivel[a.nivel || "Sin nivel"] = (porNivel[a.nivel || "Sin nivel"] || 0) + 1; });
@@ -2996,7 +3175,8 @@ function renderEstadisticas() {
   interesadosGrupoCache.forEach((i) => { porEstadoInteresado[i.estado] = (porEstadoInteresado[i.estado] || 0) + 1; });
 
   const porHorario = {};
-  confirmadas.forEach((r) => {
+  // Por CLASE, no por alumno: una clase compartida por 3 es 1 sola demanda de horario.
+  agruparSesiones(confirmadas).forEach((r) => {
     const clave = `${diaDeSemana(r.fecha)} · ${horaAFranja(r.hora)}`;
     porHorario[clave] = (porHorario[clave] || 0) + 1;
   });
@@ -3105,12 +3285,12 @@ function renderLeadsJornadaGratis(wrap, reservas, paquetes) {
 }
 
 function renderRiesgoAbandono(wrap, reservas) {
-  const hoyMs = Date.now();
+  const hoyStr = hoyLima();
   const enRiesgo = alumnosCache.map((a) => {
-    const confirmadasAlumno = reservas.filter((r) => r.alumnoId === a.id && r.estado === "confirmada");
+    const confirmadasAlumno = reservas.filter((r) => r.alumnoId === a.id && r.estado === "confirmada" && cuentaComoDada(r));
     const ultimaFecha = confirmadasAlumno.map((r) => r.fecha).sort().pop();
     const diasSinClase = ultimaFecha
-      ? Math.floor((hoyMs - new Date(ultimaFecha + "T00:00:00").getTime()) / 86400000)
+      ? diasEntreFechas(ultimaFecha, hoyStr)
       : null;
     return { alumno: a, ultimaFecha, diasSinClase };
   }).filter((x) => x.diasSinClase === null || x.diasSinClase >= DIAS_RIESGO_ABANDONO);
@@ -3260,11 +3440,10 @@ document.getElementById("form-turno").addEventListener("submit", async (e) => {
 function proximaFechaDia(diaNombre) {
   const idx = DIAS.indexOf(diaNombre);
   if (idx === -1) return null;
-  const hoy = new Date();
-  const hoyIdx = (hoy.getDay() + 6) % 7; // 0=Lunes...6=Domingo, mismo orden que DIAS
+  const hoy = hoyLima();
+  const hoyIdx = diaSemanaIdxFecha(hoy); // 0=Lunes...6=Domingo, mismo orden que DIAS
   const delta = (idx - hoyIdx + 7) % 7;
-  const resultado = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + delta);
-  return resultado.toISOString().slice(0, 10);
+  return sumarDiasFecha(hoy, delta);
 }
 
 function fechaDeOrden(t) {

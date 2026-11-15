@@ -7,7 +7,7 @@ import {
   auth, db, onAuthStateChanged, signInAnonymously,
   addDoc, collection, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { HORARIOS_COMUNIDAD, normalizarTelefonoPeru } from "./portal-common.js?v=26";
+import { HORARIOS_COMUNIDAD, normalizarTelefonoPeru } from "./portal-common.js?v=29";
 
 // PENDIENTE: Gabriel carga acá el link real de cada grupo de WhatsApp
 // (Configuración del grupo -> Invitar a través de link, en WhatsApp).

@@ -88,6 +88,10 @@ p = plan([{ op: "clase.cerrar", alumno: "Bryan", fecha: "2026-11-10", asistio: t
 ok(acc(p, "paquetes", "actualizar")[0]?.cambios.clasesUsadas === 1, "cerrar una clase de Grupo fijo descuenta del paquete (como el panel)");
 p = plan([{ op: "clase.cerrar", alumno: "Bryan", fecha: "2026-11-10", asistio: false }], e2);
 ok(acc(p, "paquetes", "actualizar").length === 0, "si no asistió, no descuenta del paquete");
+p = plan([{ op: "clase.cerrar", alumno: "Karla", fecha: "2026-11-10", asistio: false }]);
+ok(acc(p, "paquetes", "actualizar")[0]?.cambios.clasesUsadas === 1 && acc(p, "reservas", "actualizar").some((a) => a.cambios.paqueteId === null && a.cambios.paqueteDevuelto === "pq1"), "no asistió: devuelve la clase del paquete y lo anota", JSON.stringify(p.acciones));
+p = plan([{ op: "alumno.crear", nombre: "Pedro Nuevo", telefono: "123", pendiente: "Pedirle su DNI" }]);
+ok(p.pendientes.length === 2 && p.pendientes[0].titulo === "Pedirle su DNI" && p.pendientes[1].titulo.startsWith("Revisar:") && p.pendientes[0].destino === "alumnos", "pendientes: los explícitos y los avisos ⚠ quedan listos para el panel", JSON.stringify(p.pendientes));
 p = plan([{ op: "inventada" }]);
 ok(p.errores.length === 1, "operación desconocida se rechaza");
 

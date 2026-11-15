@@ -18,7 +18,7 @@ const [, , comando, ...resto] = process.argv;
 const flag = (n) => { const i = resto.indexOf(n); return i >= 0 ? resto[i + 1] : undefined; };
 
 function uso() {
-  console.log(`Comandos: probar | ver alumnos [texto] | ver clases [--desde AAAA-MM-DD] [--alumno texto] | simular lote.json | aplicar lote.json --plan ID [--borrados]\nOperaciones: ${OPERACIONES.join(", ")}`);
+  console.log(`Comandos: probar | pendiente "título" [--detalle ..] [--destino ..] | pendientes | ver alumnos [texto] | ver clases [--desde AAAA-MM-DD] [--alumno texto] | simular lote.json | aplicar lote.json --plan ID [--borrados]\nOperaciones: ${OPERACIONES.join(", ")}`);
   process.exit(1);
 }
 
@@ -55,7 +55,14 @@ async function cargarEstado({ fs, db, uid, nombre }) {
   };
 }
 
-const hashDe = (plan) => createHash("sha256").update(plan.lineas.join("\n")).digest("hex").slice(0, 10);
+const hashDe = (plan) => createHash("sha256").update(plan.lineas.join("\n") + JSON.stringify(plan.pendientes || [])).digest("hex").slice(0, 10);
+
+// Deja un pendiente visible en el panel (tarjeta "Pendientes del asistente" con botón Hecho).
+async function dejarPendiente(ctx, { titulo, detalle = "", destino = "clases" }) {
+  const ref = ctx.fs.doc(ctx.fs.collection(ctx.db, "pendientes_asistente"));
+  await ctx.fs.setDoc(ref, { titulo, detalle, destino, resuelto: false, origen: "asistente", creadoEn: ctx.fs.serverTimestamp() });
+  return ref.id;
+}
 
 function mostrarPlan(plan) {
   console.log(plan.lineas.join("\n"));
@@ -63,6 +70,7 @@ function mostrarPlan(plan) {
   const n = { crear: 0, actualizar: 0, borrar: 0 };
   plan.acciones.forEach((a) => n[a.tipo]++);
   console.log(`\nResumen: ${n.crear} por crear · ${n.actualizar} por modificar · ${n.borrar} por borrar` + (plan.borra ? "  ⚠ INCLUYE BORRADOS" : ""));
+  if (plan.pendientes?.length) console.log(`Al aplicar quedarán ${plan.pendientes.length} pendiente(s) visibles en tu panel:\n` + plan.pendientes.map((p) => "  ☐ " + p.titulo).join("\n"));
   console.log(`ID DEL PLAN: ${hashDe(plan)}`);
 }
 
@@ -94,6 +102,23 @@ async function main() {
     } else uso();
     return ctx;
   }
+  if (comando === "pendiente") {
+    // pendiente "Título" [--detalle "texto"] [--destino alumnos|clases|cobros|datos]
+    const titulo = resto[0];
+    if (!titulo) uso();
+    const ctx = await conectar();
+    const id = await dejarPendiente(ctx, { titulo, detalle: flag("--detalle") || "", destino: flag("--destino") || "clases" });
+    console.log(`Pendiente dejado en tu panel (${id}): ${titulo}`);
+    return ctx;
+  }
+  if (comando === "pendientes") {
+    const ctx = await conectar();
+    const snap = await ctx.fs.getDocs(ctx.fs.collection(ctx.db, "pendientes_asistente"));
+    const filas = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((x, y) => (x.creadoEn?.seconds || 0) - (y.creadoEn?.seconds || 0));
+    if (!filas.length) console.log("No hay pendientes.");
+    filas.forEach((p) => console.log(`${p.resuelto ? "☑" : "☐"} ${p.titulo}${p.detalle ? " — " + p.detalle : ""} [${p.id}]`));
+    return ctx;
+  }
   if (comando === "simular" || comando === "aplicar") {
     const lote = leerLote(resto[0]);
     const ctx = await conectar(); const e = await cargarEstado(ctx);
@@ -115,6 +140,10 @@ async function main() {
       else if (a.tipo === "actualizar") await ctx.fs.updateDoc(ref, convertir(a.cambios, ctx.fs));
       else await ctx.fs.deleteDoc(ref);
       console.log(`  ✔ ${a.tipo} ${a.col}/${a.id}`);
+    }
+    for (const p of plan.pendientes || []) {
+      try { await dejarPendiente(ctx, p); console.log(`  ☐ pendiente dejado en el panel: ${p.titulo}`); }
+      catch (err) { console.error(`  (no se pudo dejar el pendiente "${p.titulo}": ${err.message} — ¿publicaste la regla de pendientes_asistente?)`); }
     }
     console.log(`Listo: ${plan.acciones.length} escrituras aplicadas.`);
     return ctx;

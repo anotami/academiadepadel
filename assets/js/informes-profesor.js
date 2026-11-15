@@ -11,7 +11,7 @@ import {
   doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, collection, query, where, orderBy, limit, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=18";
 import { escapeHtml } from "./utils.js?v=1";
-import { CANCHAS_BEELUP, HORAS_RESERVA } from "./portal-common.js?v=26";
+import { CANCHAS_BEELUP, HORAS_RESERVA, hoyLima } from "./portal-common.js?v=29";
 import {
   METRICAS, TEXTO_CLIP, tituloClip, proximaClase, TAREAS, driveImg, claveAlumno, nuevoToken, fechaCorta, sparkline
 } from "./informes-common.js?v=1";
@@ -55,7 +55,7 @@ onAuthStateChanged(auth, async (user) => {
 function poblarFormSolicitud() {
   $("sa-cancha").innerHTML = CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === "2" ? "selected" : ""}>${c}</option>`).join("");
   $("sa-hora").innerHTML = HORAS_RESERVA.map((h) => `<option value="${h}">${h}</option>`).join("");
-  $("sa-fecha").value = new Date().toISOString().slice(0, 10);
+  $("sa-fecha").value = hoyLima();
 }
 
 $("form-solicitud-analisis").addEventListener("submit", async (e) => {

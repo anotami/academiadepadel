@@ -6,7 +6,7 @@ import {
   doc, getDoc, updateDoc, addDoc, deleteDoc, collection, query, where, getDocs,
   serverTimestamp, increment
 } from "./firebase-app.js?v=18";
-import { DISTRITOS_COMUNIDAD, normalizarTelefonoPeru, formatearFechaLarga } from "./portal-common.js?v=26";
+import { DISTRITOS_COMUNIDAD, normalizarTelefonoPeru, formatearFechaLarga } from "./portal-common.js?v=29";
 
 const WHATSAPP_NUMBER = "51957085531";
 const $ = (id) => document.getElementById(id);

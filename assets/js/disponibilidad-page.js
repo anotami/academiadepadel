@@ -16,8 +16,8 @@ import {
   doc, getDoc, updateDoc,
   collection, getDocs, addDoc, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { construirGrillaDisponibilidad, prioridadNombreSede, SEDES_PRINCIPALES } from "./portal-common.js?v=27";
-import { registrarReferidoSiHay } from "./referidos-registro.js?v=1";
+import { construirGrillaDisponibilidad, prioridadNombreSede, SEDES_PRINCIPALES } from "./portal-common.js?v=29";
+import { registrarReferidoSiHay, adoptarCodigoManual } from "./referidos-registro.js?v=2";
 import { textoRef } from "./referidos-config.js?v=1";
 
 const WHATSAPP_NUMBER = "51957085531";
@@ -139,6 +139,17 @@ form.addEventListener("submit", async (e) => {
   submitBtn.disabled = true;
   msg.textContent = "Enviando...";
   msg.className = "form-msg";
+  const codigoInput = document.getElementById("dp-codigo");
+  if (codigoInput && codigoInput.value.trim()) {
+    const res = await adoptarCodigoManual(codigoInput.value);
+    if (res === "invalido") {
+      msg.textContent = "Ese código de invitación no existe. Revísalo o déjalo en blanco.";
+      msg.className = "form-msg error";
+      submitBtn.disabled = false;
+      codigoInput.focus();
+      return;
+    }
+  }
   try {
     const datos = {
       nombre, whatsapp, email: "",

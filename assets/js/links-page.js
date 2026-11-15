@@ -3,11 +3,11 @@
 // genera una jornada nueva desde el panel, aparece sola.
 import { db, collection, getDocs } from "./firebase-app.js?v=18";
 import { escapeHtml } from "./utils.js?v=1";
-import { formatearFecha } from "./portal-common.js?v=26";
+import { formatearFecha, hoyLima } from "./portal-common.js?v=29";
 
 async function cargarJornadas() {
   const wrap = document.getElementById("lnk-jornadas");
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyLima();
   const snap = await getDocs(collection(db, "jornadas"));
   const jornadas = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     .filter((j) => j.fecha >= hoy)

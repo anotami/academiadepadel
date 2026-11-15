@@ -59,6 +59,13 @@
           <div data-guia></div>
         </div>
 
+        <!-- Pendientes que deja el asistente al registrar clases/alumnos (los llena profesor-portal.js) -->
+        <div class="portal-card" id="card-pendientes-asistente" hidden>
+          <h2>Pendientes que te dejó el asistente</h2>
+          <p class="field-hint">Quedaron por resolver al registrar clases o alumnos. Márcalos como hechos cuando los termines.</p>
+          <div id="lista-pendientes-asistente"></div>
+        </div>
+
         <!-- Ciclo de una clase: pasos numerados (lo llena profesor-portal.js) -->
         <div class="portal-card ciclo-card">
           <h2>Ciclo de una clase</h2>
@@ -334,6 +341,16 @@
                   <input type="checkbox" id="pq-pagado" checked> Ya pagó
                 </label>
               </div>
+              <div class="field">
+                <label for="pq-codigo">Código de invitación (opcional)</label>
+                <input type="text" id="pq-codigo" maxlength="14" placeholder="Ej: KARLA-7QX2" autocomplete="off">
+              </div>
+            </div>
+            <div class="ref-banner" id="pq-ref-wrap" hidden style="margin-top:12px;">
+              <label class="avail-slot" style="display:inline-flex;">
+                <input type="checkbox" id="pq-ref-aplicar" checked> <span id="pq-ref-texto"></span>
+              </label>
+              <p class="field-hint" id="pq-ref-preview" style="margin:4px 0 0;"></p>
             </div>
             <button class="btn btn-primary btn-small" type="submit" style="margin-top:14px;">Activar paquete</button>
             <p class="form-msg" id="paquete-msg"></p>
@@ -890,8 +907,8 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=84"></script>
-<script type="module" src="assets/js/informes-profesor.js?v=3"></script>
-<script type="module" src="assets/js/jornadas-profesor.js?v=2"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=86"></script>
+<script type="module" src="assets/js/informes-profesor.js?v=4"></script>
+<script type="module" src="assets/js/jornadas-profesor.js?v=3"></script>
 </body>
 </html>

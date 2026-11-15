@@ -5,7 +5,7 @@ import {
   doc, getDoc, addDoc, updateDoc, deleteDoc, collection, query, where, orderBy, onSnapshot, serverTimestamp
 } from "./firebase-app.js?v=18";
 import { escapeHtml } from "./utils.js?v=1";
-import { formatearFecha } from "./portal-common.js?v=26";
+import { formatearFecha, sumarMesesFecha } from "./portal-common.js?v=29";
 
 const $ = (id) => document.getElementById(id);
 
@@ -79,8 +79,7 @@ document.getElementById("form-jornada-nueva").addEventListener("submit", async (
 
 // +1 mes a una fecha "YYYY-MM-DD", mismo día del mes siguiente.
 function sumarUnMes(fechaStr) {
-  const [y, m, d] = fechaStr.split("-").map(Number);
-  return new Date(y, m, d).toISOString().slice(0, 10);
+  return sumarMesesFecha(fechaStr, 1);
 }
 
 // Crea una copia de `base` en `fechaNueva` -- misma sede/precio/cupos/portada,

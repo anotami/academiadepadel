@@ -7,8 +7,8 @@ import {
 import {
   HORAS_RESERVA, TIPOS_CLASE,
   formatearFecha, diaDeSemana, horaAFranja, estaDisponible, fechaYaPaso, soloDigitos, construirGrillaDisponibilidad,
-  calcularProgresoAlumno, GOLPES_DESBLOQUEABLES, calcularInsignias, MOSTRAR_VIDEO_ALUMNO, videoClaseHtml
-} from "./portal-common.js?v=28";
+  calcularProgresoAlumno, GOLPES_DESBLOQUEABLES, calcularInsignias, MOSTRAR_VIDEO_ALUMNO, videoClaseHtml, hoyLima
+} from "./portal-common.js?v=29";
 import { escapeHtml } from "./utils.js?v=1";
 import { REFERIDOS, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 
@@ -269,7 +269,7 @@ HORAS_RESERVA.forEach((h) => {
   opt.textContent = h;
   horaSelect.appendChild(opt);
 });
-document.getElementById("r-fecha").min = new Date().toISOString().slice(0, 10);
+document.getElementById("r-fecha").min = hoyLima();
 
 // ---- Tipo de clase select ----
 const tipoSelect = document.getElementById("r-tipo");
@@ -460,7 +460,7 @@ document.getElementById("form-reserva").addEventListener("submit", async (e) => 
     msg.textContent = "Solicitud enviada. Tu profesor la confirmará según disponibilidad de la pista.";
     msg.className = "form-msg ok";
     e.target.reset();
-    document.getElementById("r-fecha").min = new Date().toISOString().slice(0, 10);
+    document.getElementById("r-fecha").min = hoyLima();
     hintEl.textContent = "";
   } catch (err) {
     msg.textContent = "No se pudo enviar la solicitud: " + err.message;
@@ -508,7 +508,7 @@ function cargarReservas(uid) {
 async function cancelarReserva(r) {
   if (!confirm("¿Seguro que quieres cancelar esta clase?")) return;
   try {
-    const horasAntes = (new Date(`${r.fecha}T${r.hora}:00`).getTime() - Date.now()) / 3600000;
+    const horasAntes = (new Date(`${r.fecha}T${r.hora}:00-05:00`).getTime() - Date.now()) / 3600000;
     await updateDoc(doc(db, "reservas", r.id), { estado: "cancelada" });
     if (r.paqueteId && horasAntes >= 24) {
       const paqueteSnap = await getDoc(doc(db, "paquetes", r.paqueteId));
