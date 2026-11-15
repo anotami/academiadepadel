@@ -3285,7 +3285,7 @@ function cargarTurnosGrupales() {
 function poblarSelectTurnoManual() {
   const select = document.getElementById("im-turno");
   const valorPrevio = select.value;
-  select.innerHTML = turnosGrupalesCache
+  select.innerHTML = '<option value="">Sin turno por ahora</option>' + turnosGrupalesCache
     .map((t) => `<option value="${t.id}">${escapeHtml(t.nombre)} — ${t.fecha ? formatearFechaLarga(t.fecha) + ", " : ""}${escapeHtml(t.horarioTexto)}</option>`)
     .join("");
   if (turnosGrupalesCache.some((t) => t.id === valorPrevio)) select.value = valorPrevio;
@@ -3317,31 +3317,30 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
   const turnoId = document.getElementById("im-turno").value;
   const notas = document.getElementById("im-notas").value.trim();
   const disponibilidad = dispGridInteresadoManual.obtenerSeleccion();
-  const turno = turnosGrupalesCache.find((t) => t.id === turnoId);
-  if (!turno) {
-    msg.textContent = "Crea al menos un turno primero.";
-    msg.className = "form-msg error";
-    return;
-  }
+  // El turno es opcional: sin turno queda como interesado "suelto" (se le arma grupo después).
+  const turno = turnosGrupalesCache.find((t) => t.id === turnoId) || null;
   try {
     await addDoc(collection(db, "interesados_grupo"), {
       nombre, whatsapp, email: "",
       nivel,
-      turnoId: turno.id,
-      turnoNombre: turno.nombre,
+      turnoId: turno ? turno.id : "",
+      turnoNombre: turno ? turno.nombre : "",
       estado: "nuevo",
+      origen: "manual",
       disponibilidad,
       notas,
       creadoEn: serverTimestamp()
     });
-    try {
-      await updateDoc(doc(db, "turnos_grupales", turno.id), { cupoUsado: increment(1) });
-    } catch {
-      // No bloquea si el contador público no se pudo actualizar.
+    if (turno) {
+      try {
+        await updateDoc(doc(db, "turnos_grupales", turno.id), { cupoUsado: increment(1) });
+      } catch {
+        // No bloquea si el contador público no se pudo actualizar.
+      }
     }
     e.target.reset();
     dispGridInteresadoManual = construirGrillaDisponibilidad(document.getElementById("im-disponibilidad"));
-    msg.textContent = `Agregado a "${turno.nombre}".`;
+    msg.textContent = turno ? `Agregado a "${turno.nombre}".` : `${nombre} agregado como interesado (sin turno).`;
     msg.className = "form-msg ok";
   } catch (err) {
     msg.textContent = "No se pudo agregar: " + err.message;
