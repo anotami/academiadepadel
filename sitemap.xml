@@ -102,4 +102,9 @@
     <priority>0.6</priority>
   </url>
 <!-- BUILD:DISTRITOS:END -->
+  <url>
+    <loc>https://academiadepadel.pe/tienda/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

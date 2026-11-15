@@ -1,6 +1,6 @@
 // Tienda Academia de Pádel GP: lee productos.csv y arma el catálogo.
 // Sin base de datos, sin carrito, sin pagos online: cada producto termina en un chat de WhatsApp.
-import { WHATSAPP, CSV_URL, SALUDO, POR_PAGINA, MAX_RECOMENDADAS } from "./config.js";
+import { WHATSAPP, CSV_URL, SALUDO, POR_PAGINA, MAX_RECOMENDADAS, TALLES_ZAPATILLAS, TALLES_ROPA, REF_POR_DOMINIO } from "./config.js";
 
 const $ = (id) => document.getElementById(id);
 const ORDEN_CATEGORIAS = ["Palas", "Zapatillas", "Ropa", "Accesorios"];
@@ -83,8 +83,10 @@ function limpiarDescripcion(texto) {
   let d = (texto || "").trim();
   d = d.replace(/\[[^\]]*$/, "").trim();   // lista cortada a la mitad: se descarta
   if (d.endsWith("…")) {
-    const corte = d.lastIndexOf(". ");
-    if (corte > 60) d = d.slice(0, corte + 1);
+    // Cortada en el origen: se deja hasta la última frase completa; si no hay una decente, se omite.
+    const cuerpo = d.slice(0, -1);
+    const corte = Math.max(cuerpo.lastIndexOf(". "), cuerpo.lastIndexOf("! "), cuerpo.lastIndexOf("? "));
+    d = corte >= 50 ? cuerpo.slice(0, corte + 1) : "";
   }
   return d;
 }
@@ -111,27 +113,38 @@ function aProductos(filas) {
   const col = {
     codigo: idx("codigo"), categoria: idx("categoria"), marca: idx("marca"), nombre: idx("nombre"),
     precio: idx("precio_venta_pen", "precio_venta", "precio"), nivel: idx("nivel"), vendido: idx("mas_vendido"),
-    disponible: idx("disponible"), imagen: idx("imagen_url", "imagen"), descripcion: idx("descripcion")
+    disponible: idx("disponible"), imagen: idx("imagen_url", "imagen"), descripcion: idx("descripcion"),
+    tallas: idx("tallas", "talles"), ref: idx("ref_tienda", "ref")
   };
   const val = (f, k) => (col[k] >= 0 ? (f[col[k]] || "").trim() : "");
   return filas.slice(1).map((f, orden) => {
     const precio = Number(val(f, "precio").replace(/[^\d.,-]/g, "").replace(",", ".")) || 0;
     const nivel = sinTildes(val(f, "nivel")) || "sin_dato";
     const marca = limpiarMarca(val(f, "marca"));
+    const categoria = val(f, "categoria");
+    const nombreCrudo = val(f, "nombre");
+    // Zapatillas y ropa se piden con talle (salvo que el nombre ya traiga la talla, ej. "Pack x3 Talla 39/42").
+    const pideTalle = (categoria === "Zapatillas" || categoria === "Ropa") && !/\btalla\b/i.test(nombreCrudo);
+    const propias = val(f, "tallas").split(/[;,|]/).map((t) => t.trim()).filter(Boolean);
+    const tallas = !pideTalle ? [] : propias.length ? propias : categoria === "Zapatillas" ? TALLES_ZAPATILLAS : TALLES_ROPA;
+    let ref = val(f, "ref");
+    if (!ref) { try { ref = REF_POR_DOMINIO[new URL(val(f, "imagen")).hostname] || ""; } catch { ref = ""; } }
     return {
       orden,
       codigo: val(f, "codigo"),
-      categoria: val(f, "categoria"),
+      categoria,
       marca,
       nombre: limpiarNombre(val(f, "nombre"), val(f, "marca")) || val(f, "nombre"),
       precio,
       nivel: nivel === "intermedio" ? "medio" : nivel,
       masVendido: sinTildes(val(f, "vendido")) === "si",
-      agotado: sinTildes(val(f, "disponible")) === "no",
+      sinStock: sinTildes(val(f, "disponible")) === "no",
+      tallas,
+      ref,
       imagen: val(f, "imagen"),
       descripcion: limpiarDescripcion(val(f, "descripcion"))
     };
-  }).filter((p) => p.codigo && p.nombre);
+  }).filter((p) => p.codigo && p.nombre && !p.sinStock); // lo que no tiene stock no se muestra
 }
 
 // ---------- Formato ----------
@@ -149,11 +162,12 @@ function soles(n) {
   return `S/ ${miles}${dec ? "," + String(dec).padStart(2, "0") : ""}`;
 }
 
-function linkWhatsApp(p) {
-  const texto = p.agotado
-    ? `${SALUDO}, quiero consultar por el producto ${p.codigo} · ${p.marca} ${p.nombre} · ${soles(p.precio)}`
-    : `${SALUDO}, quiero el producto ${p.codigo} · ${p.marca} ${p.nombre} · ${soles(p.precio)}`;
-  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;
+// Mensaje que te llega: código, marca, nombre y el precio que vio el cliente (+ talle y tu referencia privada).
+function linkWhatsApp(p, talle) {
+  const partes = [`${SALUDO}, quiero el producto ${p.codigo} · ${p.marca} ${p.nombre} · ${soles(p.precio)}`];
+  if (talle) partes.push(`Talle: ${talle}`);
+  if (p.ref) partes.push(`Ref: ${p.ref}`);
+  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(partes.join(" · "))}`;
 }
 
 function el(tag, clase, texto) {
@@ -193,9 +207,17 @@ function tarjeta(p) {
   abrir.appendChild(cuerpo);
   abrir.addEventListener("click", () => abrirFicha(p));
   li.appendChild(abrir);
-  const wa = el("a", "btn btn-wa btn-chico", p.agotado ? "Consultar por WhatsApp" : "Pedir por WhatsApp");
-  wa.href = linkWhatsApp(p); wa.target = "_blank"; wa.rel = "noopener";
-  li.appendChild(wa);
+  if (p.tallas.length) {
+    // Con talle: primero se elige en la ficha, para que el pedido llegue completo.
+    const pedir = el("button", "btn btn-wa btn-chico", "Elegir talle y pedir");
+    pedir.type = "button";
+    pedir.addEventListener("click", () => abrirFicha(p));
+    li.appendChild(pedir);
+  } else {
+    const wa = el("a", "btn btn-wa btn-chico", "Pedir por WhatsApp");
+    wa.href = linkWhatsApp(p); wa.target = "_blank"; wa.rel = "noopener";
+    li.appendChild(wa);
+  }
   return li;
 }
 
@@ -253,7 +275,7 @@ function poblarSelect(id, valores, etiquetaTodos) {
 
 // ---------- Recomendadas ----------
 function pintarRecomendadas() {
-  const base = productos.filter((p) => !p.agotado && ((p.categoria === "Palas" && p.nivel === "inicial") || p.masVendido));
+  const base = productos.filter((p) => ((p.categoria === "Palas" && p.nivel === "inicial") || p.masVendido));
   const lista = base.sort((a, b) => Number(b.masVendido) - Number(a.masVendido) || a.precio - b.precio).slice(0, MAX_RECOMENDADAS);
   $("recomendadas").hidden = lista.length === 0;
   $("carril").replaceChildren(...lista.map((p) => { const c = tarjeta(p); c.setAttribute("role", "listitem"); return c; }));
@@ -272,14 +294,39 @@ function abrirFicha(p, { sinHash = false } = {}) {
   const hayNivel = etiquetaNivel(p);
   tagNivel.hidden = !hayNivel;
   if (hayNivel) { tagNivel.textContent = hayNivel; tagNivel.className = `tag tag-${p.nivel}`; }
-  $("m-agotado").hidden = !p.agotado;
   pintarDescripcion($("m-desc"), p.descripcion || "Consultame por WhatsApp los colores, tamaños y el stock que tengo disponible.");
-  const wa = $("m-wa");
-  wa.href = linkWhatsApp(p);
-  wa.textContent = p.agotado ? "Consultar por WhatsApp" : "Pedir por WhatsApp";
+  prepararTalles(p);
   if (!modal.open) modal.showModal();
   document.body.classList.add("modal-abierto");
   if (!sinHash && location.hash !== "#" + p.codigo) history.pushState(null, "", "#" + p.codigo);
+}
+
+// Talle obligatorio en zapatillas y ropa: el botón de WhatsApp se activa al elegirlo.
+function prepararTalles(p) {
+  const wa = $("m-wa"), caja = $("m-tallas"), chips = $("m-tallas-lista");
+  chips.replaceChildren();
+  const activar = (talle) => {
+    wa.removeAttribute("aria-disabled");
+    wa.href = linkWhatsApp(p, talle);
+    wa.textContent = talle ? `Pedir por WhatsApp · talle ${talle}` : "Pedir por WhatsApp";
+    wa.target = "_blank";
+  };
+  if (!p.tallas.length) { caja.hidden = true; activar(""); return; }
+  caja.hidden = false;
+  wa.setAttribute("aria-disabled", "true");
+  wa.removeAttribute("href");
+  wa.removeAttribute("target");
+  wa.textContent = "Elegí tu talle para pedir";
+  p.tallas.forEach((t) => {
+    const b = el("button", "talle", t);
+    b.type = "button";
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => {
+      chips.querySelectorAll(".talle").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      activar(t);
+    });
+    chips.appendChild(b);
+  });
 }
 
 function cerrarFicha() {

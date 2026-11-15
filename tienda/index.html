@@ -5,15 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>Tienda Academia de Pádel GP | Palas, zapatillas, ropa y accesorios</title>
+<link rel="canonical" href="https://academiadepadel.pe/tienda/">
 <meta name="description" content="Palas, zapatillas, ropa y accesorios de pádel. Elegí tu producto y pedilo por WhatsApp. Pagá con Yape, Plin o transferencia.">
-<!-- Quitá esta línea cuando quieras que Google indexe la tienda -->
-<meta name="robots" content="noindex">
 <meta name="theme-color" content="#14495a">
 <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tienda.css?v=2">
+<link rel="stylesheet" href="tienda.css?v=3">
 </head>
 <body>
 
@@ -136,15 +135,19 @@
     <div class="m-info">
       <p class="m-marca" id="m-marca"></p>
       <h2 id="m-nombre"></h2>
-      <p class="m-tags"><span class="tag" id="m-nivel" hidden></span><span class="tag tag-ag" id="m-agotado" hidden>Consultar stock</span><span class="m-cod" id="m-cod"></span></p>
+      <p class="m-tags"><span class="tag" id="m-nivel" hidden></span><span class="m-cod" id="m-cod"></span></p>
       <p class="m-precio" id="m-precio"></p>
       <div class="m-desc" id="m-desc"></div>
+      <div class="m-tallas" id="m-tallas" hidden>
+        <p class="m-tallas-t">Elegí tu talle</p>
+        <div class="m-tallas-l" id="m-tallas-lista" role="group" aria-label="Talles disponibles"></div>
+      </div>
       <a class="btn btn-wa" id="m-wa" target="_blank" rel="noopener">Pedir por WhatsApp</a>
       <p class="aviso">Precio sujeto a stock; confirmá disponibilidad por WhatsApp.</p>
     </div>
   </div>
 </dialog>
 
-<script type="module" src="tienda.js?v=5"></script>
+<script type="module" src="tienda.js?v=6"></script>
 </body>
 </html>
