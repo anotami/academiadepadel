@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>Historias de Instagram | academiadepadel.pe</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=66">
-<link rel="stylesheet" href="assets/css/historias.css?v=1">
+<link rel="stylesheet" href="assets/css/historias.css?v=2">
 </head>
 <body>
 <header class="site-header" id="top">
@@ -50,6 +50,27 @@
         <p class="form-msg" id="h-msg"></p>
       </div>
 
+      <div class="portal-card" id="h-biblioteca">
+        <h2>Tus fotos y videos</h2>
+        <p class="field-hint">Las historias usan tus fotos. Agrega las que quieras (celular o computador): se quedan guardadas en este navegador y nada se sube a internet. De un video puedes sacar el mejor momento.</p>
+        <div class="hist-fila">
+          <label class="btn btn-primary btn-small" for="h-subir-fotos">＋ Agregar fotos</label>
+          <input type="file" id="h-subir-fotos" accept="image/*" multiple hidden>
+          <label class="btn btn-outline btn-small" for="h-subir-video">🎬 Sacar foto de un video</label>
+          <input type="file" id="h-subir-video" accept="video/*" hidden>
+          <span class="form-msg" id="h-msg-bib"></span>
+        </div>
+        <div class="hist-video" id="h-video-panel" hidden>
+          <video id="h-video" controls playsinline muted preload="metadata"></video>
+          <input type="range" id="h-video-pos" min="0" max="1000" value="0" aria-label="Momento del video">
+          <div class="hist-fila">
+            <button class="btn btn-primary btn-small" type="button" id="h-video-usar">Guardar este momento como foto</button>
+            <button class="btn btn-outline btn-small" type="button" id="h-video-cerrar">Cerrar</button>
+          </div>
+        </div>
+        <div class="hist-fotos" id="h-fotos"></div>
+      </div>
+
       <div class="portal-card">
         <h2>Para la historia</h2>
         <div class="field">
@@ -86,6 +107,13 @@
   </section>
 </main>
 
-<script type="module" src="assets/js/historias-page.js?v=2"></script>
+<dialog class="hist-picker" id="h-picker" aria-label="Elegir foto">
+  <div class="hist-picker-in">
+    <div class="hist-fila"><strong>Elige la foto de esta lámina</strong><button class="btn btn-outline btn-small" type="button" id="h-picker-cerrar" style="margin-left:auto;">Cerrar</button></div>
+    <div class="hist-fotos" id="h-picker-lista"></div>
+  </div>
+</dialog>
+
+<script type="module" src="assets/js/historias-page.js?v=4"></script>
 </body>
 </html>
