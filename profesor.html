@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=60">
+<link rel="stylesheet" href="assets/css/style.css?v=61">
 </head>
 <body>
 
@@ -38,6 +38,9 @@
         <button class="btn btn-outline btn-small" id="btn-logout" type="button">Cerrar sesión</button>
       </div>
 
+      <!-- Siguiente paso: barra fija en todas las pestañas (la llena profesor-portal.js) -->
+      <div id="guia-barra" class="guia-barra" hidden></div>
+
       <nav class="portal-tabs" role="tablist" aria-label="Secciones del panel, en el orden en que las usas">
         <button class="portal-tab" type="button" role="tab" data-tab="hoy"><span class="tab-num">1</span>Hoy<span id="hoy-badge" class="tab-badge" hidden></span></button>
         <button class="portal-tab" type="button" role="tab" data-tab="clases"><span class="tab-num">2</span>Mis clases</button>
@@ -51,10 +54,15 @@
 
       <!-- HOY: lo accionable primero -->
       <div data-tabpanel="hoy">
-        <!-- Ciclo de una clase: aviso + pasos numerados (lo llena profesor-portal.js) -->
+        <!-- Guía: qué hacer ahora, en orden (la llena profesor-portal.js) -->
+        <div class="portal-card guia-card" id="card-guia">
+          <div data-guia></div>
+        </div>
+
+        <!-- Ciclo de una clase: pasos numerados (lo llena profesor-portal.js) -->
         <div class="portal-card ciclo-card">
           <h2>Ciclo de una clase</h2>
-          <div data-ciclo></div>
+          <div data-ciclo data-ciclo-sin-aviso></div>
         </div>
 
         <!-- Solicitudes pendientes -->
@@ -336,11 +344,11 @@
         <!-- Seguimiento: riesgo de abandono, renovaciones, cobros -->
         <div class="portal-card">
           <h2>Seguimiento</h2>
-          <h3>Alumnos sin actividad reciente</h3>
+          <h3 id="seg-riesgo">Alumnos sin actividad reciente</h3>
           <div id="lista-riesgo" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
-          <h3>Paquetes por renovar</h3>
+          <h3 id="seg-renovar">Paquetes por renovar</h3>
           <div id="lista-renovar" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
-          <h3>Cobros pendientes</h3>
+          <h3 id="seg-cobros">Cobros pendientes</h3>
           <div id="lista-cobros" style="margin-bottom:18px;"><p class="empty-state">Cargando...</p></div>
           <h3>Leads de la jornada gratis</h3>
           <div id="lista-leads"><p class="empty-state">Cargando...</p></div>
@@ -791,7 +799,7 @@
 
       <!-- MIS DATOS -->
       <div data-tabpanel="datos" hidden>
-        <div class="portal-card">
+        <div class="portal-card" id="card-mis-datos">
           <h2>Mis datos</h2>
           <form id="form-perfil">
             <div class="form-grid">
@@ -843,7 +851,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=80"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=81"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=3"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=2"></script>
 </body>

@@ -1481,6 +1481,50 @@ h1 .hl {
   .ciclo-pasos { grid-template-columns: 1fr 1fr; }
 }
 
+/* Guía: siguiente paso (barra fija en todas las pestañas + tarjeta completa en Hoy) */
+.guia-barra {
+  display: flex;
+  align-items: center;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--callout-bg);
+  border: 1.5px solid var(--accent-dark);
+  font-size: 0.92rem;
+}
+.guia-barra[hidden] { display: none; }
+.guia-barra.ok { background: #e8f7ee; border-color: #b5e0c4; color: #157347; }
+.guia-barra-texto { flex: 1 1 220px; min-width: 0; }
+.guia-eyebrow { margin: 0 0 4px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--court); }
+.guia-titulo { margin: 0 0 6px; font-family: "Sora", sans-serif; font-size: 1.3rem; line-height: 1.25; color: var(--ink); }
+.guia-detalle { margin: 0 0 14px; color: var(--ink-soft); font-size: 0.93rem; }
+.guia-card { border: 2px solid var(--accent-dark); background: var(--callout-bg); }
+.guia-card.ok { border-color: #b5e0c4; background: #e8f7ee; }
+.guia-despues { margin: 18px 0 0; padding: 14px 0 0; border-top: 1px dashed var(--border); list-style: none; display: grid; gap: 6px; }
+.guia-despues-titulo { margin: 18px 0 0; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
+.guia-despues li { margin: 0; }
+.guia-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.guia-item:hover { border-color: var(--court); }
+.guia-item .paso-badge { margin: 0; }
+.guia-item-detalle { display: block; font-size: 0.78rem; color: var(--ink-soft); }
+.guia-item-flecha { margin-left: auto; color: var(--court); font-weight: 800; }
+
 .portal-card {
   background: var(--surface);
   border: 1px solid var(--border);

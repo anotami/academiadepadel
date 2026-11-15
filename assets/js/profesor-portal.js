@@ -314,6 +314,7 @@ document.getElementById("form-perfil").addEventListener("submit", async (e) => {
     });
     currentPerfil.disponibilidad = disponibilidad;
     currentPerfil.costoHora = costoHora;
+    recalcularGuia();
     msg.textContent = "Datos actualizados.";
     msg.className = "form-msg ok";
   } catch (err) {
@@ -332,13 +333,6 @@ function plural(n, uno, varios) { return `${n} ${n === 1 ? uno : varios}`; }
 function actualizarCiclo(parcial) {
   Object.assign(cicloEstado, parcial);
   const { cargado, solicitudes, porDar, porCerrar, cerradas } = cicloEstado;
-
-  const badge = document.getElementById("hoy-badge");
-  if (badge) {
-    badge.hidden = !(cargado && porCerrar > 0);
-    badge.textContent = porCerrar;
-    badge.title = plural(porCerrar, "clase sin cerrar", "clases sin cerrar");
-  }
 
   const lineas = [];
   if (cargado && porCerrar > 0) lineas.push(`<p>⚠ Tienes ${plural(porCerrar, "clase sin cerrar", "clases sin cerrar")}: falta marcar asistencia y feedback.</p>`);
@@ -361,14 +355,15 @@ function actualizarCiclo(parcial) {
       ${cantidad === null ? "" : `<span class="ciclo-paso-cantidad">${cantidad}</span>`}
       <span class="ciclo-paso-detalle">${detalle}</span>
     </button>`;
-  const html = `${aviso}
+  const htmlCiclo = (conAviso) => `${conAviso ? aviso : ""}
     <div class="ciclo-pasos">
       ${paso(1, "Nueva clase", "Cárgala aquí", null, ["clases", "card-nueva-clase"])}
       ${paso(2, "Por dar", "Confirmadas, aún no empiezan", cargado ? porDar : "…", ["clases", "card-por-dar"])}
       ${paso(3, "Por cerrar", "Falta asistencia y feedback", cargado ? porCerrar : "…", ["hoy", "card-por-cerrar"], cargado ? (porCerrar > 0 ? "alerta" : "ok") : "")}
       ${paso(4, "Cerradas", "Ya terminadas y registradas", cargado ? cerradas : "…", ["clases", "card-historial"])}
     </div>`;
-  document.querySelectorAll("[data-ciclo]").forEach((el) => { el.innerHTML = html; });
+  document.querySelectorAll("[data-ciclo]").forEach((el) => { el.innerHTML = htmlCiclo(!el.hasAttribute("data-ciclo-sin-aviso")); });
+  recalcularGuia();
 }
 
 document.addEventListener("click", (e) => {
@@ -378,6 +373,153 @@ document.addEventListener("click", (e) => {
   const destino = document.getElementById(boton.dataset.irA);
   if (destino) setTimeout(() => destino.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
 });
+
+// ---- Guía: "qué hago ahora", en orden de urgencia ----
+// Junta lo pendiente que ya calculan las demás secciones y lo muestra como una
+// lista numerada: el primero con un botón directo, el resto debajo. Se
+// recalcula solo cada vez que cambia algo (clases, paquetes, interesados...).
+const guiaDatos = { solicitudesLista: [], porCerrarSesiones: [], porDarSesiones: [], confirmadas: [] };
+
+function nombresDeSesion(grupo) {
+  const nombres = [...new Set(grupo.map((r) => r.alumnoNombre || ""))];
+  return nombres.length > 2 ? `${nombres.slice(0, 2).join(", ")} y ${nombres.length - 2} más` : nombres.join(" y ");
+}
+
+function construirTareasGuia() {
+  const tareas = [];
+  const sol = guiaDatos.solicitudesLista;
+  if (sol.length) {
+    tareas.push({
+      titulo: sol.length === 1 ? `Confirma la solicitud de ${sol[0].alumnoNombre}` : `Confirma ${sol.length} solicitudes de clase`,
+      detalle: sol.length === 1 ? `${formatearFecha(sol[0].fecha)} · ${sol[0].hora} hrs — un alumno está esperando tu respuesta.` : "Hay alumnos esperando tu respuesta.",
+      boton: "Ver solicitudes", destino: ["hoy", "card-solicitudes"], urgente: true
+    });
+  }
+  const cerrar = guiaDatos.porCerrarSesiones;
+  if (cerrar.length) {
+    const masVieja = cerrar[0];
+    tareas.push({
+      titulo: cerrar.length === 1 ? `Cierra la clase de ${nombresDeSesion(masVieja)}` : `Cierra ${cerrar.length} clases que ya diste`,
+      detalle: `Falta marcar asistencia y dejar feedback. ${cerrar.length === 1 ? "Fue el" : "La más antigua es del"} ${formatearFecha(masVieja[0].fecha)} a las ${masVieja[0].hora}.`,
+      boton: "Cerrar clases", destino: ["hoy", "card-por-cerrar"], urgente: true
+    });
+  }
+  const sinPagar = paquetesCache.filter((p) => !p.pagado);
+  if (sinPagar.length) {
+    tareas.push({
+      titulo: sinPagar.length === 1 ? `Cobra el paquete de ${sinPagar[0].alumnoNombre}` : `Cobra ${sinPagar.length} paquetes pendientes`,
+      detalle: `S/ ${sinPagar.reduce((sum, p) => sum + (p.monto || 0), 0)} por cobrar.`,
+      boton: "Ver cobros", destino: ["alumnos", "seg-cobros"]
+    });
+  }
+  // Por renovar: le queda 1 clase o ninguna Y no tiene otro paquete con clases disponibles.
+  const alumnosConClases = new Set(paquetesCache.filter((p) => p.clasesTotales - p.clasesUsadas > 1).map((p) => p.alumnoId));
+  const porRenovar = paquetesCache.filter((p) => p.clasesTotales - p.clasesUsadas <= 1 && !alumnosConClases.has(p.alumnoId));
+  const alumnosPorRenovar = [...new Set(porRenovar.map((p) => p.alumnoNombre))];
+  if (alumnosPorRenovar.length) {
+    tareas.push({
+      titulo: alumnosPorRenovar.length === 1 ? `Ofrece renovar el paquete de ${alumnosPorRenovar[0]}` : `Ofrece renovar el paquete a ${alumnosPorRenovar.length} alumnos`,
+      detalle: "Ya usó (o casi) todas sus clases.",
+      boton: "Ver renovaciones", destino: ["alumnos", "seg-renovar"]
+    });
+  }
+  const nuevos = interesadosGrupoCache.filter((i) => i.estado === "nuevo");
+  if (nuevos.length) {
+    tareas.push({
+      titulo: nuevos.length === 1 ? `Escríbele a ${nuevos[0].nombre}, interesado nuevo` : `Escríbeles a ${nuevos.length} interesados nuevos`,
+      detalle: "Se anotaron en la web y todavía no los contactaste.",
+      boton: "Ver interesados", destino: ["captacion", "mkt-interesados"]
+    });
+  }
+  if (!currentPerfil || !currentPerfil.costoHora || !(currentPerfil.disponibilidad || []).length) {
+    tareas.push({
+      titulo: "Completa tus datos",
+      detalle: !currentPerfil?.costoHora ? "Falta tu costo por hora: sin él, la rentabilidad no es exacta." : "Falta marcar tu disponibilidad: la usa la agenda pública.",
+      boton: "Ir a Mis datos", destino: ["datos", "card-mis-datos"]
+    });
+  }
+  const hoyMs = Date.now();
+  const enRiesgo = alumnosCache.filter((a) => {
+    const ultima = guiaDatos.confirmadas.filter((r) => r.alumnoId === a.id).map((r) => r.fecha).sort().pop();
+    return ultima && Math.floor((hoyMs - new Date(ultima + "T00:00:00").getTime()) / 86400000) >= DIAS_RIESGO_ABANDONO;
+  });
+  if (enRiesgo.length) {
+    tareas.push({
+      titulo: enRiesgo.length === 1 ? `${enRiesgo[0].nombre} lleva ${DIAS_RIESGO_ABANDONO}+ días sin clase` : `${enRiesgo.length} alumnos llevan ${DIAS_RIESGO_ABANDONO}+ días sin clase`,
+      detalle: "Un mensaje a tiempo evita que se pierdan.",
+      boton: "Escribirles", destino: ["alumnos", "seg-riesgo"]
+    });
+  }
+  return tareas;
+}
+
+function recalcularGuia() {
+  const barra = document.getElementById("guia-barra");
+  const contenedores = document.querySelectorAll("[data-guia]");
+  if (!barra && !contenedores.length) return;
+  const listo = cicloEstado.cargado && cicloEstado.solicitudes !== null;
+  if (!listo) {
+    contenedores.forEach((el) => { el.innerHTML = '<p class="guia-eyebrow">Tu siguiente paso</p><p class="guia-detalle" style="margin:0;">Revisando tus clases...</p>'; });
+    if (barra) barra.hidden = true;
+    return;
+  }
+
+  const tareas = construirTareasGuia();
+  const boton = (t, clase) => `<button class="btn ${clase}" type="button" data-ir-tab="${t.destino[0]}" data-ir-a="${t.destino[1]}">${t.boton} →</button>`;
+  const tarjeta = document.getElementById("card-guia");
+
+  let html;
+  if (tareas.length) {
+    const [primera, ...resto] = tareas;
+    html = `
+      <p class="guia-eyebrow">Tu siguiente paso · 1 de ${tareas.length}</p>
+      <h2 class="guia-titulo">${escapeHtml(primera.titulo)}</h2>
+      <p class="guia-detalle">${escapeHtml(primera.detalle)}</p>
+      ${boton(primera, "btn-primary")}
+      ${resto.length ? `
+        <p class="guia-despues-titulo">Después</p>
+        <ol class="guia-despues">${resto.map((t, i) => `
+          <li><button class="guia-item" type="button" data-ir-tab="${t.destino[0]}" data-ir-a="${t.destino[1]}">
+            <span class="paso-badge">${i + 2}</span>
+            <span>${escapeHtml(t.titulo)}<span class="guia-item-detalle">${escapeHtml(t.detalle)}</span></span>
+            <span class="guia-item-flecha">→</span>
+          </button></li>`).join("")}
+        </ol>` : ""}`;
+    if (tarjeta) tarjeta.classList.remove("ok");
+  } else {
+    const proxima = guiaDatos.porDarSesiones[0];
+    html = `
+      <p class="guia-eyebrow">Tu siguiente paso</p>
+      <h2 class="guia-titulo">✓ Estás al día</h2>
+      <p class="guia-detalle">${proxima
+        ? `Tu próxima clase: ${escapeHtml(nombresDeSesion(proxima))} · ${formatearFecha(proxima[0].fecha)} a las ${proxima[0].hora} · ${escapeHtml(proxima[0].pistaNombre || "")}.`
+        : "No tienes clases por dar. Cuando quieras, carga una clase nueva."}</p>
+      <button class="btn btn-primary" type="button" data-ir-tab="clases" data-ir-a="card-nueva-clase">Cargar una clase nueva →</button>`;
+    if (tarjeta) tarjeta.classList.add("ok");
+  }
+  contenedores.forEach((el) => { el.innerHTML = html; });
+
+  if (barra) {
+    const tabActiva = document.querySelector(".portal-tab.activo")?.dataset.tab;
+    barra.hidden = tabActiva === "hoy";
+    barra.classList.toggle("ok", !tareas.length);
+    barra.innerHTML = tareas.length
+      ? `<span class="guia-barra-texto">👉 <strong>Siguiente paso:</strong> ${escapeHtml(tareas[0].titulo)}${tareas.length > 1 ? ` <span class="court-meta">(+${tareas.length - 1} más)</span>` : ""}</span>
+         ${boton(tareas[0], "btn-primary btn-small")}`
+      : '<span class="guia-barra-texto">✓ Estás al día: no tienes nada pendiente.</span>';
+  }
+
+  const urgentes = tareas.filter((t) => t.urgente).length;
+  const badge = document.getElementById("hoy-badge");
+  if (badge) {
+    badge.hidden = urgentes === 0;
+    badge.textContent = urgentes;
+    badge.title = `${urgentes} cosas por hacer ahora`;
+  }
+}
+
+// La barra solo se muestra fuera de Hoy (ahí ya está la tarjeta completa).
+document.querySelector(".portal-tabs")?.addEventListener("click", () => setTimeout(recalcularGuia, 0));
 
 actualizarCiclo({});
 
@@ -390,6 +532,7 @@ function cargarPendientes(uid) {
     orderBy("creadoEn", "asc")
   );
   onSnapshot(q, (snap) => {
+    guiaDatos.solicitudesLista = snap.docs.map((d) => d.data());
     actualizarCiclo({ solicitudes: snap.size });
     if (snap.empty) {
       wrap.innerHTML = '<p class="empty-state">No hay solicitudes pendientes.</p>';
@@ -537,9 +680,13 @@ function cargarConfirmadas(uid) {
       else if (!r.registrada || !fechaYaPaso(r.fecha, r.hora)) futuras.push(r);
       if (r.registrada && fechaYaPaso(r.fecha, r.hora)) cerradasLista.push(r);
     });
+    const ordenarSesiones = (grupos) => grupos.sort((a, b) => a[0].fecha.localeCompare(b[0].fecha) || (a[0].hora || "").localeCompare(b[0].hora || ""));
+    guiaDatos.porCerrarSesiones = ordenarSesiones(agruparPorSesion(porRegistrar));
+    guiaDatos.porDarSesiones = ordenarSesiones(agruparPorSesion(futuras.filter((r) => !fechaYaPaso(r.fecha, r.hora))));
+    guiaDatos.confirmadas = snap.docs.map((d) => d.data());
     actualizarCiclo({
       cargado: true,
-      porCerrar: agruparPorSesion(porRegistrar).length,
+      porCerrar: guiaDatos.porCerrarSesiones.length,
       porDar: agruparPorSesion(futuras).length,
       cerradas: agruparPorSesion(cerradasLista).length
     });
@@ -1915,6 +2062,7 @@ async function cargarAlumnos() {
   const todos = snapAlumnos.docs.map((d) => ({ id: d.id, ...d.data() }));
   const migrados = new Set(todos.map((a) => a.migradoDe).filter(Boolean));
   alumnosCache = todos.filter((a) => !migrados.has(a.id));
+  recalcularGuia();
 
   // Qué tipos de clase tomó cada alumno hasta ahora — un alumno no queda
   // encasillado en un solo programa, cada reserva elige el suyo.
@@ -2211,6 +2359,7 @@ function cargarPaquetes() {
   onSnapshot(collection(db, "paquetes"), (snap) => {
     paquetesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     renderPaquetesPorAlumnoClaseDictada();
+    recalcularGuia();
     if (snap.empty) {
       wrap.innerHTML = '<p class="empty-state">Todavía no activaste ningún paquete.</p>';
       return;
@@ -3081,6 +3230,7 @@ function cargarInteresadosGrupo() {
   onSnapshot(collection(db, "interesados_grupo"), (snap) => {
     interesadosGrupoCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0));
+    recalcularGuia();
     renderTurnos();
     renderInteresados();
     renderSugerenciasGrupo();
