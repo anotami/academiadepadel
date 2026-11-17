@@ -246,6 +246,10 @@
         <div class="portal-card" id="card-por-dar">
           <h2><span class="paso-badge">2</span>Clases por dar</h2>
           <p class="field-hint">Confirmadas que todavía no empezaron. Cuando su hora llega, pasan a ③ Clases por cerrar (pestaña Hoy).</p>
+          <div class="hist-fila" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0;">
+            <button class="btn btn-outline btn-small" type="button" id="btn-descargar-ics">📅 Descargar calendario (.ics)</button>
+            <span class="field-hint" id="ics-msg">Todas tus próximas clases en un solo archivo, para importarlo de una vez en Google Calendar.</span>
+          </div>
           <div id="lista-confirmadas"><p class="empty-state">Cargando...</p></div>
         </div>
 
@@ -1024,7 +1028,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=96"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=97"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=6"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=4"></script>
 </body>
