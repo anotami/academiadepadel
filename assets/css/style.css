@@ -1951,9 +1951,20 @@ span.disp-toggle.on { background: var(--court); }
 /* ---------- Informes de clase (panel del profesor + informe.html) ---------- */
 .inf-clase, .inf-informe { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin: 12px 0; background: var(--surface); }
 .inf-clase h3, .inf-informe h3 { margin: 0 0 4px; font-size: 1.02rem; }
-.inf-personas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 10px 0; }
+.inf-personas { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin: 10px 0; }
 .inf-persona { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
-.inf-persona img, .inf-sinfoto { width: 78px; height: 104px; object-fit: cover; border-radius: 8px; background: var(--bg); flex: none; }
+.inf-sinfoto { width: 140px; height: 140px; border-radius: 8px; background: var(--bg); flex: none; }
+.inf-foto-box { position: relative; width: 140px; height: 140px; flex: none; padding: 0; border: 0; border-radius: 8px; background: var(--bg); overflow: hidden; cursor: zoom-in; }
+.inf-foto-box img { width: 100%; height: 100%; object-fit: contain; transform: rotate(var(--inf-rot, 0deg)); display: block; }
+.inf-lupa { position: absolute; right: 4px; bottom: 4px; font-size: .8rem; background: rgba(255,255,255,.85); border-radius: 6px; padding: 1px 4px; }
+.inf-visor { position: fixed; inset: 0; z-index: 1000; background: rgba(10,20,30,.85); display: grid; place-items: center; padding: 12px; }
+.inf-visor[hidden] { display: none; }
+.inf-visor-caja { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; align-items: flex-start; max-width: 1100px; width: 100%; max-height: 100%; overflow: auto; background: var(--surface); border-radius: 14px; padding: 14px; }
+.inf-visor-foto { width: min(72vh, 100%, 640px); aspect-ratio: 1; background: var(--bg); border-radius: 10px; overflow: hidden; }
+.inf-visor-foto img { width: 100%; height: 100%; object-fit: contain; transform: rotate(var(--inf-rot, 0deg)); }
+.inf-visor-lado { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 240px; }
+.inf-visor-lado select, .inf-visor-lado input { width: 100%; padding: 10px; font: inherit; border: 1px solid var(--border); border-radius: 8px; }
+.inf-visor-botones { display: flex; flex-wrap: wrap; gap: 8px; }
 .inf-sinfoto { display: grid; place-items: center; font-size: .75rem; color: var(--ink-soft); }
 .inf-persona-datos { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
 .inf-persona-datos select, .inf-persona-datos input, .inf-proxima { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
