@@ -246,19 +246,10 @@
         <div class="portal-card" id="card-por-dar">
           <h2><span class="paso-badge">2</span>Clases por dar</h2>
           <p class="field-hint">Confirmadas que todavía no empezaron. Cuando su hora llega, pasan a ③ Clases por cerrar (pestaña Hoy).</p>
-          <details class="field-hint" style="margin:8px 0;" open>
-            <summary><strong>📅 Conectar con tu Google Calendar</strong> (una sola vez)</summary>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;">
-              <input type="text" id="ics-url" readonly placeholder="Generando enlace…" aria-label="Enlace de tu calendario" style="flex:1; min-width:240px;">
-              <button class="btn btn-outline btn-small" type="button" id="btn-copiar-ics">Copiar enlace</button>
-            </div>
-            <ol style="margin:0 0 6px 18px;">
-              <li>En la computadora abre <strong>calendar.google.com</strong>.</li>
-              <li>A la izquierda, en <strong>Otros calendarios</strong>, pulsa <strong>+ → Desde URL</strong>.</li>
-              <li>Pega el enlace y pulsa <strong>Agregar calendario</strong>.</li>
-            </ol>
-            <span id="ics-msg">Tus clases se actualizan solas (Google puede tardar unas horas en reflejar un cambio). El enlace es secreto: quien lo tenga ve tus clases, no lo compartas.</span>
-          </details>
+          <div class="hist-fila" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0;">
+            <button class="btn btn-outline btn-small" type="button" id="btn-descargar-ics">📅 Descargar calendario (.ics)</button>
+            <span class="field-hint" id="ics-msg">Todas tus próximas clases en un solo archivo, para importarlo de una vez en Google Calendar.</span>
+          </div>
           <div id="lista-confirmadas"><p class="empty-state">Cargando...</p></div>
         </div>
 
@@ -1037,7 +1028,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=98"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=97"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=6"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=4"></script>
 </body>

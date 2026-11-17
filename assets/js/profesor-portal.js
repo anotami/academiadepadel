@@ -17,7 +17,7 @@ import { escapeHtml } from "./utils.js?v=1";
 import { temaDelDia } from "./historias-data.js?v=3";
 import { iniciarLibretaTienda } from "./libreta-tienda.js?v=2";
 import { iniciarTiendaInterno } from "./tienda-interno.js?v=1";
-import { obtenerUrlFeed, publicarFeed } from "./calendario-ics.js?v=2";
+import { descargarIcs } from "./calendario-ics.js?v=1";
 import { REFERIDOS, REGEX_CODIGO, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 
 let currentUid = null;
@@ -1039,17 +1039,13 @@ function agruparPorSesion(reservas) {
   return grupos;
 }
 
-// ---- Calendario de Google: suscripción (el panel publica el calendario; Google lo lee por una URL secreta) ----
-async function mostrarUrlCalendario() {
-  const caja = document.getElementById("ics-url"), msg = document.getElementById("ics-msg");
-  if (!caja || !currentUid) return;
-  try { caja.value = await obtenerUrlFeed(currentUid); } catch (e) { msg.textContent = "No se pudo generar el enlace: " + e.message; }
-}
-document.getElementById("btn-copiar-ics")?.addEventListener("click", async () => {
-  const caja = document.getElementById("ics-url"), msg = document.getElementById("ics-msg");
-  if (!caja.value) await mostrarUrlCalendario();
-  try { await navigator.clipboard.writeText(caja.value); msg.textContent = "Enlace copiado. Pégalo en Google Calendar (pasos abajo)."; }
-  catch { caja.select(); msg.textContent = "Selecciona el enlace y cópialo."; }
+// ---- Calendario .ics: todas las próximas clases confirmadas en un solo archivo ----
+let reservasParaIcs = [];
+document.getElementById("btn-descargar-ics")?.addEventListener("click", () => {
+  const msg = document.getElementById("ics-msg");
+  if (!reservasParaIcs.length) { msg.textContent = "No hay clases próximas confirmadas para exportar."; return; }
+  descargarIcs(reservasParaIcs);
+  msg.textContent = `Listo: ${reservasParaIcs.length} reserva(s) en el archivo. En Google Calendar: Configuración → Importar y exportar → Importar.`;
 });
 
 // ---- Próximas confirmadas + clases por registrar ----
@@ -1077,9 +1073,8 @@ function cargarConfirmadas(uid) {
     const ordenarSesiones = (grupos) => grupos.sort((a, b) => a[0].fecha.localeCompare(b[0].fecha) || (a[0].hora || "").localeCompare(b[0].hora || ""));
     guiaDatos.porCerrarSesiones = ordenarSesiones(agruparPorSesion(porRegistrar));
     guiaDatos.porDarSesiones = ordenarSesiones(agruparPorSesion(futuras.filter((r) => !fechaYaPaso(r.fecha, r.hora))));
+    reservasParaIcs = futuras.filter((r) => !fechaYaPaso(r.fecha, r.hora));
     guiaDatos.confirmadas = snap.docs.map((d) => d.data()).filter(cuentaComoDada);
-    publicarFeed(uid, snap.docs.map((d) => d.data()));
-    mostrarUrlCalendario();
     actualizarCiclo({
       cargado: true,
       porCerrar: guiaDatos.porCerrarSesiones.length,

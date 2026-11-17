@@ -550,14 +550,6 @@ service cloud.firestore {
       allow read, write: if esProfesor();
     }
 
-    // Calendario de clases para suscribir en Google Calendar. El id del documento es un token secreto de 32
-    // caracteres: se puede LEER con el token exacto (lo hace el Worker de Cloudflare, sin credenciales), pero
-    // nadie puede listarlo ni escribirlo salvo el profesor. Solo lleva "Clase – nombre", sede y horario.
-    match /calendario_feed/{token} {
-      allow get: if true;
-      allow list, create, update, delete: if esProfesor();
-    }
-
     // Proveedores, costos y enlaces de origen de la tienda: solo el profesor.
     match /tienda_interno/{codigo} {
       allow read, write: if esProfesor();

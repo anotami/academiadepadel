@@ -122,13 +122,6 @@ await t("alumno NO lee los proveedores de la tienda", "fail", () => getDocs(coll
 await t("anónimo NO lee los proveedores de la tienda", "fail", () => getDocs(collection(anon, "tienda_interno")));
 await t("alumno NO escribe proveedores de la tienda", "fail", () => setDoc(doc(alu1, "tienda_interno/GP-PAL-001"), { costo: 1 }));
 await t("profesor escribe y lee los proveedores de la tienda", "ok", () => setDoc(doc(prof, "tienda_interno/GP-PAL-001"), { costo: 300, tienda: "x" }));
-await t("anónimo lee el calendario con el token exacto (get)", "ok", async () => { await setDoc(doc(prof, "calendario_feed/tok123"), { ics: "x" }); return getDoc(doc(anon, "calendario_feed/tok123")); });
-await t("anónimo NO lista los calendarios", "fail", () => getDocs(collection(anon, "calendario_feed")));
-await t("alumno NO lista los calendarios", "fail", () => getDocs(collection(alu1, "calendario_feed")));
-await t("alumno NO escribe un calendario", "fail", () => setDoc(doc(alu1, "calendario_feed/tok999"), { ics: "x" }));
-await t("anónimo NO escribe un calendario", "fail", () => setDoc(doc(anon, "calendario_feed/tok999"), { ics: "x" }));
-await t("profesor guarda su token en costos_profesor", "ok", () => setDoc(doc(prof, "costos_profesor/p1"), { calendarioToken: "t" }, { merge: true }));
-await t("alumno NO lee costos_profesor (token del calendario)", "fail", () => getDoc(doc(alu1, "costos_profesor/p1")));
 console.log(`\n${total - fallos}/${total} pasan` + (fallos ? `  ·  ${fallos} FALLAN` : ""));
 await env.cleanup();
 process.exit(fallos ? 1 : 0);
