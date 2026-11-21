@@ -776,7 +776,7 @@ function construirTareasGuia() {
   if (!historiaHechaHoy()) {
     tareas.push({
       titulo: "Publica la historia de hoy",
-      detalle: `Tema: ${temaDelDia()}. Son 3 láminas listas para subir a Instagram.`,
+      detalle: `Tema: ${temaDelDia()}. Son 2 láminas listas para subir a Instagram.`,
       boton: "Ver la historia", destino: ["hoy", "card-historia"]
     });
   }
