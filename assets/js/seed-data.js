@@ -51,7 +51,7 @@ const PISTAS_RAW = [
   ["Cortijo Terraza Club", "Cancha 1", "Lunes a Domingo", "06:00", "22:00", "Habilitada", "+51 981 123 789", "Jr. Ernesto López Mindreau 132, Santiago de Surco", "@cortijoterrazaclub", "S/ 80 - S/ 120 / hr"],
   ["Club Pádel Lima (La Once)", "Cancha 1", "Lunes a Domingo", "06:00", "23:00", "Habilitada", "+51 987 727 200", "Av. Tomás Marsano 630 - A, Surquillo", "laonce.com.pe | @clubpadellima", "S/ 90 - S/ 130 / hr", "Sede principal de academiadepadel.pe."],
   ["Bohemia Pádel Club", "Cancha 1", "Lunes a Domingo", "06:00", "22:30", "Habilitada", "+51 975 613 680", "Av. San Borja Sur 1228, San Borja", "@bohemiapadelclub", "S/ 100 - S/ 140 / hr"],
-  ["Top Padel La Molina", "Cancha 1", "Lunes a Domingo", "06:00", "23:59", "Habilitada", "+51 940 513 952", "Av. Melgarejo 147, La Molina", "toppadel-pe.matchpoint.com.es | @toppadelperu", "S/ 90 - S/ 130 / hr"],
+  ["Top Padel La Molina", "Cancha 1", "Sábado y Domingo", "08:00", "20:00", "Habilitada", "+51 940 513 952", "Av. Melgarejo 147, La Molina", "toppadel-pe.matchpoint.com.es | @toppadelperu", "S/ 90 - S/ 130 / hr"],
   ["Peru Padel Center - Benavides", "Cancha 1 (Indoor)", "Lunes a Domingo", "06:00", "22:30", "Habilitada", "+51 957 033 544", "Av. Alfredo Benavides 347 (Expocentro), Miraflores", "perupadelcenter.com | @perupadelcenter", "S/ 100 - S/ 140 / hr"],
   ["Club adidas X3", "Cancha 1", "Lunes a Domingo", "06:00", "23:00", "Habilitada", "+51 913 861 726", "Av. Paseo de la República 5840, Miraflores", "@clubadidasx3", "S/ 100 - S/ 140 / hr"],
   ["One Padel - El Trigal", "Cancha 1", "Lunes a Domingo", "06:00", "23:00", "Habilitada", "+51 921 633 793", "Ca. Los Antares 298, Santiago de Surco", "onepadel-pe.matchpoint.com.es | @onepadelperu", "S/ 100 - S/ 140 / hr"],

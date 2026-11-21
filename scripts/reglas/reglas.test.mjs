@@ -118,6 +118,10 @@ await t("alumno NO lee la libreta de la tienda", "fail", () => getDocs(collectio
 await t("alumno NO escribe en la libreta de la tienda", "fail", () => setDoc(doc(alu1, "libreta_tienda/T1"), { tienda: "x" }));
 await t("anónimo NO lee la libreta de la tienda", "fail", () => getDocs(collection(anon, "libreta_tienda")));
 await t("profesor escribe y lee la libreta de la tienda", "ok", () => setDoc(doc(prof, "libreta_tienda/T1"), { ref: "T1", tienda: "Mi proveedor" }));
+await t("alumno NO lee los proveedores de la tienda", "fail", () => getDocs(collection(alu1, "tienda_interno")));
+await t("anónimo NO lee los proveedores de la tienda", "fail", () => getDocs(collection(anon, "tienda_interno")));
+await t("alumno NO escribe proveedores de la tienda", "fail", () => setDoc(doc(alu1, "tienda_interno/GP-PAL-001"), { costo: 1 }));
+await t("profesor escribe y lee los proveedores de la tienda", "ok", () => setDoc(doc(prof, "tienda_interno/GP-PAL-001"), { costo: 300, tienda: "x" }));
 console.log(`\n${total - fallos}/${total} pasan` + (fallos ? `  ·  ${fallos} FALLAN` : ""));
 await env.cleanup();
 process.exit(fallos ? 1 : 0);

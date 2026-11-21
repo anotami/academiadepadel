@@ -138,7 +138,7 @@ function htmlClase(c) {
   };
   const personas = (c.personas || []).map((p) => `
     <div class="inf-persona" data-pid="${escapeHtml(p.pid)}">
-      ${p.foto ? `<img src="${driveImg(p.foto, 300)}" alt="Foto de ${escapeHtml(p.pid)}" loading="lazy">` : `<div class="inf-sinfoto">Sin foto</div>`}
+      ${p.foto ? `<button type="button" class="inf-foto-box" data-accion="ampliar" title="Toca para ver grande" aria-label="Ampliar foto de ${escapeHtml(p.pid)}"><img src="${driveImg(p.foto, 600)}" alt="Foto de ${escapeHtml(p.pid)}" loading="lazy"><span class="inf-lupa" aria-hidden="true">🔍</span></button>` : `<div class="inf-sinfoto">Sin foto</div>`}
       <div class="inf-persona-datos">
         <strong>${escapeHtml(p.pid.replace("persona_", "Persona ").replace("profesor", "Profesor (probable)"))}</strong>
         <span class="field-hint">${p.metricas?.tiempo_en_cancha_min ?? "?"} min en cancha · ${(p.clips || []).length} clips</span>
@@ -150,7 +150,8 @@ function htmlClase(c) {
     <div class="inf-clase" data-id="${escapeHtml(c.id)}">
       <h3>Clase ${fechaCorta(c.fecha)} · ${escapeHtml(c.hora || "")} · Cancha ${escapeHtml(c.cancha || "")}</h3>
       <p class="field-hint">Reserva: ${escapeHtml(nombresReserva.join(", ") || "—")}${c.partido ? "" : " · sin partido detectado"} ·
-        <a href="${escapeHtml(c.videoUrl || c.carpeta || "#")}" target="_blank" rel="noopener">ver video</a></p>
+        <a href="${escapeHtml(c.videoUrl || c.carpeta || "#")}" target="_blank" rel="noopener">ver video</a>
+        · <button class="btn btn-outline btn-small" type="button" data-accion="girar">↻ Girar fotos</button></p>
       <div class="inf-personas">${personas || `<p class="empty-state">El análisis no detectó jugadores.</p>`}</div>
       <p class="field-hint">Si una misma persona aparece dos veces, asignale el mismo nombre a las dos: se unen en un solo informe.</p>
       <div class="inf-acciones">
@@ -159,6 +160,82 @@ function htmlClase(c) {
         <span class="form-msg"></span>
       </div>
     </div>`;
+}
+
+// ---- Rotación (las fotos del análisis suelen venir de lado) y visor grande para poder etiquetar ----
+let rotacion = 0;
+try { rotacion = Number(localStorage.getItem("inf-rot")) || 0; } catch { /* sin almacenamiento */ }
+const aplicarRotacion = () => document.documentElement.style.setProperty("--inf-rot", rotacion + "deg");
+aplicarRotacion();
+function girarFotos() {
+  rotacion = (rotacion + 90) % 360;
+  try { localStorage.setItem("inf-rot", String(rotacion)); } catch { /* sin almacenamiento */ }
+  aplicarRotacion();
+}
+
+let visor = null, visorCards = [], visorIdx = 0;
+function crearVisor() {
+  const d = document.createElement("div");
+  d.className = "inf-visor"; d.hidden = true;
+  d.innerHTML = `<div class="inf-visor-caja" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+    <div class="inf-visor-foto"><img alt=""></div>
+    <div class="inf-visor-lado">
+      <strong class="inf-visor-titulo"></strong>
+      <span class="field-hint inf-visor-datos"></span>
+      <select class="inf-visor-sel" aria-label="¿Quién es?"></select>
+      <input class="inf-visor-otro" list="inf-alumnos-lista" placeholder="Nombre del alumno" hidden>
+      <div class="inf-visor-botones">
+        <button type="button" class="btn btn-outline btn-small" data-v="ant">← Anterior</button>
+        <button type="button" class="btn btn-outline btn-small" data-v="sig">Siguiente →</button>
+        <button type="button" class="btn btn-outline btn-small" data-v="girar">↻ Girar</button>
+        <button type="button" class="btn btn-small" data-v="cerrar">Listo</button>
+      </div>
+    </div></div>`;
+  document.body.appendChild(d);
+  d.addEventListener("click", (e) => {
+    const v = e.target.closest("[data-v]")?.dataset.v;
+    if (e.target === d || v === "cerrar") return cerrarVisor();
+    if (v === "girar") girarFotos();
+    if (v === "ant") mostrarVisor(visorIdx - 1);
+    if (v === "sig") mostrarVisor(visorIdx + 1);
+  });
+  d.querySelector(".inf-visor-sel").addEventListener("change", (e) => {
+    const sel = visorCards[visorIdx].querySelector(".inf-asignar");
+    sel.value = e.target.value;
+    sel.dispatchEvent(new Event("change", { bubbles: true }));
+    d.querySelector(".inf-visor-otro").hidden = e.target.value !== "__otro";
+  });
+  d.querySelector(".inf-visor-otro").addEventListener("input", (e) => { visorCards[visorIdx].querySelector(".inf-otro").value = e.target.value; });
+  document.addEventListener("keydown", (e) => {
+    if (d.hidden) return;
+    if (e.key === "Escape") cerrarVisor();
+    if (e.key === "ArrowLeft") mostrarVisor(visorIdx - 1);
+    if (e.key === "ArrowRight") mostrarVisor(visorIdx + 1);
+  });
+  return d;
+}
+function abrirVisor(card) {
+  if (!card) return;
+  visor = visor || crearVisor();
+  visorCards = [...card.closest(".inf-personas").querySelectorAll(".inf-persona")];
+  visor.hidden = false; document.body.style.overflow = "hidden";
+  mostrarVisor(visorCards.indexOf(card));
+}
+function cerrarVisor() { if (visor) visor.hidden = true; document.body.style.overflow = ""; }
+function mostrarVisor(i) {
+  if (!visorCards.length) return;
+  visorIdx = (i + visorCards.length) % visorCards.length;
+  const card = visorCards[visorIdx];
+  const c = clasesCache.find((x) => x.id === card.closest(".inf-clase").dataset.id);
+  const p = c && (c.personas || []).find((x) => x.pid === card.dataset.pid);
+  const img = visor.querySelector(".inf-visor-foto img");
+  img.src = p && p.foto ? driveImg(p.foto, 1400) : "";
+  visor.querySelector(".inf-visor-titulo").textContent = card.querySelector("strong").textContent + `  (${visorIdx + 1} de ${visorCards.length})`;
+  visor.querySelector(".inf-visor-datos").textContent = card.querySelector(".field-hint").textContent;
+  const csel = card.querySelector(".inf-asignar"), vsel = visor.querySelector(".inf-visor-sel");
+  vsel.innerHTML = csel.innerHTML; vsel.value = csel.value;
+  const otro = visor.querySelector(".inf-visor-otro");
+  otro.hidden = csel.value !== "__otro"; otro.value = card.querySelector(".inf-otro").value;
 }
 
 document.addEventListener("change", (e) => {
@@ -172,6 +249,8 @@ document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-accion]");
   if (!b) return;
   const accion = b.dataset.accion;
+  if (accion === "girar") return girarFotos();
+  if (accion === "ampliar") return abrirVisor(b.closest(".inf-persona"));
   if (accion === "armar" || accion === "descartar") return accionClase(b, accion);
   if (accion === "guardar-inf" || accion === "listo-inf" || accion === "copiar-inf" || accion === "enviado-inf") return accionInforme(b, accion);
 });

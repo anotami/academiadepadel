@@ -60,7 +60,7 @@ function decodificar() {
   const talle = (texto.match(/Talle:\s*([^·\n]+)/i) || [])[1];
   if (!ref) { salida.textContent = "Ese mensaje no trae un “Ref: …” (no viene de la tienda, o es un pedido viejo)."; return; }
   const f = filas[ref.toUpperCase()];
-  const tienda = f && f.tienda ? f.tienda : "(sin nombre todavía: complétalo en la tabla)";
+  const tienda = (f && f.tienda ? f.tienda : "(sin nombre todavía: carga el CSV en la pestaña Tienda)");
   salida.textContent = `Tienda: ${tienda}  ·  Ref ${ref.toUpperCase()}` + (producto ? `  ·  ${producto}` : "") + (precio ? `  ·  precio de la web ${precio}` : "") + (talle ? `  ·  talle ${talle.trim()}` : "") + (f && f.notas ? `  ·  ${f.notas}` : "");
 }
 
