@@ -196,8 +196,18 @@ service cloud.firestore {
     }
 
     match /partidos/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      // "Busco con quién jugar": trae el teléfono del alumno, así que NO lo lee un visitante anónimo
+      // (la web entra anónima por defecto): solo quien inició sesión con su cuenta.
+      // Cada alumno publica, edita y borra SOLO lo suyo; el profesor puede moderar.
+      allow read: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+      allow create: if request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && request.resource.data.alumnoId == request.auth.uid;
+      allow update, delete: if esProfesor() || (
+        request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && resource.data.alumnoId == request.auth.uid
+      );
     }
 
     // ---------- Grupos fijos (clase recurrente con roster) ----------

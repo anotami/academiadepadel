@@ -117,7 +117,7 @@ function aProductos(filas) {
     tallas: idx("tallas", "talles"), ref: idx("ref_tienda", "ref")
   };
   const val = (f, k) => (col[k] >= 0 ? (f[col[k]] || "").trim() : "");
-  return filas.slice(1).map((f, orden) => {
+  const lista = filas.slice(1).map((f, orden) => {
     const precio = Number(val(f, "precio").replace(/[^\d.,-]/g, "").replace(",", ".")) || 0;
     const nivel = sinTildes(val(f, "nivel")) || "sin_dato";
     const marca = limpiarMarca(val(f, "marca"));
@@ -145,6 +145,19 @@ function aProductos(filas) {
       descripcion: limpiarDescripcion(val(f, "descripcion"))
     };
   }).filter((p) => p.codigo && p.nombre && !p.sinStock); // lo que no tiene stock no se muestra
+  return sinRepetidos(lista);
+}
+
+// El mismo producto puede venir de dos tiendas (mismo nombre, distinto código y Ref): se muestra una sola vez,
+// el de menor precio (si empatan, el primero del CSV). Así el cliente no ve la misma pala repetida.
+function sinRepetidos(lista) {
+  const mejor = new Map();
+  for (const p of lista) {
+    const clave = sinTildes(`${p.marca} ${p.nombre}`).replace(/[^a-z0-9]+/g, " ").trim();
+    const actual = mejor.get(clave);
+    if (!actual || (p.precio > 0 && (actual.precio <= 0 || p.precio < actual.precio))) mejor.set(clave, p);
+  }
+  return lista.filter((p) => mejor.get(sinTildes(`${p.marca} ${p.nombre}`).replace(/[^a-z0-9]+/g, " ").trim()) === p);
 }
 
 // ---------- Formato ----------

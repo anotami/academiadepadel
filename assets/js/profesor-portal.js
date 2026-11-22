@@ -906,18 +906,28 @@ function badgesDisponibilidad(r) {
   return `<p>${badge(okProfesor, "tu disponibilidad")} ${badge(okPista, "disponibilidad de la pista")}</p>`;
 }
 
+// ¿Hay otra clase confirmada que se pise con [hora, hora + duración) en esa pista y fecha?
+// Compara intervalos reales (ej. 17:00 de 60 min y 17:30 se pisan), no solo la misma hora de inicio.
+// `ignorar` = ids de las reservas que se están moviendo (no cuentan como choque consigo mismas).
+function aMinutosHora(hhmm) { const [h, m] = String(hhmm || "0:0").split(":").map(Number); return h * 60 + (m || 0); }
+async function claseQueSePisa(pistaId, fecha, hora, duracionMin, ignorar = []) {
+  const snap = await getDocs(query(
+    collection(db, "reservas"),
+    where("pistaId", "==", pistaId), where("fecha", "==", fecha), where("estado", "==", "confirmada")
+  ));
+  const ini = aMinutosHora(hora), fin = ini + (Number(duracionMin) || 60);
+  return snap.docs.find((d) => {
+    if (ignorar.includes(d.id)) return false;
+    const o = d.data();
+    const oIni = aMinutosHora(o.hora), oFin = oIni + (Number(o.duracionMin) || 60);
+    return ini < oFin && oIni < fin;
+  }) || null;
+}
+
 async function confirmar(reservaId, reserva) {
-  const choque = await getDocs(
-    query(
-      collection(db, "reservas"),
-      where("pistaId", "==", reserva.pistaId),
-      where("fecha", "==", reserva.fecha),
-      where("hora", "==", reserva.hora),
-      where("estado", "==", "confirmada")
-    )
-  );
-  if (!choque.empty) {
-    alert("Esa pista ya tiene otra clase confirmada en ese mismo horario. Rechaza esta o coordina otro horario con el alumno.");
+  const choque = await claseQueSePisa(reserva.pistaId, reserva.fecha, reserva.hora, reserva.duracionMin ?? 60, [reservaId]);
+  if (choque) {
+    alert("Esa pista ya tiene otra clase confirmada que se pisa con ese horario (" + choque.data().hora + " hrs). Rechaza esta o coordina otro horario con el alumno.");
     return;
   }
   const cambiosConfirmar = { estado: "confirmada", duracionMin: reserva.duracionMin ?? 60 };
@@ -1136,17 +1146,9 @@ function construirTarjetaFutura(r) {
   card.querySelector("[data-guardar-reprogramacion]").addEventListener("click", async () => {
     const fecha = form.querySelector('[data-campo="fecha"]').value;
     const hora = form.querySelector('[data-campo="hora"]').value;
-    const choque = await getDocs(
-      query(
-        collection(db, "reservas"),
-        where("pistaId", "==", r.pistaId),
-        where("fecha", "==", fecha),
-        where("hora", "==", hora),
-        where("estado", "==", "confirmada")
-      )
-    );
-    if (choque.docs.some((d) => d.id !== r.id)) {
-      msg.textContent = "Esa pista ya tiene otra clase confirmada en ese horario.";
+    const choque = await claseQueSePisa(r.pistaId, fecha, hora, r.duracionMin ?? 60, [r.id]);
+    if (choque) {
+      msg.textContent = `Esa pista ya tiene otra clase confirmada que se pisa con ese horario (${choque.data().hora} hrs).`;
       msg.className = "form-msg error";
       return;
     }
@@ -1215,17 +1217,9 @@ function construirTarjetaFuturaGrupal(grupo) {
     const fecha = form.querySelector('[data-campo="fecha"]').value;
     const hora = form.querySelector('[data-campo="hora"]').value;
     const ids = grupo.map((r) => r.id);
-    const choque = await getDocs(
-      query(
-        collection(db, "reservas"),
-        where("pistaId", "==", base.pistaId),
-        where("fecha", "==", fecha),
-        where("hora", "==", hora),
-        where("estado", "==", "confirmada")
-      )
-    );
-    if (choque.docs.some((d) => !ids.includes(d.id))) {
-      msg.textContent = "Esa pista ya tiene otra clase confirmada en ese horario.";
+    const choque = await claseQueSePisa(base.pistaId, fecha, hora, base.duracionMin ?? 60, ids);
+    if (choque) {
+      msg.textContent = `Esa pista ya tiene otra clase confirmada que se pisa con ese horario (${choque.data().hora} hrs).`;
       msg.className = "form-msg error";
       return;
     }
