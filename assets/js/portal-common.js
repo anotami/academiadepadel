@@ -35,7 +35,7 @@ for (let h = FRANJA_INICIO; h < FRANJA_FIN; h += FRANJA_PASO) {
 }
 
 // Horas sueltas para agendar una clase puntual (reserva con fecha exacta):
-// cada 30 minutos, de 06:00 a 21:30 (las clases de 90 min suelen empezar y terminar en :30).
+// cada 30 minutos, de 06:00 a 21:30 (las clases de 60 o 90 min pueden empezar en :00 o :30).
 export const HORAS_RESERVA = [];
 for (let h = 6; h <= 21; h++) {
   const hh = String(h).padStart(2, "0");

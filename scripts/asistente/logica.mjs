@@ -128,7 +128,7 @@ const OPS = {
     if (!TIPOS.includes(op.tipoClase)) throw new Error(`tipoClase "${op.tipoClase}" inválido. Opciones: ${TIPOS.join(" | ")}.`);
     const modalidad = op.modalidad || (alumnos.length > 1 ? "Grupal (2-4 personas)" : "Particular");
     if (!MODALIDADES.includes(modalidad)) throw new Error(`Modalidad "${modalidad}" inválida. Opciones: ${MODALIDADES.join(" | ")}.`);
-    const duracionMin = Number(op.duracionMin) || 90;
+    const duracionMin = Number(op.duracionMin) || 60;
     if (!DURACIONES_CLASE.includes(duracionMin)) throw new Error(`duracionMin ${duracionMin} inválida. Opciones: ${DURACIONES_CLASE.join(", ")}.`);
     const pistaNombre = `${pista.nombre} — ${pista.distrito}`;
     const avisos = [];
