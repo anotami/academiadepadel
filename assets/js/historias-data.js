@@ -1,9 +1,9 @@
-// Historias de Instagram para conseguir alumnos: un tema distinto cada día, 3 láminas por día
+// Historias de Instagram para conseguir alumnos: un tema distinto cada día, 2 láminas por día
 // (gancho → detalle → llamado a la acción con el link a la disponibilidad).
 // Todo lo que se dice sale de datos reales del sitio (sedes, precios, ofertas). Para cambiar
 // precios, sedes o textos, se edita ESTE archivo; los horarios de la semana se editan en la
 // propia página historias.html (se guardan en el navegador).
-import { diasEntreFechas, hoyLima } from "./portal-common.js?v=30";
+import { diasEntreFechas, hoyLima } from "./portal-common.js?v=32";
 
 export const LINK_DISPONIBILIDAD = "https://academiadepadel.pe/disponibilidad.html";
 export const LINK_VISIBLE = "academiadepadel.pe/disponibilidad";

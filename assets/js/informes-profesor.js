@@ -11,7 +11,7 @@ import {
   doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, collection, query, where, orderBy, limit, onSnapshot, getDocs, serverTimestamp
 } from "./firebase-app.js?v=18";
 import { escapeHtml } from "./utils.js?v=1";
-import { CANCHAS_BEELUP, HORAS_RESERVA, hoyLima } from "./portal-common.js?v=30";
+import { CANCHAS_BEELUP, HORAS_RESERVA, hoyLima } from "./portal-common.js?v=32";
 import {
   METRICAS, TEXTO_CLIP, tituloClip, proximaClase, TAREAS, driveImg, claveAlumno, nuevoToken, fechaCorta, sparkline
 } from "./informes-common.js?v=1";

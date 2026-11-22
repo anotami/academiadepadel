@@ -7,7 +7,7 @@ import {
   auth, db, onAuthStateChanged, signInAnonymously,
   addDoc, collection, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { HORARIOS_COMUNIDAD, normalizarTelefonoPeru } from "./portal-common.js?v=30";
+import { HORARIOS_COMUNIDAD, normalizarTelefonoPeru } from "./portal-common.js?v=32";
 
 // Solo existe el grupo del nivel "cero". Los demás quedan en "#" a propósito
 // (no se crearán más grupos): sin link real, el botón "Entrar al grupo" se oculta.
