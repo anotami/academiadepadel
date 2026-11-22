@@ -12,9 +12,9 @@ import {
   categoriaEnRango, detectarTelefonoPeruEnTexto, detectarCategoriaEnTexto, detectarGeneroEnTexto, elegirMensaje,
   calcularProgresoAlumno, esPistaBeelup, CANCHAS_BEELUP, DURACIONES_CLASE, videoClaseHtml,
   hoyLima, sumarDiasFecha, diaSemanaIdxFecha, diasEntreFechas, montoTopPadelPorAlumno
-} from "./portal-common.js?v=30";
+} from "./portal-common.js?v=32";
 import { escapeHtml } from "./utils.js?v=1";
-import { temaDelDia } from "./historias-data.js?v=3";
+import { temaDelDia } from "./historias-data.js?v=4";
 import { iniciarLibretaTienda } from "./libreta-tienda.js?v=2";
 import { iniciarTiendaInterno } from "./tienda-interno.js?v=1";
 import { REFERIDOS, REGEX_CODIGO, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";

@@ -3,7 +3,7 @@
 // Todo lo que se dice sale de datos reales del sitio (sedes, precios, ofertas). Para cambiar
 // precios, sedes o textos, se edita ESTE archivo; los horarios de la semana se editan en la
 // propia página historias.html (se guardan en el navegador).
-import { diasEntreFechas, hoyLima } from "./portal-common.js?v=30";
+import { diasEntreFechas, hoyLima } from "./portal-common.js?v=32";
 
 export const LINK_DISPONIBILIDAD = "https://academiadepadel.pe/disponibilidad.html";
 export const LINK_VISIBLE = "academiadepadel.pe/disponibilidad";

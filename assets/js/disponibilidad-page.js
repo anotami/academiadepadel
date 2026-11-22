@@ -16,7 +16,7 @@ import {
   doc, getDoc, updateDoc,
   collection, getDocs, addDoc, serverTimestamp
 } from "./firebase-app.js?v=18";
-import { construirGrillaDisponibilidad, prioridadNombreSede, SEDES_PRINCIPALES } from "./portal-common.js?v=30";
+import { construirGrillaDisponibilidad, prioridadNombreSede, SEDES_PRINCIPALES } from "./portal-common.js?v=32";
 import { registrarReferidoSiHay, adoptarCodigoManual } from "./referidos-registro.js?v=2";
 import { textoRef } from "./referidos-config.js?v=1";
 

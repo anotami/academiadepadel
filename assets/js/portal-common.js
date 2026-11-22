@@ -34,12 +34,13 @@ for (let h = FRANJA_INICIO; h < FRANJA_FIN; h += FRANJA_PASO) {
   FRANJAS.push(`${h}:00–${h + FRANJA_PASO}:00`);
 }
 
-// Horas sueltas para agendar una clase puntual (reserva con fecha exacta).
-export const HORAS_RESERVA = [
-  "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-  "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
-  "18:00", "19:00", "20:00", "21:00"
-];
+// Horas sueltas para agendar una clase puntual (reserva con fecha exacta):
+// cada 30 minutos, de 06:00 a 21:30 (las clases de 90 min suelen empezar y terminar en :30).
+export const HORAS_RESERVA = [];
+for (let h = 6; h <= 21; h++) {
+  const hh = String(h).padStart(2, "0");
+  HORAS_RESERVA.push(`${hh}:00`, `${hh}:30`);
+}
 
 export function formatearFecha(fechaStr) {
   if (!fechaStr) return "";

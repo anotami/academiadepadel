@@ -4,7 +4,7 @@
 // un archivo de datos aparte. El botón manda a jornada.html, que es donde
 // vive el formulario real de inscripción.
 import { db, collection, query, where, getDocs } from "./firebase-app.js?v=18";
-import { formatearFechaLarga } from "./portal-common.js?v=30";
+import { formatearFechaLarga } from "./portal-common.js?v=32";
 
 function capitalizar(s) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
 

@@ -1,7 +1,7 @@
 // historias.html: arma las láminas (1080×1920) con TUS fotos de fondo y las deja listas para descargar o compartir.
 // Las fotos y los momentos de video se guardan solo en este navegador (IndexedDB); no se suben a ningún lado.
-import { hoyLima, sumarDiasFecha, formatearFechaLarga } from "./portal-common.js?v=30";
-import { historiaDeFecha, HORARIOS_DEFECTO, indiceDeDia, CANTIDAD_TEMAS } from "./historias-data.js?v=3";
+import { hoyLima, sumarDiasFecha, formatearFechaLarga } from "./portal-common.js?v=32";
+import { historiaDeFecha, HORARIOS_DEFECTO, indiceDeDia, CANTIDAD_TEMAS } from "./historias-data.js?v=4";
 import { W, H, dibujarLamina, FOCOS, ENC_DEFECTO } from "./historias-render.js?v=1";
 
 const $ = (id) => document.getElementById(id);
