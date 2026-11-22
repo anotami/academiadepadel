@@ -45,7 +45,7 @@ document.getElementById("dp-disp-ninguno").addEventListener("click", () => dispG
 if (alumnoId) {
   camposInteresado.hidden = true;
   eyebrow.textContent = "Tu disponibilidad";
-  heading.textContent = "Actualiza tu disponibilidad";
+  heading.textContent = "Actualizá tu disponibilidad";
   sub.textContent = "Marca los bloques en los que normalmente podrías jugar — tu profesor la usa para armar y confirmar tus clases.";
   submitBtn.textContent = "Guardar disponibilidad";
   document.getElementById("dp-ok-texto").textContent = "Guardamos tu disponibilidad — tu profesor ya la ve actualizada.";
@@ -54,7 +54,7 @@ if (alumnoId) {
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     try { await signInAnonymously(auth); }
-    catch { msg.textContent = "No se pudo conectar — revisa tu conexión y recarga la página."; msg.className = "form-msg error"; }
+    catch { msg.textContent = "No se pudo conectar — revisá tu conexión y recargá la página."; msg.className = "form-msg error"; }
     return;
   }
 
@@ -63,16 +63,16 @@ onAuthStateChanged(auth, async (user) => {
       const snap = await getDoc(doc(db, "usuarios", alumnoId));
       if (!snap.exists() || snap.data().rol !== "alumno") {
         form.hidden = true;
-        errorMsg.textContent = "No encontramos este link. Pide a tu profesor que te mande uno nuevo.";
+        errorMsg.textContent = "No encontramos este link. Pedí a tu profesor que te mande uno nuevo.";
         errorMsg.hidden = false;
         return;
       }
       const alumno = snap.data();
-      heading.textContent = `Hola, ${alumno.nombre || ""} — actualiza tu disponibilidad`;
+      heading.textContent = `Hola, ${alumno.nombre || ""} — actualizá tu disponibilidad`;
       dispGrid = construirGrillaDisponibilidad(document.getElementById("dp-disponibilidad"), { marcadas: alumno.disponibilidad || [] });
     } catch (err) {
       form.hidden = true;
-      errorMsg.textContent = "No se pudo cargar tu disponibilidad (" + err.message + "). Recarga la página.";
+      errorMsg.textContent = "No se pudo cargar tu disponibilidad (" + err.message + "). Recargá la página.";
       errorMsg.hidden = false;
     }
     return;

@@ -2,8 +2,8 @@
   var STORAGE_KEY = "promo_bar_closed";
 
   var MENSAJES = [
-    { href: "test.html", html: "🎯 ¿No sabes tu nivel de pádel? <strong>Descúbrelo en 30 segundos</strong> y te decimos tu plan ideal →" },
-    { href: "index.html#contacto", html: "🎾 ¿No tienes pala? <strong>Te la prestamos sin costo</strong> en tus primeras clases." },
+    { href: "test.html", html: "🎯 ¿No sabés tu nivel de pádel? <strong>Descubrilo en 30 segundos</strong> y te decimos tu plan ideal →" },
+    { href: "index.html#contacto", html: "🎾 ¿No tenés pala? <strong>Te la prestamos sin costo</strong> en tus primeras clases." },
     { href: "index.html#ofertas", html: "👥 <strong>Cupo Fundador:</strong> 1 clase de regalo en tu paquete, solo para los primeros 10 alumnos." }
   ];
 

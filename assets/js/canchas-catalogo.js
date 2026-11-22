@@ -92,7 +92,7 @@ function tarjeta(c) {
   const nombreMostrar = c.nombre.replace(" (nuestra academia)", "");
   const mapaQuery = encodeURIComponent(`${nombreMostrar}, ${c.direccion}`);
   const techadaTexto = c.techada === true ? "Techada" : c.techada === false ? "Aire libre" : "Techada/aire libre: no especificado";
-  const actualizaTexto = encodeURIComponent(`Hola, soy de ${nombreMostrar} y quiero actualizar nuestros datos en el directorio de canchas de academiadepadel.pe`);
+  const actualizaTexto = encodeURIComponent(`Hola, soy de ${nombreMostrar} y quiero actualizar nuestros datos en el directorio de pistas de academiadepadel.pe`);
 
   let media;
   if (c.logo && !c.foto) {
@@ -133,7 +133,7 @@ function tarjeta(c) {
         <button type="button" class="btn btn-outline btn-small cancha-toggle-mapa">Ver mapa</button>
         <button type="button" class="btn btn-outline btn-small cancha-toggle-resena">Dejar reseña</button>
       </div>
-      ${c.featured ? "" : `<a class="cancha-actualiza" target="_blank" rel="noopener" href="https://wa.me/${NUESTRO_WHATSAPP}?text=${actualizaTexto}">¿Eres el club? Actualiza tus datos</a>`}
+      ${c.featured ? "" : `<a class="cancha-actualiza" target="_blank" rel="noopener" href="https://wa.me/${NUESTRO_WHATSAPP}?text=${actualizaTexto}">¿Sos el club? Actualizá tus datos</a>`}
       <div class="cancha-mapa-wrap" hidden>
         <iframe class="cancha-mapa" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
           src="https://www.google.com/maps?q=${mapaQuery}&output=embed" title="Mapa de ${nombreMostrar}"></iframe>
@@ -141,10 +141,10 @@ function tarjeta(c) {
       <div class="cancha-resenas-wrap" hidden>
         <div class="cancha-resenas-lista"></div>
         <form class="cancha-resena-form">
-          <p class="field-hint">Califica tu experiencia en esta cancha.</p>
+          <p class="field-hint">Califica tu experiencia en esta pista.</p>
           ${estrellasHTML(0, true, c.id)}
           <input type="text" class="resena-nombre" placeholder="Tu nombre (opcional)" maxlength="40" aria-label="Tu nombre (opcional)">
-          <textarea class="resena-comentario" placeholder="Cuéntanos cómo estuvo la cancha, el horario, la atención..." maxlength="300" rows="2" aria-label="Comentario sobre la cancha"></textarea>
+          <textarea class="resena-comentario" placeholder="Contanos cómo estuvo la pista, el horario, la atención..." maxlength="300" rows="2" aria-label="Comentario sobre la pista"></textarea>
           <button class="btn btn-primary btn-small" type="submit">Publicar reseña</button>
           <p class="form-msg resena-msg"></p>
         </form>
@@ -185,7 +185,7 @@ function tarjeta(c) {
     e.preventDefault();
     const msg = form.querySelector(".resena-msg");
     if (!estrellaElegida) {
-      msg.textContent = "Elige de 1 a 5 estrellas.";
+      msg.textContent = "Elegí de 1 a 5 estrellas.";
       msg.className = "form-msg resena-msg error";
       return;
     }
@@ -215,7 +215,7 @@ function tarjeta(c) {
       estrellaElegida = 0;
       estrellasInput.querySelectorAll(".estrella-btn").forEach((b) => { b.textContent = "☆"; });
     } catch (err) {
-      msg.textContent = "No pudimos publicar tu reseña ahora. Intenta de nuevo en un momento.";
+      msg.textContent = "No pudimos publicar tu reseña ahora. Intentá de nuevo en un momento.";
       msg.className = "form-msg resena-msg error";
     }
   });
@@ -226,7 +226,7 @@ function tarjeta(c) {
 function pintarListaResenas(clubId, contenedor) {
   const lista = (resenasPorClub[clubId] || []).slice().sort((a, b) => (b.creadoEn?.seconds || b.creadoEn?.getTime?.() / 1000 || 0) - (a.creadoEn?.seconds || a.creadoEn?.getTime?.() / 1000 || 0));
   if (!lista.length) {
-    contenedor.innerHTML = `<p class="empty-state">Todavía no hay reseñas de esta cancha.</p>`;
+    contenedor.innerHTML = `<p class="empty-state">Todavía no hay reseñas de esta pista.</p>`;
     return;
   }
   contenedor.innerHTML = lista.slice(0, 5).map((r) => `
@@ -251,9 +251,9 @@ function actualizarMapaDistrito(distrito) {
     ? `Ver mapa de ${distrito}`
     : `Ocultar mapa de ${distrito}`;
   if (!mapaDistritoWrap.hidden) {
-    const query = encodeURIComponent(`Canchas de pádel en ${distrito}, Lima, Perú`);
+    const query = encodeURIComponent(`Pistas de pádel en ${distrito}, Lima, Perú`);
     mapaDistritoWrap.innerHTML = `<iframe class="cancha-mapa" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-      src="https://www.google.com/maps?q=${query}&output=embed" title="Mapa de canchas de pádel en ${distrito}"></iframe>`;
+      src="https://www.google.com/maps?q=${query}&output=embed" title="Mapa de pistas de pádel en ${distrito}"></iframe>`;
   } else {
     mapaDistritoWrap.innerHTML = "";
   }
@@ -286,7 +286,7 @@ function render() {
 
   grid.innerHTML = "";
   if (!total) {
-    grid.innerHTML = `<p class="empty-state">No encontramos canchas con ese filtro.</p>`;
+    grid.innerHTML = `<p class="empty-state">No encontramos pistas con ese filtro.</p>`;
   } else {
     mostrar.forEach((c) => grid.appendChild(tarjeta(c)));
   }

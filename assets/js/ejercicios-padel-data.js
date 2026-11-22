@@ -59,7 +59,7 @@ export const PLANES = [
 export const CONSEJOS = [
   {
     titulo: "Muestra antes de explicar",
-    texto: "La mayoría de lo que se aprende en pádel viene de ver la demostración, no de escuchar la explicación. Haz tú el gesto (o pide a otro alumno que lo haga) antes de dar la consigna larga.",
+    texto: "La mayoría de lo que se aprende en pádel viene de ver la demostración, no de escuchar la explicación. Hacé vos el gesto (o pedí a otro alumno que lo haga) antes de dar la consigna larga.",
     fuente: "Guía 6, p.7 (PadelStar)"
   },
   {
@@ -69,7 +69,7 @@ export const CONSEJOS = [
   },
   {
     titulo: "Un armado corto da control; uno amplio da potencia",
-    texto: "Si el alumno falla por pegarle tarde o sin control, pide un armado más corto. Si ya domina el golpe y busca más potencia (por ejemplo en la salida de pared o el remate), recién ahí sugiere un armado más amplio.",
+    texto: "Si el alumno falla por pegarle tarde o sin control, pedí un armado más corto. Si ya domina el golpe y busca más potencia (por ejemplo en la salida de pared o el remate), recién ahí sugiere un armado más amplio.",
     fuente: "Guía 3, p.6 (PadelStar)"
   },
   {
@@ -109,7 +109,7 @@ export const EJERCICIOS = [
     varianteDificil: "Pide el cambio de grip entre continental y lateral (cerrado/abierto) con los ojos cerrados, solo por tacto.",
     errorFrecuente: "El alumno agarra el mango como un martillo (grip de tenis), con la palma plana contra la cara de la pala — así el golpe sale cerrado y sin control.",
     correccion: "Vuelve a \"dar la mano\" al mango despacio, verificando que el pulgar quede ligeramente por detrás, no al costado.",
-    preguntaCierre: "¿En qué parte de la mano sientes el vértice del mango?"
+    preguntaCierre: "¿En qué parte de la mano sentís el vértice del mango?"
   },
   {
     id: 2, modalidad: "individual", nivel: "iniciacion", tema: "Drive",
@@ -117,7 +117,7 @@ export const EJERCICIOS = [
     objetivo: "Primer contacto con el golpe de derecha, sin pensar aún en potencia.",
     duracion: "8 min",
     pasos: [
-      "El alumno se para de frente, en el medio de la cancha.",
+      "El alumno se para de frente, en el medio de la pista.",
       "El profesor le arroja la pelota con la mano hacia su derecha, para que la frene delante del cuerpo luego del pique en el suelo.",
       "Una vez puede frenarla con comodidad, se le pide que la impacte y la empuje bien hacia adelante."
     ],
@@ -137,7 +137,7 @@ export const EJERCICIOS = [
     objetivo: "Primer contacto con el golpe de revés (espejo de la derecha).",
     duracion: "8 min",
     pasos: [
-      "El alumno se para de frente, en el medio de la cancha.",
+      "El alumno se para de frente, en el medio de la pista.",
       "El profesor le arroja la pelota hacia su izquierda para que la frene delante del cuerpo luego del pique.",
       "Cuando la frena con comodidad, se le pide que impacte y empuje hacia adelante."
     ],
@@ -146,7 +146,7 @@ export const EJERCICIOS = [
     foto: { src: "assets/img/gabriel/gabriel-1.jpg", alt: "Jugador de la academia desplazándose para llegar a una bola baja" },
     material: "Pelotas (sin cesto)",
     varianteFacil: "El profesor arroja la pelota más despacio y más cerca del cuerpo del alumno.",
-    varianteDificil: "Se agrega un paso lateral antes del golpe, para que el alumno ya no esté parado de frente.",
+    varianteDificil: "Se agregá un paso lateral antes del golpe, para que el alumno ya no esté parado de frente.",
     errorFrecuente: "El alumno gira solo el brazo y no los hombros, por lo que el golpe sale sin potencia ni dirección.",
     correccion: "Pide que gire el hombro no dominante hacia la pelota antes de golpear, como si fuera a mostrar la espalda al profesor.",
     preguntaCierre: "¿Qué parte del cuerpo giraste primero: el hombro o el brazo?"
@@ -165,7 +165,7 @@ export const EJERCICIOS = [
     foto: { src: "assets/img/gabriel/gabriel-3.jpg", alt: "Jugador de la academia en posición de espera con la pala" },
     material: "Pelotas",
     varianteFacil: "El alumno practica el lanzamiento parado, sin desplazamiento.",
-    varianteDificil: "Se agrega un desplazamiento hacia atrás antes de lanzar, simulando que retrocede para un globo.",
+    varianteDificil: "Se agregá un desplazamiento hacia atrás antes de lanzar, simulando que retrocede para un globo.",
     errorFrecuente: "El alumno lanza la pelota con trayectoria plana en vez de alta, porque el brazo no termina el movimiento hacia arriba.",
     correccion: "Pide que \"apunte\" con la mano hacia el techo al final del lanzamiento, no hacia adelante.",
     preguntaCierre: "¿Hacia dónde terminó apuntando tu mano al final del lanzamiento?"
@@ -178,11 +178,11 @@ export const EJERCICIOS = [
     pasos: [
       "El alumno se coloca de lado, con la cara de la pala por encima de la pelota, piernas separadas al ancho de los hombros.",
       "Suelta la pelota con la mano libre y practica encontrar el punto de impacto antes de golpear con intención.",
-      "Se recuerda la regla: el golpe debe darse a la altura de la cintura o por debajo, con al menos un pie en el suelo."
+      "Se recordá la regla: el golpe debe darse a la altura de la cintura o por debajo, con al menos un pie en el suelo."
     ],
     fuente: "Manual de entrenador, p.19-20 (El saque, armado) + Guía 3 de PadelStar, p.9 (Reglas de saque y resto)",
     diagrama: { tipo: "saque" },
-    foto: { src: "assets/img/court/paddles-court.jpg", alt: "Palas de pádel y pelotas sobre la cancha" },
+    foto: { src: "assets/img/court/paddles-court.jpg", alt: "Palas de pádel y pelotas sobre la pista" },
     material: "Pelotas",
     varianteFacil: "El alumno practica solo el armado y la caída de la pelota, sin golpear todavía.",
     varianteDificil: "Se exige sacar apuntando a un cono colocado en un cuadrante específico del campo contrario.",
@@ -196,7 +196,7 @@ export const EJERCICIOS = [
     objetivo: "Mecanizar los 3 movimientos base de cualquier golpe: acercarse, frenar y preparar.",
     duracion: "7 min",
     pasos: [
-      "Con conos marcando 3 puntos de la cancha, el alumno se desplaza hacia cada cono.",
+      "Con conos marcando 3 puntos de la pista, el alumno se desplaza hacia cada cono.",
       "Debe frenar antes de llegar (paso de ajuste) y recién ahí preparar el golpe, como si fuera a pegar.",
       "Se repite el circuito 3 veces para automatizar la secuencia completa."
     ],
@@ -262,7 +262,7 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.16 (Salida de pared, progresión)",
     diagrama: { tipo: "pared" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pared de fondo",
     varianteFacil: "El profesor juega pelotas con más repique antes del pique en pared, dando más tiempo de reacción.",
     varianteDificil: "Se exige golpear a un solo pique y dirigir la pelota cruzada.",
@@ -285,7 +285,7 @@ export const EJERCICIOS = [
     foto: { src: "assets/img/court/net-ball.jpg", alt: "Pelota de pádel golpeando la red en plena jugada" },
     material: "Pelotas",
     varianteFacil: "Se reduce la velocidad del globo que arroja el profesor.",
-    varianteDificil: "Se juega el mismo ejercicio pero con el alumno debiendo recuperar posición de espera entre cada bandeja.",
+    varianteDificil: "Se jugá el mismo ejercicio pero con el alumno debiendo recuperar posición de espera entre cada bandeja.",
     errorFrecuente: "El alumno golpea la bandeja como si fuera un remate, con swing largo, en vez de bloquear y empujar.",
     correccion: "Recuerda que la bandeja frena la pelota con la pala casi quieta y solo empuja al final — no hay que \"pegarle fuerte\".",
     preguntaCierre: "¿La pelota salió más controlada cuando empujaste suave o cuando le pegaste fuerte?"
@@ -315,15 +315,15 @@ export const EJERCICIOS = [
     objetivo: "Cerrar la clase llevando el golpe entrenado a un punto real.",
     duracion: "15 min",
     pasos: [
-      "Se juega un punto completo donde el primer intercambio debe incluir el golpe trabajado en la clase.",
+      "Se jugá un punto completo donde el primer intercambio debe incluir el golpe trabajado en la clase.",
       "El profesor da feedback inmediato después de cada punto."
     ],
     fuente: "Manual de entrenador, p.28 (clase individual, bloque \"situación de juego\")",
     diagrama: { tipo: "sparring" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pelotas",
     varianteFacil: "El profesor arma el primer intercambio para que el golpe trabajado salga con menos presión.",
-    varianteDificil: "Se juega el punto completo a competencia real, sumando puntaje.",
+    varianteDificil: "Se jugá el punto completo a competencia real, sumando puntaje.",
     errorFrecuente: "El alumno vuelve al golpe que ya domina apenas tiene oportunidad, evitando usar el golpe nuevo trabajado en la clase.",
     correccion: "Antes de empezar el punto, recuérdale en voz alta que el primer intercambio debe salir con el golpe de la clase.",
     preguntaCierre: "¿Usaste el golpe trabajado hoy en el momento justo, o lo evitaste?"
@@ -336,7 +336,7 @@ export const EJERCICIOS = [
     objetivo: "Jugar el golpe leyendo la jugada, no anticipando el lado.",
     duracion: "10 min",
     pasos: [
-      "El alumno parte de frente, en el fondo de la cancha.",
+      "El alumno parte de frente, en el fondo de la pista.",
       "El profesor da una señal visual (con la mano) y recién ahí juega la pelota hacia un lado.",
       "El alumno lee la señal, se desplaza e impacta con el movimiento completo."
     ],
@@ -345,7 +345,7 @@ export const EJERCICIOS = [
     foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando de derecha con extensión completa" },
     material: "Pelotas",
     varianteFacil: "El profesor da la señal con más anticipación, antes de jugar la pelota.",
-    varianteDificil: "Se juega la pelota casi al mismo tiempo que la señal, exigiendo reacción más rápida.",
+    varianteDificil: "Se jugá la pelota casi al mismo tiempo que la señal, exigiendo reacción más rápida.",
     errorFrecuente: "El alumno anticipa el lado antes de ver la señal, adivinando en vez de leer la jugada.",
     correccion: "Pide que espere con los pies quietos hasta ver la señal — moverse antes es trampa, aunque adivine bien.",
     preguntaCierre: "¿Esperaste a ver la señal antes de moverte, o saliste antes?"
@@ -365,7 +365,7 @@ export const EJERCICIOS = [
     foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando de derecha con extensión completa" },
     material: "Pelotas",
     varianteFacil: "Se trabaja solo el primer paso (agarrar de frente con la mano) hasta que esté cómodo.",
-    varianteDificil: "Se juega el globo desde más lejos, exigiendo más desplazamiento antes del remate.",
+    varianteDificil: "Se jugá el globo desde más lejos, exigiendo más desplazamiento antes del remate.",
     errorFrecuente: "El alumno golpea de frente a la red, sin perfilarse, perdiendo potencia y dirección.",
     correccion: "Recuerda el paso 2 de la progresión: siempre de perfil antes de golpear, nunca de frente.",
     preguntaCierre: "¿Tu brazo libre quedó apuntando hacia la pelota al momento del impacto?"
@@ -376,12 +376,12 @@ export const EJERCICIOS = [
     objetivo: "Primer contacto con un golpe especial de nivel alto.",
     duracion: "10 min",
     pasos: [
-      "Desde el mismo lado de la cancha y de frente a la pared de fondo, el alumno lanza la pelota con la mano buscando el punto de impacto correcto.",
+      "Desde el mismo lado de la pista y de frente a la pared de fondo, el alumno lanza la pelota con la mano buscando el punto de impacto correcto.",
       "A medida que domina el gesto, el profesor se aleja y se la juega de frente con la mano."
     ],
     fuente: "Manual de entrenador, p.22-23 (La víbora, progresión)",
     diagrama: { tipo: "pared" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pared de fondo",
     varianteFacil: "El alumno practica solo el lanzamiento con la mano, sin pala, hasta encontrar el punto de impacto.",
     varianteDificil: "El profesor juega la pelota más rápido y desde más cerca de la red.",
@@ -395,7 +395,7 @@ export const EJERCICIOS = [
     objetivo: "Afinar la dirección de la defensa, no solo la continuidad.",
     duracion: "8 min",
     pasos: [
-      "Sobre los ejercicios de defensa ya conocidos, se le pide al alumno buscar control de bola hacia el lado contrario de la cancha en cada repetición."
+      "Sobre los ejercicios de defensa ya conocidos, se le pide al alumno buscar control de bola hacia el lado contrario de la pista en cada repetición."
     ],
     fuente: "Manual de entrenador, p.30 (Ejercicios de enseñanza de defensa, paso 8)",
     diagrama: { tipo: "sparring" },
@@ -404,7 +404,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se reduce la exigencia a solo cruzar la red con dirección aproximada.",
     varianteDificil: "Se pide dirigir la defensa a una zona específica marcada con un cono.",
     errorFrecuente: "El alumno defiende sin pensar en dirección, solo buscando devolver la pelota como sea.",
-    correccion: "Antes de cada bola, pide que decida en voz alta hacia qué lado va a dirigir antes de golpear.",
+    correccion: "Antes de cada bola, pedí que decida en voz alta hacia qué lado va a dirigir antes de golpear.",
     preguntaCierre: "¿Decidiste la dirección antes o después de golpear?"
   },
   {
@@ -414,11 +414,11 @@ export const EJERCICIOS = [
     duracion: "15 min",
     pasos: [
       "El profesor hace de sparring y juega puntos reales.",
-      "Se pide que el alumno resuelva siempre con el mismo patrón (por ejemplo, subir a la red después de la salida de pared)."
+      "Se pedí que el alumno resuelva siempre con el mismo patrón (por ejemplo, subir a la red después de la salida de pared)."
     ],
     fuente: "Manual de entrenador, p.28 (clase individual avanzada — sparrings)",
     diagrama: { tipo: "sparring" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pelotas",
     varianteFacil: "Se reduce el patrón táctico a un solo paso (ej. solo subir después de la salida de pared).",
     varianteDificil: "Se suma un segundo patrón táctico encadenado al primero.",
@@ -439,7 +439,7 @@ export const EJERCICIOS = [
     diagrama: { tipo: "feed", lado: "derecha" },
     foto: { src: "assets/img/court/grip-detail.jpg", alt: "Primer plano de la empuñadura de una pala de pádel" },
     material: "Tabla de corrección de errores (referencia del profesor)",
-    varianteFacil: "Se trabaja el error aislado, sin pelota en juego, solo el gesto corregido en seco.",
+    varianteFacil: "Se trabajá el error aislado, sin pelota en juego, solo el gesto corregido en seco.",
     varianteDificil: "Se integra el gesto corregido dentro de un punto de competencia real.",
     errorFrecuente: "El alumno corrige el gesto cuando está relajado pero vuelve al error bajo presión de un punto.",
     correccion: "Sube la exigencia gradualmente: primero en seco, luego con pelota fácil, recién al final en un punto real.",
@@ -453,7 +453,7 @@ export const EJERCICIOS = [
     objetivo: "Dar a cada uno de los 4 alumnos repeticiones de drive sin perder tiempo de clase.",
     duracion: "10 min",
     pasos: [
-      "Los 4 alumnos forman una fila al fondo de la cancha.",
+      "Los 4 alumnos forman una fila al fondo de la pista.",
       "El profesor arroja la pelota a la derecha del primero, que la frena y empuja.",
       "El alumno pasa al final de la fila y sigue el siguiente."
     ],
@@ -473,7 +473,7 @@ export const EJERCICIOS = [
     objetivo: "Mismo formato que la rotación de derecha, ahora de revés.",
     duracion: "10 min",
     pasos: [
-      "Los 4 alumnos forman una fila al fondo de la cancha.",
+      "Los 4 alumnos forman una fila al fondo de la pista.",
       "El profesor arroja la pelota a la izquierda del primero, que la frena y empuja.",
       "El alumno pasa al final de la fila y sigue el siguiente."
     ],
@@ -493,13 +493,13 @@ export const EJERCICIOS = [
     objetivo: "Trabajar el trabajo de pies de los 4 alumnos en paralelo, sin tiempos muertos.",
     duracion: "10 min",
     pasos: [
-      "Se arman 2 parejas, una en cada mitad de la cancha.",
+      "Se arman 2 parejas, una en cada mitad de la pista.",
       "Cada pareja practica el circuito de acercarse, frenar y preparar, mientras la otra descansa.",
       "Rotan cada 2 minutos."
     ],
     fuente: "Manual de entrenador, p.8 (circuito de desplazamiento), adaptado a grupo de 4",
     diagrama: { tipo: "circuitoDoble" },
-    foto: { src: "assets/img/court/paddles-court.jpg", alt: "Palas de pádel y pelotas sobre la cancha" },
+    foto: { src: "assets/img/court/paddles-court.jpg", alt: "Palas de pádel y pelotas sobre la pista" },
     material: "3 conos por pareja",
     varianteFacil: "Se reduce a 2 conos por pareja.",
     varianteDificil: "Se achica el tiempo de rotación a 1 minuto, exigiendo más repeticiones en menos tiempo.",
@@ -521,7 +521,7 @@ export const EJERCICIOS = [
     foto: { src: "assets/img/gabriel/gabriel-3.jpg", alt: "Jugador de la academia en posición de espera con la pala" },
     material: "Pelotas",
     varianteFacil: "Se reduce la distancia entre los dos compañeros.",
-    varianteDificil: "Se agrega que el que recibe debe desplazarse antes de armar el globo.",
+    varianteDificil: "Se agregá que el que recibe debe desplazarse antes de armar el globo.",
     errorFrecuente: "El que lanza arroja la pelota muy fuerte o muy lejos, dificultando el ejercicio del compañero.",
     correccion: "Pide lanzamientos suaves y altos, priorizando que el compañero pueda practicar bien el gesto.",
     preguntaCierre: "¿Cambiaron de rol las veces que correspondía?"
@@ -541,7 +541,7 @@ export const EJERCICIOS = [
     foto: { src: "assets/img/gabriel/gabriel-3.jpg", alt: "Jugador de la academia en posición de espera con la pala" },
     material: "2 conos (marcar zona pantano)",
     varianteFacil: "Se dan más de 2 minutos por rotación, para que sientan mejor cada posición.",
-    varianteDificil: "Se agrega una señal sorpresa del profesor para rotar antes de tiempo, exigiendo reacción rápida.",
+    varianteDificil: "Se agregá una señal sorpresa del profesor para rotar antes de tiempo, exigiendo reacción rápida.",
     errorFrecuente: "Los alumnos en zona de ataque se paran demasiado cerca de la red, perdiendo tiempo de reacción ante un remate.",
     correccion: "Marca con un segundo cono la distancia correcta de 1.5 m de la red para la posición de ataque.",
     preguntaCierre: "¿En qué posición sentiste más seguridad: ataque o defensa?"
@@ -557,7 +557,7 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (estructura de clase grupal, bloque de peloteo)",
     diagrama: { tipo: "grupo2v2" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pelotas",
     varianteFacil: "Se juega sin puntaje, solo peloteo continuo.",
     varianteDificil: "Se suma puntaje real desde el inicio del ejercicio.",
@@ -592,7 +592,7 @@ export const EJERCICIOS = [
     objetivo: "Trabajar el desplazamiento específico de red en las dos parejas a la vez.",
     duracion: "20 min",
     pasos: [
-      "Una pareja en cada mitad de la cancha; el profesor alimenta con canasto alternando volea y bandeja.",
+      "Una pareja en cada mitad de la pista; el profesor alimenta con canasto alternando volea y bandeja.",
       "Se exige recuperar la posición de espera entre cada bola."
     ],
     fuente: "Manual de entrenador, p.29 (clase grupal, bloque \"físico técnico con golpe\")",
@@ -616,7 +616,7 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (\"peloteo intenso todo por abajo\")",
     diagrama: { tipo: "grupo2v2" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pelotas",
     varianteFacil: "Se baja la exigencia a \"toda la pelota por debajo de la cabeza\" en vez de la altura exacta de la red + 50cm.",
     varianteDificil: "Se suma que, además, ningún golpe puede picar antes de la línea de servicio.",
@@ -635,7 +635,7 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (ejercicio de competencia con tácticas sin definición)",
     diagrama: { tipo: "grupo2v2" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pelotas",
     varianteFacil: "Se permite 3 globos en vez de 2, para bajar la presión.",
     varianteDificil: "Se reduce a 1 solo globo permitido por punto.",
@@ -654,7 +654,7 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (variante — \"la bola solo puede picar una vez\")",
     diagrama: { tipo: "grupo2v2" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pelotas",
     varianteFacil: "Se permiten 2 piques en vez de 1, bajando la exigencia de tiempo de reacción.",
     varianteDificil: "Se juega directamente de aire (volea/bandeja obligatoria, sin ningún pique permitido).",
@@ -692,7 +692,7 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (clase en pareja — \"teoría del centro\"), adaptado a 4 jugadores",
     diagrama: { tipo: "grupo2v2centro" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pelotas",
     varianteFacil: "Se juega sin contar puntos, solo identificando en voz alta cuándo el golpe fue al centro.",
     varianteDificil: "Solo cuentan los golpes al centro Y por abajo de la red + 50cm, combinando ambas reglas.",
@@ -710,9 +710,9 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (trabajo táctico — \"avance en cuña\")",
     diagrama: { tipo: "cuna" },
-    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la cancha" },
+    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la pista" },
     material: "Pelotas",
-    varianteFacil: "Se practica el avance sin presión de la pareja rival, con el profesor alimentando desde el otro lado.",
+    varianteFacil: "Se practicá el avance sin presión de la pareja rival, con el profesor alimentando desde el otro lado.",
     varianteDificil: "La pareja rival defiende activamente, buscando pasar a los que avanzan.",
     errorFrecuente: "Los dos jugadores de la pareja suben a la misma velocidad, perdiendo la coordinación de \"uno marca el ritmo del otro\".",
     correccion: "Define claramente quién marca el ritmo en cada repetición, y que el otro espere medio paso detrás.",
@@ -729,7 +729,7 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (ejercicios de competición — \"presión con cuatro puntos consecutivos\")",
     diagrama: { tipo: "grupo2v2" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pelotas",
     varianteFacil: "Se reduce a 3 puntos consecutivos para terminar el ejercicio antes.",
     varianteDificil: "Se suma que, además, deben ganar o perder esos puntos sin ningún error no forzado.",
@@ -747,7 +747,7 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (mención del \"método de los 16 segundos\")",
     diagrama: { tipo: "grupo2v2" },
-    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la cancha" },
+    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la pista" },
     material: "Ninguno",
     varianteFacil: "Se da más tiempo (hasta 20 segundos) para decidir entre punto y punto.",
     varianteDificil: "Se reduce a 10 segundos, exigiendo decisiones más rápidas.",
@@ -766,12 +766,12 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (mención del \"semáforo\")",
     diagrama: { tipo: "grupo2v2" },
-    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la cancha" },
+    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la pista" },
     material: "Ninguno",
     varianteFacil: "El profesor avisa el color antes de que empiece el punto, no durante.",
     varianteDificil: "Se agregan colores intermedios (ej. \"amarillo-verde\") que exigen una decisión más matizada.",
     errorFrecuente: "Los alumnos siguen jugando igual sin importar el color anunciado, ignorando la consigna bajo presión del punto.",
-    correccion: "Detén el punto apenas se ignore el color y pide que lo repitan prestando atención solo a esa señal.",
+    correccion: "Detén el punto apenas se ignore el color y pedí que lo repitan prestando atención solo a esa señal.",
     preguntaCierre: "¿Qué color te costó más respetar: rojo, amarillo o verde?"
   },
   {
@@ -785,7 +785,7 @@ export const EJERCICIOS = [
     ],
     fuente: "Manual de entrenador, p.29 (mención de la \"matriz FODA de la pareja\")",
     diagrama: { tipo: "grupo2v2" },
-    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la cancha" },
+    foto: { src: "assets/img/court/paddle-bouquet.jpg", alt: "Varias palas de pádel y pelotas sobre la pista" },
     material: "Ninguno",
     varianteFacil: "Se identifica solo una fortaleza propia, sin debilidad ni información del rival.",
     varianteDificil: "Se suma ajustar el plan a mitad del set, si el scouting inicial resultó incorrecto.",
@@ -803,13 +803,13 @@ export const EJERCICIOS = [
     pasos: [
       "El profesor juega globos cortos para que el alumno remate buscando el \"pico\" de la pista: la esquina donde se juntan la verja y la pared de fondo.",
       "Se insiste en la paciencia: rara vez el primer remate da justo en el pico, hay que repetir buscando el fallo del rebote.",
-      "Se corrige que el remate salga cruzado y no demasiado fuerte, para controlar dónde pica."
+      "Se corregí que el remate salga cruzado y no demasiado fuerte, para controlar dónde pica."
     ],
     fuente: "Guía 4 de PadelStar, p.12 (\"Remate al pico como arma de presión\")",
     diagrama: { tipo: "pico" },
     foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando con extensión completa" },
     material: "Pelotas",
-    varianteFacil: "Se juega desde más cerca de la red, con menos presión de tiempo.",
+    varianteFacil: "Se jugá desde más cerca de la red, con menos presión de tiempo.",
     varianteDificil: "Se exige que el remate al pico sea además cruzado, no indiferente a la dirección.",
     errorFrecuente: "El alumno le pega con toda la potencia buscando que entre directo, en vez de dejar que el rebote haga el trabajo.",
     correccion: "Recuerda que el objetivo no es la potencia sino la precisión — bajar la velocidad ayuda a encontrar el pico.",
@@ -829,10 +829,10 @@ export const EJERCICIOS = [
     diagrama: { tipo: "lateral" },
     foto: { src: "assets/img/gabriel/gabriel-4.jpg", alt: "Jugador de la academia golpeando con extensión completa" },
     material: "Pelotas",
-    varianteFacil: "Se practica primero sin la referencia del reloj, solo buscando pegarle a la pared con efecto.",
-    varianteDificil: "Se juega desde ambos lados (derecha e izquierda), no solo del lado de revés.",
+    varianteFacil: "Se practicá primero sin la referencia del reloj, solo buscando pegarle a la pared con efecto.",
+    varianteDificil: "Se jugá desde ambos lados (derecha e izquierda), no solo del lado de revés.",
     errorFrecuente: "El alumno pega demasiado fuerte, haciendo que la pelota salte alto en vez de salir con el efecto esperado.",
-    correccion: "Baja la potencia y pide que \"acompañe\" la pelota con la pala hacia el costado, no que le pegue de lleno.",
+    correccion: "Baja la potencia y pedí que \"acompañe\" la pelota con la pala hacia el costado, no que le pegue de lleno.",
     preguntaCierre: "¿La pelota salió por el lateral o quedó jugable dentro de la pista?"
   },
   {
@@ -843,14 +843,14 @@ export const EJERCICIOS = [
     pasos: [
       "Se marca con conos la \"zona pantano\": la franja entre la posición de volea (1.5 m de la red) y un palmo detrás de la línea de saque.",
       "Los 4 alumnos juegan puntos normales; cada vez que alguien golpea desde esa franja marcada, el profesor lo señala.",
-      "Se corrige el hábito: tras cada golpe, recuperar rápido una de las dos posiciones válidas (de volea o de defensa), nunca quedarse a mitad de camino."
+      "Se corregí el hábito: tras cada golpe, recuperar rápido una de las dos posiciones válidas (de volea o de defensa), nunca quedarse a mitad de camino."
     ],
     fuente: "Guía 2 de PadelStar, p.25-26 (\"La zona pantano\" y \"¿Qué hacer si me quedo en media pista?\")",
     diagrama: { tipo: "pantano" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Conos",
-    varianteFacil: "Se juega con el profesor marcando en voz alta cada vez que alguien entra en la zona marcada.",
-    varianteDificil: "Se juega un set de competencia donde entrar en la zona pantano pierde el punto automáticamente.",
+    varianteFacil: "Se jugá con el profesor marcando en voz alta cada vez que alguien entra en la zona marcada.",
+    varianteDificil: "Se jugá un set de competencia donde entrar en la zona pantano pierde el punto automáticamente.",
     errorFrecuente: "Después de un golpe, el alumno se queda parado en el lugar donde golpeó en vez de recuperar posición.",
     correccion: "Recuerda que la regla es simple: después de cada golpe, moverse — nunca quedarse quieto donde se pegó.",
     preguntaCierre: "¿En qué momento del punto te quedaste parado en la zona pantano?"
@@ -862,14 +862,14 @@ export const EJERCICIOS = [
     duracion: "15 min",
     pasos: [
       "En un punto de competencia 2 vs 2, cuando una pareja le \"entrega\" a la otra una bola alta y cerca de la red, el que remata debe adelantarse antes de golpear.",
-      "Se busca que el bote sea cerca de la red, con un buen giro de muñeca, para que la pelota salga por el fondo de la pista (por el conjunto pared + verja, que mide 4 metros).",
+      "Se buscá que el bote sea cerca de la red, con un buen giro de muñeca, para que la pelota salga por el fondo de la pista (por el conjunto pared + verja, que mide 4 metros).",
       "Si no se logra adelantar a tiempo, se corrige: mejor dejar picar y jugar un golpe seguro que forzar el remate desde atrás."
     ],
     fuente: "Guía 4 de PadelStar, p.12 (\"Sacar la bola de la pista — sacarla por 4\")",
     diagrama: { tipo: "pico" },
     foto: { src: "assets/img/court/net-ball.jpg", alt: "Pelota de pádel golpeando la red en plena jugada" },
     material: "Pelotas",
-    varianteFacil: "Se practica con bolas servidas fáciles por el profesor, sin presión de punto real.",
+    varianteFacil: "Se practicá con bolas servidas fáciles por el profesor, sin presión de punto real.",
     varianteDificil: "Se exige lograrlo dentro de un punto de competencia real, con la pareja rival defendiendo activamente.",
     errorFrecuente: "El alumno remata desde atrás sin haberse adelantado, perdiendo el ángulo necesario para sacarla por el fondo.",
     correccion: "Recuerda la regla simple de la progresión: primero el pie, después la pala — adelantarse es el primer movimiento, no el golpe.",
@@ -889,9 +889,9 @@ export const EJERCICIOS = [
     ],
     fuente: "Adaptación propia de academiadepadel.pe a partir de la progresión de salida de pared (Manual de entrenador, p.16) y Guía 3 de PadelStar (golpes especiales).",
     diagrama: { tipo: "pared" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pared de fondo",
-    varianteFacil: "Se deja que pique una vez en el piso antes de golpear, como paso intermedio antes de quitar el pique.",
+    varianteFacil: "Se dejá que pique una vez en el piso antes de golpear, como paso intermedio antes de quitar el pique.",
     varianteDificil: "Se juega directo en un punto real, donde el alumno debe decidir solo cuándo usar el contrapared.",
     errorFrecuente: "El alumno retrocede instintivamente esperando que la pelota baje al piso, perdiendo la oportunidad de jugarla de aire.",
     correccion: "Pide que se quede parado cerca de la pared y confíe en golpear apenas sale del vidrio, sin retroceder.",
@@ -905,16 +905,16 @@ export const EJERCICIOS = [
     pasos: [
       "El profesor juega pelotas hacia la pared lateral del alumno, con trayectoria cruzada.",
       "El alumno se desplaza hacia el costado y espera que la pelota rebote en el vidrio lateral antes de golpear.",
-      "Se corrige el ángulo de salida: la pelota debe salir hacia el centro de la cancha, no hacia la línea."
+      "Se corregí el ángulo de salida: la pelota debe salir hacia el centro de la pista, no hacia la línea."
     ],
     fuente: "Adaptación propia de academiadepadel.pe, complemento a la progresión de salida de pared de fondo (Manual de entrenador, p.16).",
     diagrama: { tipo: "pared" },
-    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una cancha de pádel con dos jugadores" },
+    foto: { src: "assets/img/court/aerial-court.jpg", alt: "Vista aérea de una pista de pádel con dos jugadores" },
     material: "Pared lateral",
     varianteFacil: "El profesor juega la pelota más lenta y con menos efecto hacia la pared lateral.",
     varianteDificil: "Se suma que el alumno debe dirigir la devolución cruzada después de la salida de pared.",
     errorFrecuente: "El alumno se para de frente a la pared esperando la pelota, en vez de ubicarse de perfil anticipando hacia dónde rebota.",
-    correccion: "Pide que se ubique de perfil, mirando hacia el centro de la cancha y no hacia la pared, para anticipar el ángulo de salida.",
+    correccion: "Pide que se ubique de perfil, mirando hacia el centro de la pista y no hacia la pared, para anticipar el ángulo de salida.",
     preguntaCierre: "¿Hacia qué lado salió la pelota después del rebote en la pared lateral?"
   },
   {
@@ -925,7 +925,7 @@ export const EJERCICIOS = [
     pasos: [
       "El profesor juega pelotas cómodas a media distancia del alumno.",
       "El alumno golpea con un gesto corto, casi sin swing, acompañando la pelota hacia abajo y adelante con la pala abierta.",
-      "Se busca que la pelota pique dos veces antes de llegar a la línea de saque del rival."
+      "Se buscá que la pelota pique dos veces antes de llegar a la línea de saque del rival."
     ],
     fuente: "Adaptación propia de academiadepadel.pe, técnica base previa al ejercicio táctico grupal \"Chiquita y avance en grupo\" (Manual de entrenador, p.52).",
     diagrama: { tipo: "feed", lado: "centro" },

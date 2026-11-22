@@ -17,7 +17,7 @@
       "Programa: " + programa + "\n" +
       "Día preferido: " + dia + "\n" +
       "Horario preferido: " + horario + "\n" +
-      "Cancha preferida: " + cancha +
+      "Pista preferida: " + cancha +
       (window.gpRefTexto ? window.gpRefTexto() : "");
 
     if (typeof gtag === "function") {
