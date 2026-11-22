@@ -17,14 +17,14 @@ VERBOS = {
  "vienes":"venís","pones":"ponés","traes":"traés","escribes":"escribís","lees":"leés","ves":"ves","vas":"vas",
  "eliges":"elegís","participas":"participás","practicas":"practicás","disfrutas":"disfrutás","das":"das",
  "dejas":"dejás","cambias":"cambiás","logras":"lográs","consigues":"conseguís","debes":"debés",
- "reprogramas":"reprogramás","escuchas":"escuchás","avisas":"avisás","cancelas":"cancelás","llegas":"llegás","inscribes":"inscribís","ingresas":"ingresás","confirmas":"confirmás","recuerdas":"recordás","encuentras":"encontrás","pierdes":"perdés","vuelves":"volvés","compartes":"compartís","terminas":"terminás","completas":"completás","empiezas":"empezás","miras":"mirás","acompañas":"acompañás","aprovechas":"aprovechás","sumas":"sumás","pruebas":"probás","atiendes":"atendés","apuntas":"apuntás","llamas":"llamás","avanzas":"avanzás","entrenas":"entrenás","usas":"usás","pagas":"pagás","tardas":"tardás","corres":"corrés",
+ "sostienes":"sostenés","reprogramas":"reprogramás","escuchas":"escuchás","avisas":"avisás","cancelas":"cancelás","llegas":"llegás","inscribes":"inscribís","ingresas":"ingresás","confirmas":"confirmás","recuerdas":"recordás","encuentras":"encontrás","pierdes":"perdés","vuelves":"volvés","compartes":"compartís","terminas":"terminás","empiezas":"empezás","miras":"mirás","acompañas":"acompañás","aprovechas":"aprovechás","sumas":"sumás","pruebas":"probás","atiendes":"atendés","apuntas":"apuntás","llamas":"llamás","avanzas":"avanzás","entrenas":"entrenás","usas":"usás","pagas":"pagás","tardas":"tardás","corres":"corrés",
 }
 # imperativo tú -> vos (solo al empezar una frase o botón)
 IMPER = {
  "agenda":"agendá","elige":"elegí","escribe":"escribí","mira":"mirá","cuéntanos":"contanos","escríbenos":"escribinos",
  "déjanos":"dejanos","pregúntanos":"preguntanos","reserva":"reservá","pide":"pedí","consulta":"consultá","ven":"vení",
  "aprende":"aprendé","descubre":"descubrí","conoce":"conocé","únete":"unite","anótate":"anotate","empieza":"empezá",
- "mejora":"mejorá","retoma":"retomá","perfecciona":"perfeccioná","deja":"dejá","encuentra":"encontrá","comparte":"compartí",
+ "mejora":"mejorá","retoma":"retomá","recarga":"recargá","vuelve":"volvé","intenta":"intentá","revisa":"revisá","perfecciona":"perfeccioná","deja":"dejá","encuentra":"encontrá","comparte":"compartí",
  "completa":"completá","revisa":"revisá","descarga":"descargá","haz":"hacé","ten":"tené","pon":"poné","sigue":"seguí",
  "usa":"usá","compra":"comprá","lee":"leé","ve":"mirá","cuenta":"contá","inscríbete":"inscribite","regístrate":"registrate",
  "ingresa":"ingresá","entra":"entrá","selecciona":"seleccioná","indica":"indicá","confirma":"confirmá","avísanos":"avisanos",
@@ -40,14 +40,14 @@ CAMBIOS = Counter()
 def caso(orig, nuevo): return nuevo.capitalize() if orig[:1].isupper() else nuevo
 
 def convertir(t):
-    for a, b in CANCHA: t = re.sub(rf"(?<![{L}]){a}(?![{L}])", b, t)
+    for a, b in CANCHA: t = re.sub(rf"(?<![{L}0-9_-]){a}(?![{L}0-9_-])", b, t)
     for a, b in PALABRAS.items(): t = re.sub(rf"(?<![{L}]){a}(?![{L}])", b, t)
     t = re.sub(rf"(?<![{L}])({'|'.join(VERBOS)})(?![{L}])", lambda m: (CAMBIOS.update([(m.group(1), caso(m.group(1), VERBOS[m.group(1).lower()]))]) or caso(m.group(1), VERBOS[m.group(1).lower()])), t, flags=re.I)
     # imperativos: inicio de texto o después de . ! ? : — ¿ ¡ y seguidos de un artículo/posesivo/preposición (no "tu agenda")
     imp = "|".join(sorted(IMPER, key=len, reverse=True))
-    t = re.sub(rf"(^\s*|[.!?:—–¡¿]\s*|\n\s*|,\s+(?=(?:escribe|elige|avísanos|contáctanos|llámanos|escríbenos|consulta|mira|pide|haz|ven|prueba|retoma|aprende)\b))((?:[^{L}\s]\s*)?)({imp})(?=\s+(?:tu|tus|el|la|los|las|un|una|con|por|a|en|de|y|o|que|si|mi|nuestro|nuestra|ya|ahora|hoy|más|para|su|al|pista|pistas|horario|programa|día|nivel|sede|clase|pádel|cómo|qué|dónde|cuánto|aquí|desde|cuando|cuándo|lo|nuestros|estas|este|esta|disponibilidad)\b|\s*[.!?→»(]|\s*$)",
+    t = re.sub(rf"(^\s*|(?<=>)|[.!?:—–¡¿(]\s*|\n\s*|,\s+(?=(?:escribe|elige|avísanos|contáctanos|llámanos|escríbenos|consulta|mira|pide|haz|ven|prueba|retoma|aprende)\b))((?:[^{L}\s]\s*)?)({imp})(?=\s+(?:tu|tus|el|la|los|las|un|una|con|por|a|en|de|y|o|que|si|mi|nuestro|nuestra|ya|ahora|hoy|más|para|su|al|pista|pistas|horario|programa|día|nivel|sede|clase|pádel|cómo|qué|dónde|cuánto|aquí|desde|cuando|cuándo|lo|nuestros|estas|este|esta|disponibilidad|vos|también|primero)\b|\s*[.!?→»(]|\s*$)",
                lambda m: (CAMBIOS.update([(m.group(3), caso(m.group(3), IMPER[m.group(3).lower()]))]) or m.group(1) + m.group(2) + caso(m.group(3), IMPER[m.group(3).lower()])), t, flags=re.I)
-    t = re.sub(rf"(?<=\s[yo]\s)(retoma|aprende|elige|escribe|mira|pide|haz|ven|descubre|conoce)(?=\s+(?:la|el|los|las|tu|tus|un|una|con|que|desde|más)\b)",
+    t = re.sub(rf"(?<=[\s(][yo]\s)(retoma|aprende|elige|escribe|mira|pide|haz|ven|descubre|conoce|recarga|vuelve|revisa|intenta)(?=\s+(?:la|el|los|las|tu|tus|un|una|con|que|desde|más|a|de|vos)\b)",
                lambda m: IMPER[m.group(1).lower()], t)
     return t
 
