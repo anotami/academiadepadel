@@ -114,7 +114,7 @@ function poblarSelectsClase() {
   document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA["Particular"];
 
   document.getElementById("cd-cancha-beelup").innerHTML = CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === "2" ? "selected" : ""}>${c}</option>`).join("");
-  document.getElementById("cd-duracion").innerHTML = DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === 90 ? "selected" : ""}>${d}</option>`).join("");
+  document.getElementById("cd-duracion").innerHTML = DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === 60 ? "selected" : ""}>${d}</option>`).join("");
   actualizarVisibilidadCanchaBeelup();
 }
 
@@ -203,7 +203,7 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
   const costoCanchaTotal = costoCanchaPagadoRaw === "" ? null : Number(costoCanchaPagadoRaw);
   const pista = pistasCache.find((p) => p.id === pistaId);
   const pistaNombre = pista ? `${pista.nombre} — ${pista.distrito}` : "";
-  const duracionMin = Number(document.getElementById("cd-duracion").value) || 90;
+  const duracionMin = Number(document.getElementById("cd-duracion").value) || 60;
   const canchaBeelup = esPistaBeelup(pistaNombre) ? document.getElementById("cd-cancha-beelup").value : null;
   const alumnosSeleccionados = alumnoIds.map((id) => alumnosCache.find((a) => a.id === id)).filter(Boolean);
 
@@ -285,7 +285,7 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
     document.getElementById("cd-monto").value = PRECIOS_CLASE_SUELTA["Particular"];
     document.getElementById("cd-paquetes-alumno").innerHTML = "";
     document.getElementById("cd-cancha-beelup").value = "2";
-    document.getElementById("cd-duracion").value = "90";
+    document.getElementById("cd-duracion").value = "60";
     actualizarVisibilidadCanchaBeelup();
     const nombres = alumnosSeleccionados.map((a) => a.nombre).join(", ");
     msg.textContent = yaLaDi
@@ -920,7 +920,7 @@ async function confirmar(reservaId, reserva) {
     alert("Esa pista ya tiene otra clase confirmada en ese mismo horario. Rechaza esta o coordina otro horario con el alumno.");
     return;
   }
-  const cambiosConfirmar = { estado: "confirmada", duracionMin: reserva.duracionMin ?? 90 };
+  const cambiosConfirmar = { estado: "confirmada", duracionMin: reserva.duracionMin ?? 60 };
   if (esPistaBeelup(reserva.pistaNombre) && !reserva.canchaBeelup) cambiosConfirmar.canchaBeelup = "2";
   await updateDoc(doc(db, "reservas", reservaId), cambiosConfirmar);
 
@@ -1691,7 +1691,7 @@ function construirFormAgregarAlumno(base) {
         modalidad: "Grupal (2-4 personas)", montoCobrado,
         // Misma sesión (pista/fecha/hora) que `base` -- hereda su cancha/duración
         // en vez de volver a preguntarlas.
-        duracionMin: base.duracionMin ?? 90,
+        duracionMin: base.duracionMin ?? 60,
         ...(base.canchaBeelup !== undefined ? { canchaBeelup: base.canchaBeelup } : {}),
         creadoEn: serverTimestamp()
       });
@@ -1817,7 +1817,7 @@ function construirTarjetaHistorial(r) {
         </div>` : ""}
         <div class="field">
           <label>Duración (min)</label>
-          <select data-campo="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (r.duracionMin ?? 90) ? "selected" : ""}>${d}</option>`).join("")}</select>
+          <select data-campo="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (r.duracionMin ?? 60) ? "selected" : ""}>${d}</option>`).join("")}</select>
         </div>
         <button class="btn btn-primary btn-small" type="button" data-guardar-historial>Guardar</button>
         ${!esFutura ? `
@@ -1905,7 +1905,7 @@ function construirTarjetaHistorial(r) {
     const montoCobrado = r.paqueteId ? null : (Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0);
     const costoCanchaRaw = form.querySelector('[data-campo="costoCanchaPagado"]').value;
     const estado = form.querySelector('[data-campo="estado"]').value;
-    const duracionMin = Number(form.querySelector('[data-campo="duracionMin"]').value) || 90;
+    const duracionMin = Number(form.querySelector('[data-campo="duracionMin"]').value) || 60;
     const campoCancha = form.querySelector('[data-campo="canchaBeelup"]');
     const fh = leerFechaHora(form, r);
     if (!fh) { msg.textContent = "Elige la fecha de la clase."; msg.className = "form-msg error"; return; }
@@ -1982,7 +1982,7 @@ function construirTarjetaHistorialGrupal(grupo) {
         </div>` : ""}
         <div class="field">
           <label>Duración (min) de esta sesión</label>
-          <select data-campo-sesion="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (base.duracionMin ?? 90) ? "selected" : ""}>${d}</option>`).join("")}</select>
+          <select data-campo-sesion="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (base.duracionMin ?? 60) ? "selected" : ""}>${d}</option>`).join("")}</select>
         </div>
         <button class="btn btn-outline btn-small" type="button" data-guardar-cancha-sesion>Guardar para toda la sesión</button>
       </div>
@@ -2167,7 +2167,7 @@ function construirTarjetaHistorialGrupal(grupo) {
 
   card.querySelector("[data-guardar-cancha-sesion]")?.addEventListener("click", async () => {
     const msgCancha = card.querySelector("[data-msg-cancha-sesion]");
-    const duracionMin = Number(card.querySelector('[data-campo-sesion="duracionMin"]').value) || 90;
+    const duracionMin = Number(card.querySelector('[data-campo-sesion="duracionMin"]').value) || 60;
     const campoCanchaSesion = card.querySelector('[data-campo-sesion="canchaBeelup"]');
     const cambios = { duracionMin };
     if (campoCanchaSesion) cambios.canchaBeelup = campoCanchaSesion.value;
@@ -2208,7 +2208,7 @@ function poblarSelectsGrupo() {
   document.getElementById("gr-monto").value = PRECIOS_CLASE_SUELTA["Grupal (2-4 personas)"];
 
   document.getElementById("gr-cancha-beelup").innerHTML = CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === "2" ? "selected" : ""}>${c}</option>`).join("");
-  document.getElementById("gr-duracion").innerHTML = DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === 90 ? "selected" : ""}>${d}</option>`).join("");
+  document.getElementById("gr-duracion").innerHTML = DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === 60 ? "selected" : ""}>${d}</option>`).join("");
   actualizarVisibilidadCanchaBeelupGrupo();
 }
 
@@ -2229,7 +2229,7 @@ document.getElementById("form-grupo").addEventListener("submit", async (e) => {
   const montoCobrado = Number(document.getElementById("gr-monto").value) || 0;
   const cupoMaximo = Number(document.getElementById("gr-cupo").value) || 1;
   const pistaNombre = `${pista?.nombre || ""} — ${pista?.distrito || ""}`;
-  const duracionMin = Number(document.getElementById("gr-duracion").value) || 90;
+  const duracionMin = Number(document.getElementById("gr-duracion").value) || 60;
   const canchaBeelup = pista && esPistaBeelup(pistaNombre) ? document.getElementById("gr-cancha-beelup").value : null;
   if (!pista) { msg.textContent = "Elige una pista válida."; msg.className = "form-msg error"; return; }
   try {
@@ -2243,7 +2243,7 @@ document.getElementById("form-grupo").addEventListener("submit", async (e) => {
     document.getElementById("gr-cupo").value = 4;
     document.getElementById("gr-monto").value = PRECIOS_CLASE_SUELTA["Grupal (2-4 personas)"];
     document.getElementById("gr-cancha-beelup").value = "2";
-    document.getElementById("gr-duracion").value = "90";
+    document.getElementById("gr-duracion").value = "60";
     actualizarVisibilidadCanchaBeelupGrupo();
     msg.textContent = "Clase semanal fija creada — ahora asígnale alumnos desde \"Tus alumnos\".";
     msg.className = "form-msg ok";
@@ -2281,7 +2281,7 @@ function renderGrupos() {
     card.innerHTML = `
       <h3>${escapeHtml(g.nombre)} ${g.activo === false ? '<span class="badge badge-rechazada">Pausado</span>' : '<span class="badge badge-confirmada">Activo</span>'}</h3>
       <p class="court-meta">${escapeHtml(g.dia)} · ${escapeHtml(g.hora)} hrs · ${escapeHtml(g.pistaNombre)}</p>
-      <p class="court-meta">${escapeHtml(g.tipoClase)} · S/ ${g.montoCobrado} por persona · ${g.duracionMin ?? 90} min${esPistaBeelup(g.pistaNombre) ? ` · Cancha ${escapeHtml(g.canchaBeelup || "2")}` : ""}</p>
+      <p class="court-meta">${escapeHtml(g.tipoClase)} · S/ ${g.montoCobrado} por persona · ${g.duracionMin ?? 60} min${esPistaBeelup(g.pistaNombre) ? ` · Cancha ${escapeHtml(g.canchaBeelup || "2")}` : ""}</p>
       <p><span class="badge ${miembros.length >= g.cupoMaximo ? "badge-pendiente" : "badge-confirmada"}">${miembros.length}/${g.cupoMaximo} cupos</span></p>
       <p>${miembros.length ? miembros.map((a) => `<span class="badge badge-confirmada">${escapeHtml(a.nombre)}</span>`).join(" ") : '<span class="court-meta">Sin alumnos todavía — asígnalos desde "Tus alumnos".</span>'}</p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
@@ -2300,7 +2300,7 @@ function renderGrupos() {
           <select data-campo="canchaBeelup">${CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === (g.canchaBeelup || "2") ? "selected" : ""}>${c}</option>`).join("")}</select>
         </div>` : ""}
         <div class="field"><label>Duración (min)</label>
-          <select data-campo="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (g.duracionMin ?? 90) ? "selected" : ""}>${d}</option>`).join("")}</select>
+          <select data-campo="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (g.duracionMin ?? 60) ? "selected" : ""}>${d}</option>`).join("")}</select>
         </div>
         <button class="btn btn-primary btn-small" type="button" data-guardar>Guardar</button>
         <p class="field-hint">Cambiar día/hora/pista acá NO mueve las clases que ya se generaron — reprográmalas desde "Mis clases" si hace falta.</p>
@@ -2321,7 +2321,7 @@ function renderGrupos() {
           hora: form.querySelector('[data-campo="hora"]').value,
           montoCobrado: Number(form.querySelector('[data-campo="montoCobrado"]').value) || 0,
           cupoMaximo: Number(form.querySelector('[data-campo="cupoMaximo"]').value) || 1,
-          duracionMin: Number(form.querySelector('[data-campo="duracionMin"]').value) || 90
+          duracionMin: Number(form.querySelector('[data-campo="duracionMin"]').value) || 60
         };
         const campoCancha = form.querySelector('[data-campo="canchaBeelup"]');
         if (campoCancha) cambios.canchaBeelup = campoCancha.value;
@@ -2410,7 +2410,7 @@ async function generarReservasDeGrupos() {
             fecha, hora: g.hora, estado: "confirmada",
             modalidad: "Grupal (2-4 personas)", montoCobrado: g.montoCobrado,
             grupoId: g.id,
-            duracionMin: g.duracionMin ?? 90,
+            duracionMin: g.duracionMin ?? 60,
             creadoEn: serverTimestamp()
           };
           if (g.canchaBeelup) datosReserva.canchaBeelup = g.canchaBeelup;
