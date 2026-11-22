@@ -17,6 +17,8 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, "costos_reservas/r1"), { costoCanchaPagado: 50 });
   await setDoc(doc(db, "costos_profesor/prof"), { costoHora: 50 });
   await setDoc(doc(db, "costos_pistas/x"), { costoHoraSinLuz: 50 });
+  await setDoc(doc(db, "partidos/pa1"), { alumnoId: "alu1", alumnoNombre: "Ana", alumnoTelefono: "+51999", fecha: "2026-12-01" });
+  await setDoc(doc(db, "partidos/pa2"), { alumnoId: "alu2", alumnoNombre: "Beto", alumnoTelefono: "+51888", fecha: "2026-12-02" });
 });
 
 let fallos = 0, total = 0;
@@ -122,6 +124,15 @@ await t("alumno NO lee los proveedores de la tienda", "fail", () => getDocs(coll
 await t("anónimo NO lee los proveedores de la tienda", "fail", () => getDocs(collection(anon, "tienda_interno")));
 await t("alumno NO escribe proveedores de la tienda", "fail", () => setDoc(doc(alu1, "tienda_interno/GP-PAL-001"), { costo: 1 }));
 await t("profesor escribe y lee los proveedores de la tienda", "ok", () => setDoc(doc(prof, "tienda_interno/GP-PAL-001"), { costo: 300, tienda: "x" }));
+await t("alumno lee los partidos publicados", "ok", () => getDocs(collection(alu1, "partidos")));
+await t("anónimo NO lee los partidos (traen teléfonos)", "fail", () => getDocs(collection(anon, "partidos")));
+await t("alumno publica SU partido", "ok", () => addDoc(collection(alu1, "partidos"), { alumnoId: "alu1", alumnoNombre: "Ana", fecha: "2026-12-05" }));
+await t("alumno NO publica un partido a nombre de otro", "fail", () => addDoc(collection(alu1, "partidos"), { alumnoId: "alu2", alumnoNombre: "Beto", fecha: "2026-12-05" }));
+await t("anónimo NO publica partidos", "fail", () => addDoc(collection(anon, "partidos"), { alumnoId: "anon-x", fecha: "2026-12-05" }));
+await t("alumno borra SU partido", "ok", () => deleteDoc(doc(alu1, "partidos/pa1")));
+await t("alumno NO borra el partido de otro", "fail", () => deleteDoc(doc(alu1, "partidos/pa2")));
+await t("alumno NO edita el partido de otro", "fail", () => updateDoc(doc(alu1, "partidos/pa2"), { nota: "x" }));
+await t("profesor borra un partido (moderación)", "ok", () => deleteDoc(doc(prof, "partidos/pa2")));
 console.log(`\n${total - fallos}/${total} pasan` + (fallos ? `  ·  ${fallos} FALLAN` : ""));
 await env.cleanup();
 process.exit(fallos ? 1 : 0);
