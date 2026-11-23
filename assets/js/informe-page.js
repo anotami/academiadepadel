@@ -47,7 +47,7 @@ function render(i) {
       <p class="inf-sub">${escapeHtml(i.primerNombre || "")}, acá tenés tus números, tres cosas para mirar y la tarea para la próxima.</p>
       <div class="inf-cabecera">
         ${i.foto ? `<img class="inf-foto" src="${driveImg(i.foto, 400)}" alt="Vos en la clase">` : ""}
-        ${i.mapa ? `<figure><img class="inf-mapa" src="${driveImg(i.mapa, 700)}" alt="Mapa de calor: dónde estuviste en la cancha"><figcaption>Dónde estuviste en la cancha</figcaption></figure>` : ""}
+        ${i.mapa ? `<figure><img class="inf-mapa" src="${driveImg(i.mapa, 700)}" alt="Mapa de calor: dónde estuviste en la pista"><figcaption>Dónde estuviste en la pista</figcaption></figure>` : ""}
       </div>
       <section><h2>Tu clase en números</h2><table class="inf-tabla"><tbody>${filas}</tbody></table></section>
       ${clips ? `<section><h2>Tres cosas para mirar</h2><p class="inf-sub">Cada una tiene su clip. Miralo antes de la próxima clase y fijate solo en eso.</p><ol class="inf-clips">${clips}</ol></section>` : ""}

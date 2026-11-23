@@ -31,7 +31,7 @@ export function linkInvitacion(codigo) {
 // Mensaje para que quien tiene el código se lo mande a un amigo.
 export function mensajeInvitacion(codigo, nombreAlumno) {
   return `Hola! Soy ${nombreAlumno}, entreno pádel en Academia de Pádel GP y te lo recomiendo 🎾\n` +
-    `Con mi link tienes ${REFERIDOS.textoBeneficioInvitado}:\n${linkInvitacion(codigo)}\n` +
+    `Con mi link tenés ${REFERIDOS.textoBeneficioInvitado}:\n${linkInvitacion(codigo)}\n` +
     `Mi código es ${codigo}.`;
 }
 

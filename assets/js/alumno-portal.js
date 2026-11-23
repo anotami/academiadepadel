@@ -64,7 +64,7 @@ async function crearMiCodigo() {
 function renderInvitar() {
   const wrap = document.getElementById("invitar-contenido");
   if (!wrap) return;
-  const beneficios = `<p class="field-hint">Si un amigo se anota con tu código, <strong>él recibe ${escapeHtml(REFERIDOS.textoBeneficioInvitadoTercera)}</strong> y <strong>tú ganas ${escapeHtml(REFERIDOS.textoBeneficioInvitador)}</strong> cuando pague su primer paquete.</p>`;
+  const beneficios = `<p class="field-hint">Si un amigo se anota con tu código, <strong>él recibe ${escapeHtml(REFERIDOS.textoBeneficioInvitadoTercera)}</strong> y <strong>vos ganás ${escapeHtml(REFERIDOS.textoBeneficioInvitador)}</strong> cuando pague su primer paquete.</p>`;
   const codigo = currentPerfil.codigoReferido;
   if (!codigo) {
     wrap.innerHTML = `${beneficios}<button class="btn btn-primary btn-small" type="button" id="btn-mi-codigo">Obtener mi código</button><p class="form-msg" id="mi-codigo-msg"></p>`;
@@ -184,7 +184,7 @@ function renderMiNivel() {
       ? `<div style="display:flex; flex-wrap:wrap; gap:8px;">
           ${insignias.map((i) => `<span class="badge badge-confirmada" style="font-size:0.95rem; padding:8px 12px;" title="${escapeHtml(i.nombre)}">${i.icono} ${escapeHtml(i.nombre)}</span>`).join("")}
         </div>`
-      : '<p class="empty-state">Todavía no tienes insignias — se ganan solas con cada clase.</p>';
+      : '<p class="empty-state">Todavía no tenés insignias — se ganan solas con cada clase.</p>';
   }
 }
 
@@ -221,10 +221,10 @@ function cargarProgreso(uid) {
                 <div class="callout" style="margin-top:8px;">
                   <span class="callout-icon">🗒️</span>
                   <p>
-                    <strong>Lo que tú contaste:</strong> sensación ${en.sentimiento}/10 · esfuerzo ${en.esfuerzo}/10
+                    <strong>Lo que vos contaste:</strong> sensación ${en.sentimiento}/10 · esfuerzo ${en.esfuerzo}/10
                     ${en.trabajado ? `<br>Trabajaron: ${escapeHtml(en.trabajado)}` : ""}
                     ${en.comentario ? `<br>${escapeHtml(en.comentario)}` : ""}
-                    ${en.mejorar ? `<br><em>Quieres mejorar: ${escapeHtml(en.mejorar)}</em>` : ""}
+                    ${en.mejorar ? `<br><em>Querés mejorar: ${escapeHtml(en.mejorar)}</em>` : ""}
                   </p>
                 </div>` : ""}
             </div>
@@ -242,7 +242,7 @@ function cargarPaquete(uid) {
     paquetesCacheNivel = snap.docs.map((d) => d.data());
     renderMiNivel();
     if (snap.empty) {
-      wrap.innerHTML = '<p class="empty-state">No tienes un paquete activo. Coordina con tu profesor por WhatsApp para contratar uno.</p>';
+      wrap.innerHTML = '<p class="empty-state">No tenés un paquete activo. Coordiná con tu profesor por WhatsApp para contratar uno.</p>';
       return;
     }
     const paquetes = snap.docs.map((d) => d.data()).sort((a, b) => (b.creadoEn?.seconds || 0) - (a.creadoEn?.seconds || 0));
@@ -299,7 +299,7 @@ function actualizarHint() {
     const partes = [];
     if (okProfesor === false) partes.push("fuera de la disponibilidad habitual del profesor");
     if (okPista === false) partes.push("fuera del horario habitual de la pista");
-    hintEl.textContent = `⚠ Este horario está ${partes.join(" y ")}. Igual puedes enviarlo, pero puede tardar más en confirmarse.`;
+    hintEl.textContent = `⚠ Este horario está ${partes.join(" y ")}. Igual podés enviarlo, pero puede tardar más en confirmarse.`;
     hintEl.className = "form-msg error";
   } else if (okProfesor && okPista) {
     hintEl.textContent = "✓ Este horario calza con la disponibilidad habitual del profesor y de la pista.";
@@ -476,7 +476,7 @@ function cargarReservas(uid) {
   const q = query(collection(db, "reservas"), where("alumnoId", "==", uid), orderBy("creadoEn", "desc"));
   onSnapshot(q, (snap) => {
     if (snap.empty) {
-      wrap.innerHTML = '<p class="empty-state">Aún no tienes reservas. Envía tu primera solicitud arriba.</p>';
+      wrap.innerHTML = '<p class="empty-state">Aún no tenés reservas. Enviá tu primera solicitud arriba.</p>';
       return;
     }
     wrap.innerHTML = "";
@@ -508,7 +508,7 @@ function cargarReservas(uid) {
 }
 
 async function cancelarReserva(r) {
-  if (!confirm("¿Seguro que quieres cancelar esta clase?")) return;
+  if (!confirm("¿Seguro que querés cancelar esta clase?")) return;
   try {
     const horasAntes = (new Date(`${r.fecha}T${r.hora}:00-05:00`).getTime() - Date.now()) / 3600000;
     await updateDoc(doc(db, "reservas", r.id), { estado: "cancelada" });

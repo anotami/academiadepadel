@@ -32,7 +32,8 @@ IMPER = {
  "sube":"subí","elígelo":"elegilo","mide":"medí","dale":"dale","sé":"sé","di":"decí","toma":"tomá","juega":"jugá","practica":"practicá",
  "disfruta":"disfrutá","actualiza":"actualizá","contacta":"contactá","agrega":"agregá","visita":"visitá","accede":"accedé","aprovecha":"aprovechá","carga":"cargá","corrige":"corregí","evita":"evitá","olvida":"olvidá","recuerda":"recordá","piensa":"pensá","trabaja":"trabajá","entrena":"entrená","sube":"subí","descúbrelo":"descubrilo","descúbrela":"descubrila","pruébala":"probala","consúltanos":"consultanos","encuéntralo":"encontralo","conócelo":"conocelo","míralo":"miralo","elígela":"elegila","reservalo":"reservalo","súmate":"sumate","apúntate":"apuntate","pregunta":"preguntá","busca":"buscá","abre":"abrí","vuelve":"volvé",
 }
-PALABRAS = {"contigo":"con vos","tú":"vos","Tú":"Vos","si faltas":"si faltás","lo que ganas":"lo que ganás","si reservas":"si reservás","no reservas":"no reservás"}
+IMPER_B = {"crea":"creá","marca":"marcá","publica":"publicá","coordina":"coordiná","envía":"enviá","inicia":"iniciá","guarda":"guardá","activa":"activá","cancela":"cancelá","copia":"copiá","cambia":"cambiá","borra":"borrá","cierra":"cerrá","invita":"invitá","anota":"anotá","vincula":"vinculá","ordena":"ordená","filtra":"filtrá","carga":"cargá","pega":"pegá","toca":"tocá","espera":"esperá","verifica":"verificá","cuéntale":"contale","inténtalo":"intentalo","avísale":"avisale","pídele":"pedile","escríbele":"escribile","llámalo":"llamalo"}
+PALABRAS = {"tú ganas":"vos ganás","Tú ganas":"Vos ganás","contigo":"con vos","tú":"vos","Tú":"Vos","si faltas":"si faltás","lo que ganas":"lo que ganás","si reservas":"si reservás","no reservas":"no reservás"}
 CANCHA = [("canchas","pistas"),("Canchas","Pistas"),("cancha","pista"),("Cancha","Pista"),("CANCHAS","PISTAS"),("CANCHA","PISTA")]
 L = r"A-Za-zÁÉÍÓÚáéíóúÑñÜü"
 from collections import Counter
@@ -47,6 +48,9 @@ def convertir(t):
     imp = "|".join(sorted(IMPER, key=len, reverse=True))
     t = re.sub(rf"(^\s*|(?<=>)|[.!?:—–¡¿(]\s*|\n\s*|,\s+(?=(?:escribe|elige|avísanos|contáctanos|llámanos|escríbenos|consulta|mira|pide|haz|ven|prueba|retoma|aprende)\b))((?:[^{L}\s]\s*)?)({imp})(?=\s+(?:tu|tus|el|la|los|las|un|una|con|por|a|en|de|y|o|que|si|mi|nuestro|nuestra|ya|ahora|hoy|más|para|su|al|pista|pistas|horario|programa|día|nivel|sede|clase|pádel|cómo|qué|dónde|cuánto|aquí|desde|cuando|cuándo|lo|nuestros|estas|este|esta|disponibilidad|vos|también|primero)\b|\s*[.!?→»(]|\s*$)",
                lambda m: (CAMBIOS.update([(m.group(3), caso(m.group(3), IMPER[m.group(3).lower()]))]) or m.group(1) + m.group(2) + caso(m.group(3), IMPER[m.group(3).lower()])), t, flags=re.I)
+    impb = "|".join(sorted(IMPER_B, key=len, reverse=True))
+    t = re.sub(rf"(^\s*|(?<=>)|[!?¡¿]\s+)(?:([^{L}\s])\s*)?({impb})(?=\s+(?:tu|tus|los|las|el|la|un|una|con|cuándo|cuando|sesión|en|a|que|su|nuestro)\b|\s*[.!?→»(]|\s*$)",
+               lambda m: (CAMBIOS.update([(m.group(3), caso(m.group(3), IMPER_B[m.group(3).lower()]))]) or m.group(1) + (m.group(2) or "") + caso(m.group(3), IMPER_B[m.group(3).lower()])) if m.group(3).lower() != "marca" or True else m.group(0), t, flags=re.I)
     t = re.sub(rf"(?<=[\s(][yo]\s)(retoma|aprende|elige|escribe|mira|pide|haz|ven|descubre|conoce|recarga|vuelve|revisa|intenta)(?=\s+(?:la|el|los|las|tu|tus|un|una|con|que|desde|más|a|de|vos)\b)",
                lambda m: IMPER[m.group(1).lower()], t)
     return t
