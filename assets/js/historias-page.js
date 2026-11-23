@@ -233,7 +233,7 @@ $("h-video-usar").addEventListener("click", async () => {
   const seg = Math.round(video.currentTime);
   await bdGuardar({ id: `v-${Date.now()}`, nombre: `${nombreVideo} · ${seg}s`, blob, creado: Date.now() });
   await cargarBiblioteca(); pintarBiblioteca(); pintar();
-  aviso("Momento guardado como foto. Puedes sacar otro.");
+  aviso("Momento guardado como foto. Podés sacar otro.");
 });
 $("h-picker-cerrar").addEventListener("click", () => $("h-picker").close());
 

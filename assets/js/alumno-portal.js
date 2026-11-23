@@ -398,7 +398,7 @@ document.getElementById("form-reserva").addEventListener("submit", async (e) => 
   const pista = pistasCache.find((p) => p.id === pistaId);
 
   if (!pista) {
-    msg.textContent = "Elige una pista válida.";
+    msg.textContent = "Elegí una pista válida.";
     msg.className = "form-msg error";
     return;
   }

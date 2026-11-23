@@ -141,7 +141,7 @@ function htmlClase(c) {
       ${p.foto ? `<button type="button" class="inf-foto-box" data-accion="ampliar" title="Toca para ver grande" aria-label="Ampliar foto de ${escapeHtml(p.pid)}"><img src="${driveImg(p.foto, 600)}" alt="Foto de ${escapeHtml(p.pid)}" loading="lazy"><span class="inf-lupa" aria-hidden="true">🔍</span></button>` : `<div class="inf-sinfoto">Sin foto</div>`}
       <div class="inf-persona-datos">
         <strong>${escapeHtml(p.pid.replace("persona_", "Persona ").replace("profesor", "Profesor (probable)"))}</strong>
-        <span class="field-hint">${p.metricas?.tiempo_en_cancha_min ?? "?"} min en cancha · ${(p.clips || []).length} clips</span>
+        <span class="field-hint">${p.metricas?.tiempo_en_cancha_min ?? "?"} min en pista · ${(p.clips || []).length} clips</span>
         <select class="inf-asignar">${opciones(p)}</select>
         <input class="inf-otro" list="inf-alumnos-lista" placeholder="Nombre del alumno" hidden>
       </div>

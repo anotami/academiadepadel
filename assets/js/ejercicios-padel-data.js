@@ -73,12 +73,12 @@ export const CONSEJOS = [
     fuente: "Guía 3, p.6 (PadelStar)"
   },
   {
-    titulo: "Corrige un solo error a la vez",
-    texto: "Elige el error más importante de cada alumno y trabaja solo ese durante la sesión. Corregir varias cosas a la vez satura al alumno y no mejora ninguna.",
+    titulo: "Corregí un solo error a la vez",
+    texto: "Elegí el error más importante de cada alumno y trabaja solo ese durante la sesión. Corregir varias cosas a la vez satura al alumno y no mejora ninguna.",
     fuente: "Guía 5, p.31 (PadelStar)"
   },
   {
-    titulo: "Evita la \"zona pantano\"",
+    titulo: "Evitá la \"zona pantano\"",
     texto: "A mitad de camino entre la red y la línea de saque (ni volea ni defensa) es la peor zona para quedarse parado: desde ahí no se vuelea cómodo ni se defiende bien. Si un alumno queda ahí seguido, es la primera corrección posicional a hacer.",
     fuente: "Guía 2, p.25 (PadelStar)"
   }
@@ -105,10 +105,10 @@ export const EJERCICIOS = [
     diagrama: { tipo: "estatico", labelA: "A" },
     foto: { src: "assets/img/court/grip-detail.jpg", alt: "Primer plano de la empuñadura de una pala de pádel" },
     material: "Lapicera o marcador (opcional)",
-    varianteFacil: "Deja que el alumno mire su propia mano mientras arma el grip, sin pala, para sentir primero el vértice pulgar-índice.",
-    varianteDificil: "Pide el cambio de grip entre continental y lateral (cerrado/abierto) con los ojos cerrados, solo por tacto.",
+    varianteFacil: "Dejá que el alumno mire su propia mano mientras arma el grip, sin pala, para sentir primero el vértice pulgar-índice.",
+    varianteDificil: "Pedí el cambio de grip entre continental y lateral (cerrado/abierto) con los ojos cerrados, solo por tacto.",
     errorFrecuente: "El alumno agarra el mango como un martillo (grip de tenis), con la palma plana contra la cara de la pala — así el golpe sale cerrado y sin control.",
-    correccion: "Vuelve a \"dar la mano\" al mango despacio, verificando que el pulgar quede ligeramente por detrás, no al costado.",
+    correccion: "Volvé a \"dar la mano\" al mango despacio, verificando que el pulgar quede ligeramente por detrás, no al costado.",
     preguntaCierre: "¿En qué parte de la mano sentís el vértice del mango?"
   },
   {
@@ -128,7 +128,7 @@ export const EJERCICIOS = [
     varianteFacil: "El profesor deja picar la pelota más cerca del alumno, reduciendo el tiempo de reacción necesario.",
     varianteDificil: "El profesor varía la altura del pique (más alto o más bajo) para que el alumno ajuste la preparación en cada bola.",
     errorFrecuente: "El alumno golpea con el brazo estirado desde el hombro, sin flexionar el codo al preparar — la pelota sale sin control de dirección.",
-    correccion: "Marca con la mano libre dónde debe \"armar\" antes de empujar: codo cerca del cuerpo, pala atrás a la altura de la cadera.",
+    correccion: "Marcá con la mano libre dónde debe \"armar\" antes de empujar: codo cerca del cuerpo, pala atrás a la altura de la cadera.",
     preguntaCierre: "¿Sentiste más control cuando frenaste primero o cuando pegaste directo?"
   },
   {
@@ -148,7 +148,7 @@ export const EJERCICIOS = [
     varianteFacil: "El profesor arroja la pelota más despacio y más cerca del cuerpo del alumno.",
     varianteDificil: "Se agregá un paso lateral antes del golpe, para que el alumno ya no esté parado de frente.",
     errorFrecuente: "El alumno gira solo el brazo y no los hombros, por lo que el golpe sale sin potencia ni dirección.",
-    correccion: "Pide que gire el hombro no dominante hacia la pelota antes de golpear, como si fuera a mostrar la espalda al profesor.",
+    correccion: "Pedí que gire el hombro no dominante hacia la pelota antes de golpear, como si fuera a mostrar la espalda al profesor.",
     preguntaCierre: "¿Qué parte del cuerpo giraste primero: el hombro o el brazo?"
   },
   {
@@ -167,7 +167,7 @@ export const EJERCICIOS = [
     varianteFacil: "El alumno practica el lanzamiento parado, sin desplazamiento.",
     varianteDificil: "Se agregá un desplazamiento hacia atrás antes de lanzar, simulando que retrocede para un globo.",
     errorFrecuente: "El alumno lanza la pelota con trayectoria plana en vez de alta, porque el brazo no termina el movimiento hacia arriba.",
-    correccion: "Pide que \"apunte\" con la mano hacia el techo al final del lanzamiento, no hacia adelante.",
+    correccion: "Pedí que \"apunte\" con la mano hacia el techo al final del lanzamiento, no hacia adelante.",
     preguntaCierre: "¿Hacia dónde terminó apuntando tu mano al final del lanzamiento?"
   },
   {
@@ -187,7 +187,7 @@ export const EJERCICIOS = [
     varianteFacil: "El alumno practica solo el armado y la caída de la pelota, sin golpear todavía.",
     varianteDificil: "Se exige sacar apuntando a un cono colocado en un cuadrante específico del campo contrario.",
     errorFrecuente: "El alumno deja caer la pelota muy lejos del cuerpo o demasiado alta, perdiendo el punto de impacto antes de golpear.",
-    correccion: "Pide que suelte la pelota cerca del pie de atrás y la deje picar sin moverse, antes de recién ahí golpear.",
+    correccion: "Pedí que suelte la pelota cerca del pie de atrás y la deje picar sin moverse, antes de recién ahí golpear.",
     preguntaCierre: "¿La pelota picó cerca de tu pie o se alejó?"
   },
   {
@@ -207,7 +207,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se reduce a 2 conos y se aumenta el tiempo de descanso entre repeticiones.",
     varianteDificil: "El profesor indica el cono al que debe ir recién cuando el alumno ya está en movimiento, obligándolo a reaccionar.",
     errorFrecuente: "El alumno llega corriendo hasta el cono y recién ahí frena de golpe, llegando descontrolado al golpe.",
-    correccion: "Marca el último paso como \"paso de ajuste\" corto, antes de llegar al cono — frenar antes de llegar, no al llegar.",
+    correccion: "Marcá el último paso como \"paso de ajuste\" corto, antes de llegar al cono — frenar antes de llegar, no al llegar.",
     preguntaCierre: "¿En qué cono te costó más frenar a tiempo?"
   },
 
@@ -228,7 +228,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se reduce la distancia del desplazamiento lateral a 1-2 pasos.",
     varianteDificil: "El profesor juega la pelota variando la distancia en cada repetición, sin patrón fijo.",
     errorFrecuente: "El alumno llega al golpe sin terminar de frenar, por lo que el impacto sale apurado y sin equilibrio.",
-    correccion: "Recuerda la secuencia completa: desplazarse, frenar, armar, recién ahí golpear — no saltear el paso de frenado.",
+    correccion: "Recordá la secuencia completa: desplazarse, frenar, armar, recién ahí golpear — no saltear el paso de frenado.",
     preguntaCierre: "¿Llegaste a tiempo a frenar antes de golpear, o golpeaste en movimiento?"
   },
   {
@@ -247,7 +247,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se reduce la distancia del desplazamiento.",
     varianteDificil: "Se alterna sin aviso entre pelotas a mayor y menor distancia.",
     errorFrecuente: "El alumno gira el cuerpo tarde, llegando al golpe todavía de frente en vez de perfilado.",
-    correccion: "Pide que el giro de hombros empiece apenas ve hacia dónde va la pelota, no al llegar al lugar del golpe.",
+    correccion: "Pedí que el giro de hombros empiece apenas ve hacia dónde va la pelota, no al llegar al lugar del golpe.",
     preguntaCierre: "¿Cuándo empezaste a girar el cuerpo: apenas viste la pelota o al llegar?"
   },
   {
@@ -267,7 +267,7 @@ export const EJERCICIOS = [
     varianteFacil: "El profesor juega pelotas con más repique antes del pique en pared, dando más tiempo de reacción.",
     varianteDificil: "Se exige golpear a un solo pique y dirigir la pelota cruzada.",
     errorFrecuente: "El alumno golpea apenas la pelota sale de la pared, sin esperar que baje a una altura cómoda.",
-    correccion: "Pide que cuente mentalmente \"uno\" después del pique en la pared antes de golpear, para no apurarse.",
+    correccion: "Pedí que cuente mentalmente \"uno\" después del pique en la pared antes de golpear, para no apurarse.",
     preguntaCierre: "¿A qué altura te resultó más cómodo golpear: alta o baja?"
   },
   {
@@ -287,7 +287,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se reduce la velocidad del globo que arroja el profesor.",
     varianteDificil: "Se jugá el mismo ejercicio pero con el alumno debiendo recuperar posición de espera entre cada bandeja.",
     errorFrecuente: "El alumno golpea la bandeja como si fuera un remate, con swing largo, en vez de bloquear y empujar.",
-    correccion: "Recuerda que la bandeja frena la pelota con la pala casi quieta y solo empuja al final — no hay que \"pegarle fuerte\".",
+    correccion: "Recordá que la bandeja frena la pelota con la pala casi quieta y solo empuja al final — no hay que \"pegarle fuerte\".",
     preguntaCierre: "¿La pelota salió más controlada cuando empujaste suave o cuando le pegaste fuerte?"
   },
   {
@@ -306,7 +306,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se reduce el número de repeticiones y se aumenta el tiempo entre bola y bola.",
     varianteDificil: "Se alterna volea de derecha y revés sin patrón fijo, obligando a decidir rápido.",
     errorFrecuente: "El alumno vuelea con los pies juntos o parado, sin dar el paso de apoyo cruzado hacia la pelota.",
-    correccion: "Marca con el cono dónde debe pisar: un paso cruzado en diagonal hacia la pelota antes de cada volea.",
+    correccion: "Marcá con el cono dónde debe pisar: un paso cruzado en diagonal hacia la pelota antes de cada volea.",
     preguntaCierre: "¿Pisaste el cono antes de volear en la mayoría de las bolas?"
   },
   {
@@ -347,7 +347,7 @@ export const EJERCICIOS = [
     varianteFacil: "El profesor da la señal con más anticipación, antes de jugar la pelota.",
     varianteDificil: "Se jugá la pelota casi al mismo tiempo que la señal, exigiendo reacción más rápida.",
     errorFrecuente: "El alumno anticipa el lado antes de ver la señal, adivinando en vez de leer la jugada.",
-    correccion: "Pide que espere con los pies quietos hasta ver la señal — moverse antes es trampa, aunque adivine bien.",
+    correccion: "Pedí que espere con los pies quietos hasta ver la señal — moverse antes es trampa, aunque adivine bien.",
     preguntaCierre: "¿Esperaste a ver la señal antes de moverte, o saliste antes?"
   },
   {
@@ -367,7 +367,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se trabaja solo el primer paso (agarrar de frente con la mano) hasta que esté cómodo.",
     varianteDificil: "Se jugá el globo desde más lejos, exigiendo más desplazamiento antes del remate.",
     errorFrecuente: "El alumno golpea de frente a la red, sin perfilarse, perdiendo potencia y dirección.",
-    correccion: "Recuerda el paso 2 de la progresión: siempre de perfil antes de golpear, nunca de frente.",
+    correccion: "Recordá el paso 2 de la progresión: siempre de perfil antes de golpear, nunca de frente.",
     preguntaCierre: "¿Tu brazo libre quedó apuntando hacia la pelota al momento del impacto?"
   },
   {
@@ -386,7 +386,7 @@ export const EJERCICIOS = [
     varianteFacil: "El alumno practica solo el lanzamiento con la mano, sin pala, hasta encontrar el punto de impacto.",
     varianteDificil: "El profesor juega la pelota más rápido y desde más cerca de la red.",
     errorFrecuente: "El alumno espera que la pelota baje mucho antes de golpear, perdiendo el momento alto del bote que necesita la víbora.",
-    correccion: "Marca el punto de impacto ideal: justo cuando la pelota todavía sube después del pique, no cuando ya está bajando.",
+    correccion: "Marcá el punto de impacto ideal: justo cuando la pelota todavía sube después del pique, no cuando ya está bajando.",
     preguntaCierre: "¿Golpeaste cuando la pelota subía o cuando ya bajaba?"
   },
   {
@@ -442,7 +442,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se trabajá el error aislado, sin pelota en juego, solo el gesto corregido en seco.",
     varianteDificil: "Se integra el gesto corregido dentro de un punto de competencia real.",
     errorFrecuente: "El alumno corrige el gesto cuando está relajado pero vuelve al error bajo presión de un punto.",
-    correccion: "Sube la exigencia gradualmente: primero en seco, luego con pelota fácil, recién al final en un punto real.",
+    correccion: "Subí la exigencia gradualmente: primero en seco, luego con pelota fácil, recién al final en un punto real.",
     preguntaCierre: "¿En qué momento se te escapó el error: relajado o bajo presión?"
   },
 
@@ -464,7 +464,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se arrojan pelotas más lentas y más cerca del alumno en turno.",
     varianteDificil: "Se reduce el tiempo entre turno y turno para que la fila avance más rápido.",
     errorFrecuente: "Los alumnos que esperan en la fila se distraen y no prestan atención a la corrección del compañero que está golpeando.",
-    correccion: "Pide a los que esperan que identifiquen en voz baja un punto a mejorar del compañero que golpea.",
+    correccion: "Pedí a los que esperan que identifiquen en voz baja un punto a mejorar del compañero que golpea.",
     preguntaCierre: "¿Qué le viste mejorar a tu compañero mientras esperabas tu turno?"
   },
   {
@@ -543,7 +543,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se dan más de 2 minutos por rotación, para que sientan mejor cada posición.",
     varianteDificil: "Se agregá una señal sorpresa del profesor para rotar antes de tiempo, exigiendo reacción rápida.",
     errorFrecuente: "Los alumnos en zona de ataque se paran demasiado cerca de la red, perdiendo tiempo de reacción ante un remate.",
-    correccion: "Marca con un segundo cono la distancia correcta de 1.5 m de la red para la posición de ataque.",
+    correccion: "Marcá con un segundo cono la distancia correcta de 1.5 m de la red para la posición de ataque.",
     preguntaCierre: "¿En qué posición sentiste más seguridad: ataque o defensa?"
   },
   {
@@ -583,7 +583,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se reduce la intensidad de la activación (sin sentadillas con salto).",
     varianteDificil: "Se suma activación específica con pala (sombra de golpes) al final del calentamiento.",
     errorFrecuente: "Los alumnos hacen los ejercicios de movilidad con rango de movimiento muy corto, sin calentar realmente la articulación.",
-    correccion: "Marca el rango completo con tu propio ejemplo antes de que empiecen, y corrige en vivo al que se quede corto.",
+    correccion: "Marcá el rango completo con tu propio ejemplo antes de que empiecen, y corrige en vivo al que se quede corto.",
     preguntaCierre: "¿Sentiste el cuerpo más suelto al terminar el calentamiento?"
   },
   {
@@ -602,7 +602,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se reduce a solo volea, sin alternar con bandeja, hasta que esté cómoda.",
     varianteDificil: "Se alterna volea y bandeja sin aviso previo, obligando a decidir el gesto en el aire.",
     errorFrecuente: "Los alumnos no vuelven a la posición de espera entre bola y bola, llegando tarde a la siguiente.",
-    correccion: "Marca en voz alta \"posición\" después de cada golpe para recordar la recuperación.",
+    correccion: "Marcá en voz alta \"posición\" después de cada golpe para recordar la recuperación.",
     preguntaCierre: "¿Volviste a la posición de espera después de cada golpe?"
   },
   {
@@ -640,7 +640,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se permite 3 globos en vez de 2, para bajar la presión.",
     varianteDificil: "Se reduce a 1 solo globo permitido por punto.",
     errorFrecuente: "La pareja en defensa pierde la cuenta de cuántos globos ya usó.",
-    correccion: "Pide que, en voz alta, cuenten los globos usados (\"uno\", \"dos\") para hacerse responsables del límite.",
+    correccion: "Pedí que, en voz alta, cuenten los globos usados (\"uno\", \"dos\") para hacerse responsables del límite.",
     preguntaCierre: "¿Qué hicieron para defender cuando ya no podían usar el globo?"
   },
   {
@@ -677,7 +677,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se juega sin puntaje extra, solo practicando el gesto de chiquita cuando surja la oportunidad.",
     varianteDificil: "Se exige avanzar a la red inmediatamente después de cada chiquita propia.",
     errorFrecuente: "El alumno le pega a la chiquita con el mismo swing que un golpe normal, por lo que sale con demasiada velocidad y no \"muere\" cerca de la red.",
-    correccion: "Pide un gesto corto, casi sin swing, solo acompañando la pelota con la pala hacia abajo y adelante.",
+    correccion: "Pedí un gesto corto, casi sin swing, solo acompañando la pelota con la pala hacia abajo y adelante.",
     preguntaCierre: "¿Tu chiquita picó dos veces antes de la línea de saque del rival?"
   },
 
@@ -812,7 +812,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se jugá desde más cerca de la red, con menos presión de tiempo.",
     varianteDificil: "Se exige que el remate al pico sea además cruzado, no indiferente a la dirección.",
     errorFrecuente: "El alumno le pega con toda la potencia buscando que entre directo, en vez de dejar que el rebote haga el trabajo.",
-    correccion: "Recuerda que el objetivo no es la potencia sino la precisión — bajar la velocidad ayuda a encontrar el pico.",
+    correccion: "Recordá que el objetivo no es la potencia sino la precisión — bajar la velocidad ayuda a encontrar el pico.",
     preguntaCierre: "¿Cuántos intentos de 10 terminaron saliendo por el pico?"
   },
   {
@@ -837,7 +837,7 @@ export const EJERCICIOS = [
   },
   {
     id: 39, modalidad: "grupal", nivel: "intermedio", tema: "Posiciones",
-    titulo: "Evita la zona pantano",
+    titulo: "Evitá la zona pantano",
     objetivo: "Dejar de quedarse parado en la peor zona de la pista: ni suficientemente cerca de la red para volear bien, ni suficientemente atrás para defender bien.",
     duracion: "10 min",
     pasos: [
@@ -852,7 +852,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se jugá con el profesor marcando en voz alta cada vez que alguien entra en la zona marcada.",
     varianteDificil: "Se jugá un set de competencia donde entrar en la zona pantano pierde el punto automáticamente.",
     errorFrecuente: "Después de un golpe, el alumno se queda parado en el lugar donde golpeó en vez de recuperar posición.",
-    correccion: "Recuerda que la regla es simple: después de cada golpe, moverse — nunca quedarse quieto donde se pegó.",
+    correccion: "Recordá que la regla es simple: después de cada golpe, moverse — nunca quedarse quieto donde se pegó.",
     preguntaCierre: "¿En qué momento del punto te quedaste parado en la zona pantano?"
   },
   {
@@ -872,7 +872,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se practicá con bolas servidas fáciles por el profesor, sin presión de punto real.",
     varianteDificil: "Se exige lograrlo dentro de un punto de competencia real, con la pareja rival defendiendo activamente.",
     errorFrecuente: "El alumno remata desde atrás sin haberse adelantado, perdiendo el ángulo necesario para sacarla por el fondo.",
-    correccion: "Recuerda la regla simple de la progresión: primero el pie, después la pala — adelantarse es el primer movimiento, no el golpe.",
+    correccion: "Recordá la regla simple de la progresión: primero el pie, después la pala — adelantarse es el primer movimiento, no el golpe.",
     preguntaCierre: "¿Lograste adelantarte a tiempo antes de rematar?"
   },
 
@@ -894,7 +894,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se dejá que pique una vez en el piso antes de golpear, como paso intermedio antes de quitar el pique.",
     varianteDificil: "Se juega directo en un punto real, donde el alumno debe decidir solo cuándo usar el contrapared.",
     errorFrecuente: "El alumno retrocede instintivamente esperando que la pelota baje al piso, perdiendo la oportunidad de jugarla de aire.",
-    correccion: "Pide que se quede parado cerca de la pared y confíe en golpear apenas sale del vidrio, sin retroceder.",
+    correccion: "Pedí que se quede parado cerca de la pared y confíe en golpear apenas sale del vidrio, sin retroceder.",
     preguntaCierre: "¿Te animaste a golpearla de aire o preferiste esperar el pique en el piso?"
   },
   {
@@ -914,7 +914,7 @@ export const EJERCICIOS = [
     varianteFacil: "El profesor juega la pelota más lenta y con menos efecto hacia la pared lateral.",
     varianteDificil: "Se suma que el alumno debe dirigir la devolución cruzada después de la salida de pared.",
     errorFrecuente: "El alumno se para de frente a la pared esperando la pelota, en vez de ubicarse de perfil anticipando hacia dónde rebota.",
-    correccion: "Pide que se ubique de perfil, mirando hacia el centro de la pista y no hacia la pared, para anticipar el ángulo de salida.",
+    correccion: "Pedí que se ubique de perfil, mirando hacia el centro de la pista y no hacia la pared, para anticipar el ángulo de salida.",
     preguntaCierre: "¿Hacia qué lado salió la pelota después del rebote en la pared lateral?"
   },
   {
@@ -934,7 +934,7 @@ export const EJERCICIOS = [
     varianteFacil: "El alumno practica el gesto sin pelota primero, solo el movimiento de pala.",
     varianteDificil: "Se exige disfrazar el golpe: armar igual que un drive normal y recién al final suavizar el impacto.",
     errorFrecuente: "El alumno le pega con el mismo swing de un golpe normal, por lo que la pelota llega con demasiada velocidad y no \"muere\".",
-    correccion: "Recuerda que el gesto es corto y casi sin swing — la pala casi no se mueve hacia atrás, solo acompaña hacia adelante.",
+    correccion: "Recordá que el gesto es corto y casi sin swing — la pala casi no se mueve hacia atrás, solo acompaña hacia adelante.",
     preguntaCierre: "¿Tu chiquita picó dos veces antes de la línea de saque, o llegó de un solo bote?"
   }
 ];

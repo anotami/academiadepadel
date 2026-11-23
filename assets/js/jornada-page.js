@@ -126,8 +126,8 @@ form.addEventListener("submit", async (e) => {
   if (!nombre) { msg.textContent = "Falta tu nombre y apellido."; msg.className = "form-msg error"; return; }
   if (!email) { msg.textContent = "Falta tu email."; msg.className = "form-msg error"; return; }
   if (!celular) { msg.textContent = "Ese celular no parece válido (9 dígitos, empieza con 9)."; msg.className = "form-msg error"; return; }
-  if (!distrito) { msg.textContent = "Elige tu distrito."; msg.className = "form-msg error"; return; }
-  if (Date.now() - cargadaEn < 1500) { msg.textContent = "Revisa el formulario y volvé a enviarlo."; msg.className = "form-msg error"; return; }
+  if (!distrito) { msg.textContent = "Elegí tu distrito."; msg.className = "form-msg error"; return; }
+  if (Date.now() - cargadaEn < 1500) { msg.textContent = "Revisá el formulario y volvé a enviarlo."; msg.className = "form-msg error"; return; }
 
   submitBtn.disabled = true;
   msg.textContent = "Enviando...";

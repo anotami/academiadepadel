@@ -47,8 +47,8 @@ import("./firebase-app.js?v=18")
       if (!user) {
         ul.innerHTML = "";
         vacio.hidden = false;
-        vacio.innerHTML = 'Inicia sesión para ver tu historial en la nube — <a href="arbitro-login.html">entra aquí</a>.';
-        hint.textContent = 'Partidos que arbitraste con "Compartir en vivo" activado — con acta completa, recuperable desde cualquier dispositivo. Necesitas haber iniciado sesión al arbitrarlos.';
+        vacio.innerHTML = 'Iniciá sesión para ver tu historial en la nube — <a href="arbitro-login.html">entrá aquí</a>.';
+        hint.textContent = 'Partidos que arbitraste con "Compartir en vivo" activado — con acta completa, recuperable desde cualquier dispositivo. Necesitás haber iniciado sesión al arbitrarlos.';
         return;
       }
       onSnapshot(query(collection(db, "arbitrajes"), where("creadoPor", "==", user.uid)), (snap) => {
@@ -82,5 +82,5 @@ import("./firebase-app.js?v=18")
     });
   })
   .catch(() => {
-    document.getElementById("nubeHint").textContent = "No se pudo conectar con el historial en la nube (revisa tu internet).";
+    document.getElementById("nubeHint").textContent = "No se pudo conectar con el historial en la nube (revisá tu internet).";
   });

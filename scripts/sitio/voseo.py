@@ -26,13 +26,13 @@ IMPER = {
  "aprende":"aprendé","descubre":"descubrí","conoce":"conocé","únete":"unite","anótate":"anotate","empieza":"empezá",
  "mejora":"mejorá","retoma":"retomá","recarga":"recargá","vuelve":"volvé","intenta":"intentá","revisa":"revisá","perfecciona":"perfeccioná","deja":"dejá","encuentra":"encontrá","comparte":"compartí",
  "completa":"completá","revisa":"revisá","descarga":"descargá","haz":"hacé","ten":"tené","pon":"poné","sigue":"seguí",
- "usa":"usá","compra":"comprá","lee":"leé","ve":"mirá","cuenta":"contá","inscríbete":"inscribite","regístrate":"registrate",
+ "usa":"usá","compra":"comprá","lee":"leé","ve":"mirá","inscríbete":"inscribite","regístrate":"registrate",
  "ingresa":"ingresá","entra":"entrá","selecciona":"seleccioná","indica":"indicá","confirma":"confirmá","avísanos":"avisanos",
  "llámanos":"llamanos","contáctanos":"contactanos","visítanos":"visitanos","pruébalo":"probalo","cuéntame":"contame","dime":"decime",
  "sube":"subí","elígelo":"elegilo","mide":"medí","dale":"dale","sé":"sé","di":"decí","toma":"tomá","juega":"jugá","practica":"practicá",
  "disfruta":"disfrutá","actualiza":"actualizá","contacta":"contactá","agrega":"agregá","visita":"visitá","accede":"accedé","aprovecha":"aprovechá","carga":"cargá","corrige":"corregí","evita":"evitá","olvida":"olvidá","recuerda":"recordá","piensa":"pensá","trabaja":"trabajá","entrena":"entrená","sube":"subí","descúbrelo":"descubrilo","descúbrela":"descubrila","pruébala":"probala","consúltanos":"consultanos","encuéntralo":"encontralo","conócelo":"conocelo","míralo":"miralo","elígela":"elegila","reservalo":"reservalo","súmate":"sumate","apúntate":"apuntate","pregunta":"preguntá","busca":"buscá","abre":"abrí","vuelve":"volvé",
 }
-IMPER_B = {"crea":"creá","marca":"marcá","publica":"publicá","coordina":"coordiná","envía":"enviá","inicia":"iniciá","guarda":"guardá","activa":"activá","cancela":"cancelá","copia":"copiá","cambia":"cambiá","borra":"borrá","cierra":"cerrá","invita":"invitá","anota":"anotá","vincula":"vinculá","ordena":"ordená","filtra":"filtrá","carga":"cargá","pega":"pegá","toca":"tocá","espera":"esperá","verifica":"verificá","cuéntale":"contale","inténtalo":"intentalo","avísale":"avisale","pídele":"pedile","escríbele":"escribile","llámalo":"llamalo"}
+IMPER_B = {"crea":"creá","marca":"marcá","publica":"publicá","coordina":"coordiná","envía":"enviá","inicia":"iniciá","guarda":"guardá","cancela":"cancelá","copia":"copiá","cambia":"cambiá","borra":"borrá","cierra":"cerrá","invita":"invitá","anota":"anotá","vincula":"vinculá","ordena":"ordená","filtra":"filtrá","carga":"cargá","pega":"pegá","toca":"tocá","espera":"esperá","verifica":"verificá","cuéntale":"contale","inténtalo":"intentalo","avísale":"avisale","pídele":"pedile","escríbele":"escribile","llámalo":"llamalo"}
 PALABRAS = {"tú ganas":"vos ganás","Tú ganas":"Vos ganás","contigo":"con vos","tú":"vos","Tú":"Vos","si faltas":"si faltás","lo que ganas":"lo que ganás","si reservas":"si reservás","no reservas":"no reservás"}
 CANCHA = [("canchas","pistas"),("Canchas","Pistas"),("cancha","pista"),("Cancha","Pista"),("CANCHAS","PISTAS"),("CANCHA","PISTA")]
 L = r"A-Za-zÁÉÍÓÚáéíóúÑñÜü"

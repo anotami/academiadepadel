@@ -96,7 +96,7 @@ import("./firebase-app.js?v=18")
       enCurso.clear();
       snap.docs.forEach((d) => enCurso.set(d.id, d));
       repintar();
-    }, () => { document.getElementById("sinPartidos").textContent = "No se pudo conectar (revisa tu internet)."; });
+    }, () => { document.getElementById("sinPartidos").textContent = "No se pudo conectar (revisá tu internet)."; });
 
     onSnapshot(query(collection(db, "arbitrajes"), where("estado", "==", "interrumpido")), (snap) => {
       interrumpidos.clear();
@@ -109,7 +109,7 @@ import("./firebase-app.js?v=18")
     });
   })
   .catch(() => {
-    document.getElementById("sinPartidos").textContent = "No se pudo conectar con el marcador en vivo (revisa tu internet).";
+    document.getElementById("sinPartidos").textContent = "No se pudo conectar con el marcador en vivo (revisá tu internet).";
     document.getElementById("sinRanking").hidden = false;
-    document.getElementById("sinRanking").textContent = "No se pudo conectar con el ranking (revisa tu internet).";
+    document.getElementById("sinRanking").textContent = "No se pudo conectar con el ranking (revisá tu internet).";
   });

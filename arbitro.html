@@ -143,7 +143,7 @@
             </div>
           </div>
           <div class="field field-full">
-            <label>Posición del árbitro en el diagrama de cancha</label>
+            <label>Posición del árbitro en el diagrama de pista</label>
             <div class="arbitro-toggle-group" id="g-posicion-arbitro">
               <button type="button" class="arbitro-toggle active" data-value="arriba">Arriba</button>
               <button type="button" class="arbitro-toggle" data-value="abajo">Abajo</button>
@@ -226,7 +226,7 @@
     <div id="pantallaPartido" hidden>
 
       <div class="arbitro-share-box arbitro-no-print" id="shareBox" hidden>
-        🔴 <strong>En vivo</strong> — comparte este link para que lo sigan sin instalar nada:
+        🔴 <strong>En vivo</strong> — compartí este link para que lo sigan sin instalar nada:
         <div class="arbitro-share-row">
           <input type="text" id="shareLink" readonly>
           <button class="btn btn-outline btn-small" id="btnCopiarLink">Copiar</button>
@@ -251,7 +251,7 @@
           <span id="metaInfo"></span>
           <div class="arbitro-meta-actions">
             <button class="btn btn-outline btn-small" id="btnVoz">🔊 Narración: OFF</button>
-            <button class="btn btn-outline btn-small" id="btnCancha">🗺️ Ocultar cancha</button>
+            <button class="btn btn-outline btn-small" id="btnCancha">🗺️ Ocultar pista</button>
             <button class="btn btn-outline btn-small" id="btnPantallaGrande">⛶ Pantalla grande</button>
             <button class="btn btn-outline btn-small" id="btnEditarMarcador">✏️ Editar marcador</button>
             <button class="btn btn-outline btn-small" id="btnDeshacer">↺ Deshacer última acción</button>
@@ -300,7 +300,7 @@
         <p class="arbitro-estado-juego" id="estadoJuego"></p>
 
         <div id="canchaBloque">
-          <div class="arbitro-cancha-wrap" id="canchaDiagrama" aria-label="Diagrama de la cancha con la posición de saque"></div>
+          <div class="arbitro-cancha-wrap" id="canchaDiagrama" aria-label="Diagrama de la pista con la posición de saque"></div>
           <p class="field-hint" id="canchaSaqueInfo" style="text-align:center"></p>
         </div>
 
@@ -355,7 +355,7 @@
         🎾 <strong>Cambio de pelotas</strong> — corresponde cambiarlas ahora.
       </div>
       <div class="arbitro-alert" id="alertaLado" hidden>
-        🔁 <strong>Cambio de lado</strong> — recuerda a los jugadores cambiar de campo.
+        🔁 <strong>Cambio de lado</strong> — recordá a los jugadores cambiar de campo.
       </div>
 
       <div class="portal-card arbitro-tools-card arbitro-no-print">
@@ -380,7 +380,7 @@
 
         <div class="arbitro-tool-panel" id="panel-conducta">
           <h3>Código de conducta</h3>
-          <p class="field-hint">Escalera real FIP por pareja: 1ra infracción = advertencia · 2da = advertencia + pérdida de punto · 3ra = advertencia + descalificación. Elige la categoría; el sistema calcula sola qué infracción es.</p>
+          <p class="field-hint">Escalera real FIP por pareja: 1ra infracción = advertencia · 2da = advertencia + pérdida de punto · 3ra = advertencia + descalificación. Elegí la categoría; el sistema calcula sola qué infracción es.</p>
           <div class="arbitro-incident-buttons" id="conductaBotones"></div>
           <button class="btn btn-outline btn-small arbitro-inc-desc" id="btnDescalificacionDirecta">⛔ Descalificación directa (falta muy grave)</button>
           <ul class="arbitro-incident-log" id="incidentLog"></ul>

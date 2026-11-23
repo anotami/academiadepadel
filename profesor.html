@@ -41,7 +41,7 @@
       <!-- Siguiente paso: barra fija en todas las pestañas (la llena profesor-portal.js) -->
       <div id="guia-barra" class="guia-barra" hidden></div>
 
-      <nav class="portal-tabs" role="tablist" aria-label="Secciones del panel, en el orden en que las usas">
+      <nav class="portal-tabs" role="tablist" aria-label="Secciones del panel, en el orden en que las usás">
         <button class="portal-tab" type="button" role="tab" data-tab="hoy"><span class="tab-num">1</span>Hoy<span id="hoy-badge" class="tab-badge" hidden></span></button>
         <button class="portal-tab" type="button" role="tab" data-tab="clases"><span class="tab-num">2</span>Mis clases</button>
         <button class="portal-tab" type="button" role="tab" data-tab="alumnos"><span class="tab-num">3</span>Alumnos y pagos</button>
@@ -70,16 +70,16 @@
         <!-- Ficha "Cómo funciona": el mapa de conceptos, siempre a mano -->
         <details class="portal-card como-funciona" id="card-como-funciona">
           <summary><span class="como-icono" aria-hidden="true">?</span> Cómo funciona el panel <span class="como-sub">— la regla y los 3 caminos</span></summary>
-          <p class="como-regla"><strong>Una clase es: un alumno, en una cancha, a una hora.</strong> Todo lo demás sirve para preparar o llenar clases.</p>
+          <p class="como-regla"><strong>Una clase es: un alumno, en una pista, a una hora.</strong> Todo lo demás sirve para preparar o llenar clases.</p>
 
           <h3>Los conceptos</h3>
           <table class="detalle-table como-tabla">
             <thead><tr><th>Se llama</th><th>Qué es</th><th>Dónde</th></tr></thead>
             <tbody>
-              <tr><td><strong>Pista</strong></td><td>La cancha donde das clase (X3, La Once, Top Padel…).</td><td>Pistas</td></tr>
+              <tr><td><strong>Pista</strong></td><td>La pista donde das clase (X3, La Once, Top Padel…).</td><td>Pistas</td></tr>
               <tr><td><strong>Disponibilidad</strong></td><td>Bloques de 2 horas en que alguien <em>puede</em> jugar. Hay tres: la tuya, la de cada alumno y la de cada pista.</td><td>8 Mis datos · 3 Alumnos · Pistas</td></tr>
               <tr><td><strong>Clase</strong></td><td>Un alumno + pista + fecha + hora. Si van 4 alumnos son 4 clases iguales, y el panel las muestra juntas como una sola.</td><td>2 Mis clases</td></tr>
-              <tr><td><strong>Pedido de clase</strong></td><td>Un alumno pide una clase desde su portal. Tú la confirmas o la rechazas.</td><td>1 Hoy</td></tr>
+              <tr><td><strong>Pedido de clase</strong></td><td>Un alumno pide una clase desde su portal. Vos la confirmás o la rechazás.</td><td>1 Hoy</td></tr>
               <tr><td><strong>Paquete</strong></td><td>Clases prepagadas (ej. 4). Cada clase a la que el alumno asiste descuenta una; si no asiste, se le devuelve.</td><td>3 Alumnos y pagos</td></tr>
               <tr><td><strong>Clase semanal fija</strong></td><td>Una clase que se repite cada semana (mismo día, hora y pista) con sus alumnos. El sistema crea solo las próximas.</td><td>2 Mis clases</td></tr>
               <tr><td><strong>Convocatoria</strong></td><td><strong>No es una clase.</strong> Es una oferta pública en la web (ej. "Clínica gratuita 20 nov") con cupos, para juntar gente interesada.</td><td>5 Captación</td></tr>
@@ -88,7 +88,7 @@
               <tr><td><strong>Jornada</strong></td><td>Evento mensual para principiantes, con inscripción y pago por Yape. Es un sistema aparte.</td><td>4 Jornadas</td></tr>
             </tbody>
           </table>
-          <p class="field-hint"><strong>Convocatoria ≠ horario.</strong> El horario es la hora concreta de una clase en una cancha. La convocatoria es una oferta con cupos: de ella sale un interesado, y recién cuando lo contactas sale una clase.</p>
+          <p class="field-hint"><strong>Convocatoria ≠ horario.</strong> El horario es la hora concreta de una clase en una pista. La convocatoria es una oferta con cupos: de ella sale un interesado, y recién cuando lo contactas sale una clase.</p>
 
           <h3>Los 3 caminos</h3>
           <ol class="como-caminos">
@@ -96,7 +96,7 @@
             <li><strong>Alumno que viene seguido:</strong> clase semanal fija → el sistema crea las clases → ② Por dar → ③ Por cerrar → ④ Cerrada.</li>
             <li><strong>Clase suelta:</strong> Nueva clase → ② Por dar → ③ Por cerrar → ④ Cerrada.</li>
           </ol>
-          <p class="field-hint">Cerrar una clase = marcar si el alumno asistió y dejar feedback. Si no asistió, no se cuenta ni se cobra. Si usas sobre todo los caminos 2 y 3, puedes ignorar las convocatorias.</p>
+          <p class="field-hint">Cerrar una clase = marcar si el alumno asistió y dejar feedback. Si no asistió, no se cuenta ni se cobra. Si usás sobre todo los caminos 2 y 3, podés ignorar las convocatorias.</p>
         </details>
 
         <!-- Historia de Instagram del día (captar alumnos) -->
@@ -133,11 +133,11 @@
         <!-- Métricas -->
         <div class="portal-card">
           <h2>Resumen</h2>
-          <p class="field-hint">Toca una tarjeta para ver el detalle.</p>
+          <p class="field-hint">Tocá una tarjeta para ver el detalle.</p>
           <div class="cards grid-4" id="metricas"><p class="empty-state">Cargando...</p></div>
           <div id="metricas-detalle" hidden style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);"></div>
           <h3 style="margin-top:22px;">Rentabilidad (paquetes ya pagados)</h3>
-          <p class="field-hint">Usa el costo de cancha que cargaste en cada pista y tu costo por hora en "Mis datos". Carga esos dos datos para que esto sea exacto. Toca una tarjeta para ver el detalle.</p>
+          <p class="field-hint">Usá el costo de pista que cargaste en cada pista y tu costo por hora en "Mis datos". Carga esos dos datos para que esto sea exacto. Toca una tarjeta para ver el detalle.</p>
           <div class="cards grid-4" id="rentabilidad"></div>
           <div id="rentabilidad-detalle" hidden style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);"></div>
           <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
@@ -149,7 +149,7 @@
         <!-- Estadísticas: alumnos, interesados, horarios y tipos de clase más demandados -->
         <div class="portal-card">
           <h2>Estadísticas</h2>
-          <p class="field-hint">Toca una tarjeta para ver el detalle.</p>
+          <p class="field-hint">Tocá una tarjeta para ver el detalle.</p>
           <div class="cards grid-4" id="estadisticas"><p class="empty-state">Cargando...</p></div>
           <div id="estadisticas-detalle" hidden style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);"></div>
         </div>
@@ -185,7 +185,7 @@
             <div class="field field-full">
               <label for="cd-alumno">Alumno(s)</label>
               <select id="cd-alumno" required multiple size="4"></select>
-              <p class="field-hint">Si fue clase grupal, selecciona varios (Ctrl/Cmd + clic) — se crea una clase por cada uno y el costo de cancha se reparte entre todos.</p>
+              <p class="field-hint">Si fue clase grupal, selecciona varios (Ctrl/Cmd + clic) — se crea una clase por cada uno y el costo de pista se reparte entre todos.</p>
             </div>
             <div class="field-full" id="cd-paquetes-alumno" style="display:flex; flex-direction:column; gap:10px;"></div>
             <span class="paso-titulo field-full"><span class="paso-badge">b</span>Cuándo y dónde</span>
@@ -218,12 +218,12 @@
               <input type="number" id="cd-monto" min="0" step="1">
             </div>
             <div class="field">
-              <label for="cd-cancha-pagada">Costo total de cancha pagado (S/, opcional)</label>
+              <label for="cd-cancha-pagada">Costo total de pista pagado (S/, opcional)</label>
               <input type="number" id="cd-cancha-pagada" min="0" step="1" placeholder="Déjalo vacío para usar la tarifa de la pista">
               <p class="field-hint">El total de la sesión, no por persona — se divide solo entre los alumnos que elegiste arriba.</p>
             </div>
             <div class="field" id="cd-cancha-beelup-wrap" hidden>
-              <label for="cd-cancha-beelup">Cancha (video Beelup)</label>
+              <label for="cd-cancha-beelup">Pista (video Beelup)</label>
               <select id="cd-cancha-beelup"></select>
             </div>
             <div class="field">
@@ -234,11 +234,11 @@
               <label class="avail-slot" style="display:inline-flex;">
                 <input type="checkbox" id="cd-ya-la-di"> Ya la di: cerrarla ahora (asistieron todos)
               </label>
-              <p class="field-hint">Solo para clases que ya pasaron. Queda directo en ④ Cerrada, sin pasar por "Por cerrar". Si alguien faltó o quieres dejar feedback, edítala después en el Historial.</p>
+              <p class="field-hint">Solo para clases que ya pasaron. Queda directo en ④ Cerrada, sin pasar por "Por cerrar". Si alguien faltó o querés dejar feedback, edítala después en el Historial.</p>
             </div>
           </form>
           <button class="btn btn-primary btn-small" type="submit" form="form-clase-dictada" style="margin-top:10px;">Crear clase</button>
-          <p class="field-hint">El monto cobrado se sugiere solo según tu tabla de precios ("Clase suelta") — puedes cambiarlo libremente, pero si un alumno usó una clase de su paquete elegilo arriba en vez de editar el monto: no se cobra aparte y el contador de su paquete sube solo. Queda como clase confirmada; cuando su hora llega, la cierras en "Hoy" → "③ Clases por cerrar" marcando asistencia y feedback.</p>
+          <p class="field-hint">El monto cobrado se sugiere solo según tu tabla de precios ("Clase suelta") — podés cambiarlo libremente, pero si un alumno usó una clase de su paquete elegilo arriba en vez de editar el monto: no se cobra aparte y el contador de su paquete sube solo. Queda como clase confirmada; cuando su hora llega, la cierras en "Hoy" → "③ Clases por cerrar" marcando asistencia y feedback.</p>
           <p class="form-msg" id="clase-dictada-msg"></p>
         </div>
 
@@ -286,7 +286,7 @@
               <input type="number" id="gr-cupo" min="1" required value="4">
             </div>
             <div class="field" id="gr-cancha-beelup-wrap" hidden>
-              <label for="gr-cancha-beelup">Cancha (video Beelup)</label>
+              <label for="gr-cancha-beelup">Pista (video Beelup)</label>
               <select id="gr-cancha-beelup"></select>
             </div>
             <div class="field">
@@ -309,7 +309,7 @@
         <!-- ④ Historial de clases (por dar, por cerrar y cerradas) -->
         <div class="portal-card" id="card-historial">
           <h2><span class="paso-badge">4</span>Historial de clases</h2>
-          <p class="field-hint">Todas tus clases, más reciente primero: por dar, por cerrar y cerradas. Toca "Editar" para corregir el monto cobrado, el costo de cancha o la modalidad — por ejemplo si cargaste una clase grupal con el costo total de cancha repetido en vez de dividido.</p>
+          <p class="field-hint">Todas tus clases, más reciente primero: por dar, por cerrar y cerradas. Toca "Editar" para corregir el monto cobrado, el costo de pista o la modalidad — por ejemplo si cargaste una clase grupal con el costo total de pista repetido en vez de dividido.</p>
           <div class="field" style="max-width:260px; margin-bottom:14px;">
             <label for="historial-mes">Mes</label>
             <select id="historial-mes"></select>
@@ -323,7 +323,7 @@
         <!-- Nuevo alumno -->
         <div class="portal-card">
           <h2>Nuevo alumno</h2>
-          <p class="field-hint">Para alguien que ya tomó clase contigo pero nunca se registró en la web — crea su perfil acá y después puedes cargar su clase y su paquete.</p>
+          <p class="field-hint">Para alguien que ya tomó clase con vos pero nunca se registró en la web — crea su perfil acá y después podés cargar su clase y su paquete.</p>
           <form id="form-nuevo-alumno" class="form-grid">
             <div class="field">
               <label for="na-nombre">Nombre y apellido</label>
@@ -457,7 +457,7 @@
 
         <!-- Libreta privada de la tienda -->
         <div class="portal-card" id="card-libreta-tienda">
-          <h2>🔒 Libreta de la tienda (solo tú)</h2>
+          <h2>🔒 Libreta de la tienda (solo vos)</h2>
           <p class="field-hint">Cada pedido que llega por WhatsApp desde la tienda termina en “Ref: T3”. Aquí anotas a qué tienda corresponde cada código; los clientes solo ven el código, no esto. Se guarda en tu base de datos, no en la página pública.</p>
           <div class="table-scroll" style="overflow-x:auto;">
             <table class="detalle-table">
@@ -480,7 +480,7 @@
         <!-- Interesados -->
         <div class="portal-card" id="mkt-interesados">
           <h2>Interesados</h2>
-          <p class="field-hint">Se llenan solos cuando alguien se anota desde "¿Eres nuevo en el pádel?" en la web. Si alguien te escribió directo por WhatsApp, mándale el link de abajo para que complete su disponibilidad solo — aparece acá igual.</p>
+          <p class="field-hint">Se llenan solos cuando alguien se anota desde "¿Sos nuevo en el pádel?" en la web. Si alguien te escribió directo por WhatsApp, mándale el link de abajo para que complete su disponibilidad solo — aparece acá igual.</p>
           <button class="btn btn-outline btn-small" type="button" id="btn-copiar-link-disp" style="margin-bottom:14px;">Copiar mensaje con el link de disponibilidad</button>
           <p class="form-msg" id="copiar-link-disp-msg"></p>
           <form id="form-interesado-manual" class="form-grid" style="margin-bottom:14px;">
@@ -547,7 +547,7 @@
           <div id="ref-codigo-resultado"></div>
 
           <span class="paso-titulo"><span class="paso-badge">2</span>Registra a un invitado que te escribió</span>
-          <p class="field-hint">Si alguien te escribe por WhatsApp diciendo que lo invitó un alumno (o con su código), regístralo acá. Si entra por el link de invitación y llena el formulario, aparece solo en el paso 3.</p>
+          <p class="field-hint">Si alguien te escribe por WhatsApp diciendo que lo invitó un alumno (o con su código), registralo acá. Si entra por el link de invitación y llena el formulario, aparece solo en el paso 3.</p>
           <form id="form-ref-manual" class="form-grid">
             <div class="field">
               <label for="rm-invitador">¿Quién lo invitó?</label>
@@ -572,7 +572,7 @@
         <!-- Turnos -->
         <div class="portal-card" id="mkt-turnos">
           <h2>Convocatorias</h2>
-          <p class="field-hint">Una convocatoria NO es una clase: es una oferta pública con cupos (ej. "Clínica gratuita 20 nov", "Mañanas entre semana") que aparece en "¿Eres nuevo en el pádel?" de la web. De ahí salen interesados; la clase recién nace cuando los contactas. Abre o cierra convocatorias según la demanda real.</p>
+          <p class="field-hint">Una convocatoria NO es una clase: es una oferta pública con cupos (ej. "Clínica gratuita 20 nov", "Mañanas entre semana") que aparece en "¿Sos nuevo en el pádel?" de la web. De ahí salen interesados; la clase recién nace cuando los contactas. Abrí o cerrá convocatorias según la demanda real.</p>
 
           <div id="sugerencias-grupo"></div>
 
@@ -602,7 +602,7 @@
               </select>
             </div>
             <button class="btn btn-outline" type="submit">Agregar convocatoria</button>
-            <p class="field-hint">Deja la fecha vacía en convocatorias recurrentes (Mañanas, Tardes, Fin de Semana). Ponle fecha solo a eventos puntuales como la clínica — cada mes crea una convocatoria nueva con la fecha que toque.</p>
+            <p class="field-hint">Dejá la fecha vacía en convocatorias recurrentes (Mañanas, Tardes, Fin de Semana). Ponle fecha solo a eventos puntuales como la clínica — cada mes crea una convocatoria nueva con la fecha que toque.</p>
             <p class="form-msg" id="turno-msg"></p>
           </form>
           <div id="lista-turnos" style="margin-top:18px;"><p class="empty-state">Cargando...</p></div>
@@ -611,7 +611,7 @@
         <!-- Cruce de disponibilidad -->
         <div class="portal-card" id="mkt-cruce">
           <h2>Cruce de disponibilidad</h2>
-          <p class="field-hint">Tu disponibilidad (en "Mis datos") siempre cuenta. Marca qué alumnos e interesados quieres cruzar y en qué pista — la grilla muestra en qué día y horario coinciden todos y además hay cancha libre.</p>
+          <p class="field-hint">Tu disponibilidad (en "Mis datos") siempre cuenta. Marca qué alumnos e interesados querés cruzar y en qué pista — la grilla muestra en qué día y horario coinciden todos y además hay pista libre.</p>
           <div class="form-grid">
             <div class="field">
               <label for="cr-pista">Pista</label>
@@ -626,10 +626,10 @@
             Pocos coinciden
             <span style="display:inline-block; width:90px; height:14px; border-radius:3px; vertical-align:middle; background:linear-gradient(90deg, #fde2e1, #fff3cd, #d9f3e3);"></span>
             Todos coinciden
-            <span class="disp-legend-swatch disp-off" style="margin-left:14px;"></span> Tú no estás libre o no hay cancha
+            <span class="disp-legend-swatch disp-off" style="margin-left:14px;"></span> Vos no estás libre o no hay pista
           </div>
           <div class="availability-grid" id="cr-grid" style="margin-top:8px;"></div>
-          <p class="field-hint" id="cr-detalle" style="margin-top:10px;">Toca un bloque de la grilla para ver quién calza y quién no.</p>
+          <p class="field-hint" id="cr-detalle" style="margin-top:10px;">Tocá un bloque de la grilla para ver quién calza y quién no.</p>
         </div>
 
         <!-- Leads (captación) -->
@@ -714,7 +714,7 @@
         <!-- Falta el cuarto -->
         <div class="portal-card" id="mkt-falta-cuarto">
           <h2>Falta el cuarto</h2>
-          <p class="field-hint">Arma el mensaje, elige a quién mandárselo y ábrelo directo en WhatsApp. Nada se envía solo desde acá.</p>
+          <p class="field-hint">Arma el mensaje, elegí a quién mandárselo y ábrelo directo en WhatsApp. Nada se envía solo desde acá.</p>
           <span class="paso-titulo"><span class="paso-badge">1</span>Armar mensaje</span>
           <div class="form-grid">
             <div class="field">
@@ -757,8 +757,8 @@
           <p class="form-msg" id="fc-copiar-msg"></p>
 
           <span class="paso-titulo"><span class="paso-badge">2</span>Elegir candidatos</span>
-          <p class="field-hint">Primero los verificados. Marca a quiénes les escribes y guarda la convocatoria para no repetir siempre a los mismos. Cada botón "WhatsApp" manda una redacción distinta del aviso (si no editaste el mensaje a mano) — igual, evita escribirles a todos de corrido; espácialo un poco para que no se vea como un envío masivo.</p>
-          <div id="fc-candidatos"><p class="empty-state">Elige categoría y hora para ver candidatos.</p></div>
+          <p class="field-hint">Primero los verificados. Marca a quiénes les escribís y guarda la convocatoria para no repetir siempre a los mismos. Cada botón "WhatsApp" manda una redacción distinta del aviso (si no editaste el mensaje a mano) — igual, evita escribirles a todos de corrido; espácialo un poco para que no se vea como un envío masivo.</p>
+          <div id="fc-candidatos"><p class="empty-state">Elegí categoría y hora para ver candidatos.</p></div>
 
           <span class="paso-titulo"><span class="paso-badge">3</span>Guardar convocatoria</span>
           <button class="btn btn-primary btn-small" type="button" id="btn-guardar-convocatoria">Guardar convocatoria con los marcados</button>
@@ -774,8 +774,8 @@
           <p class="field-hint">
             Exporta el chat de tu grupo (WhatsApp → Grupo → Más opciones → Exportar chat → "Sin archivos multimedia") y súbelo acá.
             Detecta automáticamente teléfonos de contactos no guardados, y categoría/género si están en el nombre o el mensaje (ej. "Juan Pérez 4ta M") —
-            revisa y corrige cada fila antes de guardar, la detección es aproximada. Esto NO es lo mismo que el consentimiento explícito del
-            formulario público: son contactos de un grupo que ya administras, así que si alguno te pide que lo saques, dalo de baja en "Jugadores".
+            revisá y corrige cada fila antes de guardar, la detección es aproximada. Esto NO es lo mismo que el consentimiento explícito del
+            formulario público: son contactos de un grupo que ya administrás, así que si alguno te pide que lo saques, dalo de baja en "Jugadores".
           </p>
           <span class="paso-titulo"><span class="paso-badge">1</span>Subir archivo</span>
           <input type="file" id="com-import-file" accept=".txt">
@@ -814,13 +814,13 @@
             <div class="field">
               <label for="com-import-max-mensajes">Máx. mensajes</label>
               <input type="number" id="com-import-max-mensajes" min="0" placeholder="Ej: 5">
-              <p class="field-hint">Las canchas que promocionan partidos todos los días mandan muchos mensajes — ponle un tope para esconderlas y quedarte con jugadores.</p>
+              <p class="field-hint">Las pistas que promocionan partidos todos los días mandan muchos mensajes — ponle un tope para esconderlas y quedarte con jugadores.</p>
             </div>
             <div class="field">
               <label for="com-import-orden">Ordenar por</label>
               <select id="com-import-orden">
                 <option value="mensajes-asc">Menos mensajes primero (probable jugador)</option>
-                <option value="mensajes-desc">Más mensajes primero (probable cancha)</option>
+                <option value="mensajes-desc">Más mensajes primero (probable pista)</option>
                 <option value="nombre">Nombre (A-Z)</option>
               </select>
             </div>
@@ -841,10 +841,10 @@
       <div data-tabpanel="informes" hidden>
         <div class="portal-card">
           <h2>Pedir análisis de un video</h2>
-          <p class="field-hint">Para analizar una cancha/fecha/hora que no sea una clase tuya registrada (ej. un partido cualquiera en Club Pádel Lima). La laptop lo procesa igual que las clases automáticas y aparece abajo en "Clases por revisar" cuando esté listo — no es instantáneo.</p>
+          <p class="field-hint">Para analizar una pista/fecha/hora que no sea una clase tuya registrada (ej. un partido cualquiera en Club Pádel Lima). La laptop lo procesa igual que las clases automáticas y aparece abajo en "Clases por revisar" cuando esté listo — no es instantáneo.</p>
           <form id="form-solicitud-analisis" class="form-grid">
             <div class="field">
-              <label for="sa-cancha">Cancha</label>
+              <label for="sa-cancha">Pista</label>
               <select id="sa-cancha" required></select>
             </div>
             <div class="field">
@@ -941,7 +941,7 @@
       <!-- TIENDA (privado): proveedores, siglas, costo y margen. Datos en Firestore, no en el sitio público -->
       <div data-tabpanel="tienda" hidden>
         <div class="portal-card" id="card-tienda-interno">
-          <h2>🔒 Proveedores de la tienda (solo tú)</h2>
+          <h2>🔒 Proveedores de la tienda (solo vos)</h2>
           <p class="field-hint">La sigla es lo que ves en “Ref:” de cada pedido de WhatsApp. Costos, márgenes y enlaces solo se guardan en tu base privada; nada de esto se publica en la web.</p>
           <div class="table-scroll" style="overflow-x:auto;">
             <table class="detalle-table">
@@ -1000,7 +1000,7 @@
                 <button class="btn btn-outline btn-small" type="button" id="p-disp-ninguno">Limpiar todo</button>
               </div>
             </div>
-            <p class="field-hint">Toca los bloques en los que normalmente podrías dar clase.</p>
+            <p class="field-hint">Tocá los bloques en los que normalmente podrías dar clase.</p>
             <div class="availability-grid" id="p-disponibilidad"></div>
             <button class="btn btn-outline" type="submit" style="margin-top:16px;">Guardar cambios</button>
             <p class="form-msg" id="perfil-msg"></p>

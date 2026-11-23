@@ -208,7 +208,7 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
   const alumnosSeleccionados = alumnoIds.map((id) => alumnosCache.find((a) => a.id === id)).filter(Boolean);
 
   if (!alumnosSeleccionados.length || !pista) {
-    msg.textContent = "Elige al menos un alumno y una pista válidos.";
+    msg.textContent = "Elegí al menos un alumno y una pista válidos.";
     msg.className = "form-msg error";
     return;
   }
@@ -446,12 +446,12 @@ async function obtenerOCrearCodigo(alumno) {
 document.getElementById("btn-ref-generar").addEventListener("click", async () => {
   const wrap = document.getElementById("ref-codigo-resultado");
   const alumno = alumnosCache.find((a) => a.id === document.getElementById("ref-alumno").value);
-  if (!alumno) { wrap.innerHTML = '<p class="form-msg error">Elige un alumno.</p>'; return; }
+  if (!alumno) { wrap.innerHTML = '<p class="form-msg error">Elegí un alumno.</p>'; return; }
   wrap.innerHTML = '<p class="form-msg">Generando...</p>';
   try {
     const codigo = await obtenerOCrearCodigo(alumno);
     const paraAlumno = `Hola ${alumno.nombre}! Te dejo tu código de invitación: ${codigo} 🎁\n` +
-      `Si un amigo se anota con tu link (${linkInvitacion(codigo)}), él tiene ${REFERIDOS.textoBeneficioInvitadoTercera} y tú ganas ${REFERIDOS.textoBeneficioInvitador} cuando pague su primer paquete.`;
+      `Si un amigo se anota con tu link (${linkInvitacion(codigo)}), él tiene ${REFERIDOS.textoBeneficioInvitadoTercera} y vos ganás ${REFERIDOS.textoBeneficioInvitador} cuando pague su primer paquete.`;
     const tel = soloDigitos(alumno.telefono);
     wrap.innerHTML = `
       <div class="request-card" style="margin-top:10px;">
@@ -630,7 +630,7 @@ function actualizarCiclo(parcial) {
             ${solicitudes > 0 ? '<button class="btn btn-outline btn-small" type="button" data-ir-tab="hoy" data-ir-a="card-solicitudes">Ver pedidos →</button>' : ""}
           </div>
         </div>`
-      : '<div class="ciclo-aviso ok">✓ Todo al día: no tienes clases sin cerrar ni pedidos de clase por confirmar.</div>';
+      : '<div class="ciclo-aviso ok">✓ Todo al día: no tenés clases sin cerrar ni pedidos de clase por confirmar.</div>';
 
   const paso = (n, titulo, detalle, cantidad, destino, estado) => `
     <button class="ciclo-paso ${estado || ""}" type="button" data-ir-tab="${destino[0]}" data-ir-a="${destino[1]}">
@@ -691,7 +691,7 @@ function construirTareasGuia() {
   const sol = guiaDatos.solicitudesLista;
   if (sol.length) {
     tareas.push({
-      titulo: sol.length === 1 ? `Confirma el pedido de clase de ${sol[0].alumnoNombre}` : `Confirma ${sol.length} pedidos de clase`,
+      titulo: sol.length === 1 ? `Confirmá el pedido de clase de ${sol[0].alumnoNombre}` : `Confirmá ${sol.length} pedidos de clase`,
       detalle: sol.length === 1 ? `${formatearFecha(sol[0].fecha)} · ${sol[0].hora} hrs — un alumno está esperando tu respuesta.` : "Hay alumnos esperando tu respuesta.",
       boton: "Ver pedidos", destino: ["hoy", "card-solicitudes"], urgente: true
     });
@@ -700,7 +700,7 @@ function construirTareasGuia() {
   if (cerrar.length) {
     const masVieja = cerrar[0];
     tareas.push({
-      titulo: cerrar.length === 1 ? `Cierra la clase de ${nombresDeSesion(masVieja)}` : `Cierra ${cerrar.length} clases que ya diste`,
+      titulo: cerrar.length === 1 ? `Cerrá la clase de ${nombresDeSesion(masVieja)}` : `Cerrá ${cerrar.length} clases que ya diste`,
       detalle: `Falta marcar asistencia y dejar feedback. ${cerrar.length === 1 ? "Fue el" : "La más antigua es del"} ${formatearFecha(masVieja[0].fecha)} a las ${masVieja[0].hora}.`,
       boton: "Cerrar clases", destino: ["hoy", "card-por-cerrar"], urgente: true
     });
@@ -743,7 +743,7 @@ function construirTareasGuia() {
   const invitadosNuevos = referidosCache.filter((r) => r.estado === "nuevo");
   if (invitadosNuevos.length) {
     tareas.push({
-      titulo: invitadosNuevos.length === 1 ? `Escríbele a ${invitadosNuevos[0].invitadoNombre}, invitado por ${invitadosNuevos[0].invitadorNombre}` : `Escríbeles a ${invitadosNuevos.length} invitados`,
+      titulo: invitadosNuevos.length === 1 ? `Escribile a ${invitadosNuevos[0].invitadoNombre}, invitado por ${invitadosNuevos[0].invitadorNombre}` : `Escríbeles a ${invitadosNuevos.length} invitados`,
       detalle: `Les corresponde ${REFERIDOS.textoBeneficioInvitadoTercera}.`,
       boton: "Ver invitaciones", destino: ["captacion", "mkt-referidos"]
     });
@@ -751,14 +751,14 @@ function construirTareasGuia() {
   const nuevos = interesadosGrupoCache.filter((i) => i.estado === "nuevo");
   if (nuevos.length) {
     tareas.push({
-      titulo: nuevos.length === 1 ? `Escríbele a ${nuevos[0].nombre}, interesado nuevo` : `Escríbeles a ${nuevos.length} interesados nuevos`,
+      titulo: nuevos.length === 1 ? `Escribile a ${nuevos[0].nombre}, interesado nuevo` : `Escríbeles a ${nuevos.length} interesados nuevos`,
       detalle: "Se anotaron en la web y todavía no los contactaste.",
       boton: "Ver interesados", destino: ["captacion", "mkt-interesados"]
     });
   }
   if (!currentPerfil || !currentPerfil.costoHora || !(currentPerfil.disponibilidad || []).length) {
     tareas.push({
-      titulo: "Completa tus datos",
+      titulo: "Completá tus datos",
       detalle: !currentPerfil?.costoHora ? "Falta tu costo por hora: sin él, la rentabilidad no es exacta." : "Falta marcar tu disponibilidad: la usa la agenda pública.",
       boton: "Ir a Mis datos", destino: ["datos", "card-mis-datos"]
     });
@@ -777,7 +777,7 @@ function construirTareasGuia() {
   }
   if (!historiaHechaHoy()) {
     tareas.push({
-      titulo: "Publica la historia de hoy",
+      titulo: "Publicá la historia de hoy",
       detalle: `Tema: ${temaDelDia()}. Son 2 láminas listas para subir a Instagram.`,
       boton: "Ver la historia", destino: ["hoy", "card-historia"]
     });
@@ -825,7 +825,7 @@ function recalcularGuia() {
       <h2 class="guia-titulo">✓ Estás al día</h2>
       <p class="guia-detalle">${proxima
         ? `Tu próxima clase: ${escapeHtml(nombresDeSesion(proxima))} · ${formatearFecha(proxima[0].fecha)} a las ${proxima[0].hora} · ${escapeHtml(proxima[0].pistaNombre || "")}.`
-        : "No tienes clases por dar. Cuando quieras, carga una clase nueva."}</p>
+        : "No tenés clases por dar. Cuando quieras, carga una clase nueva."}</p>
       <button class="btn btn-primary" type="button" data-ir-tab="clases" data-ir-a="card-nueva-clase">Cargar una clase nueva →</button>`;
     if (tarjeta) tarjeta.classList.add("ok");
   }
@@ -838,7 +838,7 @@ function recalcularGuia() {
     barra.innerHTML = tareas.length
       ? `<span class="guia-barra-texto">👉 <strong>Siguiente paso:</strong> ${escapeHtml(tareas[0].titulo)}${tareas.length > 1 ? ` <span class="court-meta">(+${tareas.length - 1} más)</span>` : ""}</span>
          ${boton(tareas[0], "btn-primary btn-small")}`
-      : '<span class="guia-barra-texto">✓ Estás al día: no tienes nada pendiente.</span>';
+      : '<span class="guia-barra-texto">✓ Estás al día: no tenés nada pendiente.</span>';
   }
 
   const urgentes = tareas.filter((t) => t.urgente).length;
@@ -1083,7 +1083,7 @@ function cargarConfirmadas(uid) {
 
     wrapPorRegistrar.innerHTML = "";
     if (porRegistrar.length === 0) {
-      wrapPorRegistrar.innerHTML = '<p class="empty-state">✓ No tienes clases por cerrar.</p>';
+      wrapPorRegistrar.innerHTML = '<p class="empty-state">✓ No tenés clases por cerrar.</p>';
     } else {
       agruparPorSesion(porRegistrar).forEach((grupo) => wrapPorRegistrar.appendChild(
         grupo.length > 1 ? construirTarjetaRegistroGrupal(grupo) : construirTarjetaRegistro(grupo[0])
@@ -1093,7 +1093,7 @@ function cargarConfirmadas(uid) {
 
     wrapFuturas.innerHTML = "";
     if (futuras.length === 0) {
-      wrapFuturas.innerHTML = '<p class="empty-state">Aún no tienes clases confirmadas.</p>';
+      wrapFuturas.innerHTML = '<p class="empty-state">Aún no tenés clases confirmadas.</p>';
     } else {
       agruparPorSesion(futuras).forEach((grupo) => wrapFuturas.appendChild(
         grupo.length > 1 ? construirTarjetaFuturaGrupal(grupo) : construirTarjetaFutura(grupo[0])
@@ -1364,11 +1364,11 @@ function linkPedirOpinion(nombre, telefono) {
   const tel = soloDigitos(telefono);
   if (!tel) return "";
   const texto = elegirMensaje([
-    `Hola ${nombre}, ¿cómo te fue en la clase de hoy? Cuéntame en tu portal (academiadepadel.pe) cómo te sentiste, me ayuda un montón para planear la siguiente 🎾`,
-    `${nombre}, antes de que se te pase: entra a tu portal y déjame tu feedback de la clase de hoy, así ajusto lo que sigue 👍`,
-    `Hola ${nombre}! Un favor rápido: cuéntame en tu portal qué tal la clase de hoy, son dos minutos nomás 🙌`,
-    `${nombre}, ¿tienes un minuto? Me ayudaría mucho que me cuentes en tu portal cómo sentiste la clase de hoy.`,
-    `Hola ${nombre}, me interesa tu opinión sobre la clase de hoy — entra a tu portal y déjame unas líneas cuando puedas 🎾`
+    `Hola ${nombre}, ¿cómo te fue en la clase de hoy? Contame en tu portal (academiadepadel.pe) cómo te sentiste, me ayuda un montón para planear la siguiente 🎾`,
+    `${nombre}, antes de que se te pase: entrá a tu portal y déjame tu feedback de la clase de hoy, así ajusto lo que sigue 👍`,
+    `Hola ${nombre}! Un favor rápido: contame en tu portal qué tal la clase de hoy, son dos minutos nomás 🙌`,
+    `${nombre}, ¿tenés un minuto? Me ayudaría mucho que me cuentes en tu portal cómo sentiste la clase de hoy.`,
+    `Hola ${nombre}, me interesa tu opinión sobre la clase de hoy — entrá a tu portal y déjame unas líneas cuando puedas 🎾`
   ]);
   return `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:10px;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">Pedir su opinión por WhatsApp</a>`;
 }
@@ -1384,7 +1384,7 @@ function construirTarjetaRegistro(r) {
         <input type="checkbox" checked data-campo="asistio"> Asistió a la clase
       </label>
       <div class="field field-full">
-        <label>¿Qué trabajaron? (toca los que apliquen)</label>
+        <label>¿Qué trabajaron? (tocá los que apliquen)</label>
         <div data-temas-wrap>${chipsTemas()}</div>
       </div>
       <div class="form-grid">
@@ -1451,7 +1451,7 @@ function construirTarjetaRegistroGrupal(grupo) {
             <input type="checkbox" checked data-campo="asistio"> Asistió a la clase
           </label>
           <div class="field field-full">
-            <label>¿Qué trabajaron? (toca los que apliquen)</label>
+            <label>¿Qué trabajaron? (tocá los que apliquen)</label>
             <div data-temas-wrap>${chipsTemas()}</div>
           </div>
           <div class="form-grid">
@@ -1564,7 +1564,7 @@ function renderHistorial() {
 
   wrap.innerHTML = "";
   if (historialReservasCache.length === 0) {
-    wrap.innerHTML = '<p class="empty-state">Aún no tienes clases cargadas.</p>';
+    wrap.innerHTML = '<p class="empty-state">Aún no tenés clases cargadas.</p>';
     return;
   }
   if (reservas.length === 0) {
@@ -1675,7 +1675,7 @@ function construirFormAgregarAlumno(base) {
     const alumnoId = form.querySelector('[data-campo="alumnoId"]').value;
     const alumno = alumnosCache.find((a) => a.id === alumnoId);
     const montoCobrado = Number(form.querySelector('[data-campo="monto"]').value) || 0;
-    if (!alumno) { msg.textContent = "Elige un alumno."; msg.className = "form-msg error"; return; }
+    if (!alumno) { msg.textContent = "Elegí un alumno."; msg.className = "form-msg error"; return; }
     try {
       await addDoc(collection(db, "reservas"), {
         alumnoId: alumno.id, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
@@ -1774,7 +1774,7 @@ function construirTarjetaHistorial(r) {
       <p>${r.pistaNombre || ""} · ${formatearFecha(r.fecha)} · ${r.hora} hrs
         ${r.modalidad ? "· " + r.modalidad : ""}
         ${typeof r.montoCobrado === "number" ? `· cobrado S/ ${r.montoCobrado}` : ""}
-        ${typeof costoCanchaDe(r) === "number" ? `· cancha S/ ${costoCanchaDe(r).toFixed(2)}` : ""}
+        ${typeof costoCanchaDe(r) === "number" ? `· pista S/ ${costoCanchaDe(r).toFixed(2)}` : ""}
       </p>
       ${!esFutura ? `<p>${videoClaseHtml(r)}</p>` : ""}
       <div class="form-grid" data-editar-form hidden style="margin-top:8px;">
@@ -1789,12 +1789,12 @@ function construirTarjetaHistorial(r) {
         <div class="field">
           <label>Monto cobrado (S/)</label>
           <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}" ${r.paqueteId ? "disabled" : ""}>
-          ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvincúlala abajo si quieres cargarle un cobro aparte.</p>' : ""}
+          ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvincúlala abajo si querés cargarle un cobro aparte.</p>' : ""}
         </div>
         <div class="field">
-          <label>Costo de cancha de ESTA clase (S/)</label>
+          <label>Costo de pista de ESTA clase (S/)</label>
           <input type="number" min="0" step="0.01" data-campo="costoCanchaPagado" value="${typeof costoCanchaDe(r) === "number" ? costoCanchaDe(r).toFixed(2) : ""}">
-          <p class="field-hint">Si fue grupal, pon aquí la parte que le toca a este alumno (el total de la cancha dividido entre todos), no el total de la sesión.</p>
+          <p class="field-hint">Si fue grupal, pon aquí la parte que le toca a este alumno (el total de la pista dividido entre todos), no el total de la sesión.</p>
         </div>
         <div class="field">
           <label>Estado</label>
@@ -1806,7 +1806,7 @@ function construirTarjetaHistorial(r) {
         ${camposFechaHoraHtml(r)}
         ${esPistaBeelup(r.pistaNombre) ? `
         <div class="field">
-          <label>Cancha (video Beelup)</label>
+          <label>Pista (video Beelup)</label>
           <select data-campo="canchaBeelup">${CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === (r.canchaBeelup || "2") ? "selected" : ""}>${c}</option>`).join("")}</select>
         </div>` : ""}
         <div class="field">
@@ -1902,7 +1902,7 @@ function construirTarjetaHistorial(r) {
     const duracionMin = Number(form.querySelector('[data-campo="duracionMin"]').value) || 60;
     const campoCancha = form.querySelector('[data-campo="canchaBeelup"]');
     const fh = leerFechaHora(form, r);
-    if (!fh) { msg.textContent = "Elige la fecha de la clase."; msg.className = "form-msg error"; return; }
+    if (!fh) { msg.textContent = "Elegí la fecha de la clase."; msg.className = "form-msg error"; return; }
     if (fh.cambio && !confirmarMovimientoDeClase(r)) return;
     try {
       const cambios = {
@@ -1927,7 +1927,7 @@ function construirTarjetaHistorial(r) {
   card.querySelector("[data-guardar-mover]").addEventListener("click", async () => {
     const clave = form.querySelector("[data-mover-sesion]").value;
     const destino = historialSesionesCache.find((s) => s.clave === clave);
-    if (!destino) { msg.textContent = "Elige a qué sesión unirla."; msg.className = "form-msg error"; return; }
+    if (!destino) { msg.textContent = "Elegí a qué sesión unirla."; msg.className = "form-msg error"; return; }
     try {
       await updateDoc(doc(db, "reservas", r.id), {
         pistaId: destino.pistaId, pistaNombre: destino.pistaNombre,
@@ -1962,16 +1962,16 @@ function construirTarjetaHistorialGrupal(grupo) {
       ${!esFutura ? `<p>${videoClaseHtml(base)}</p>` : ""}
       <div class="form-grid" style="margin-top:8px;">
         <div class="field">
-          <label>Costo total de esta sesión (cancha + otros, S/)</label>
-          <input type="number" min="0" step="0.01" data-campo="costoSesionTotal" placeholder="Ej: cancha, pelotas...">
+          <label>Costo total de esta sesión (pista + otros, S/)</label>
+          <input type="number" min="0" step="0.01" data-campo="costoSesionTotal" placeholder="Ej: pista, pelotas...">
         </div>
         <button class="btn btn-outline btn-small" type="button" data-dividir-costo-sesion>Dividir entre los ${grupo.length} alumnos</button>
-        <p class="field-hint">Pon el costo total de la sesión (cancha + lo que gastaste) y lo reparte por igual entre los ${grupo.length} alumnos de esta clase — reemplaza lo que tenía cargado cada uno.</p>
+        <p class="field-hint">Poné el costo total de la sesión (pista + lo que gastaste) y lo reparte por igual entre los ${grupo.length} alumnos de esta clase — reemplaza lo que tenía cargado cada uno.</p>
       </div>
       <div class="form-grid" style="margin-top:8px;">
         ${esPistaBeelup(base.pistaNombre) ? `
         <div class="field">
-          <label>Cancha (video Beelup) de esta sesión</label>
+          <label>Pista (video Beelup) de esta sesión</label>
           <select data-campo-sesion="canchaBeelup">${CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === (base.canchaBeelup || "2") ? "selected" : ""}>${c}</option>`).join("")}</select>
         </div>` : ""}
         <div class="field">
@@ -1987,7 +1987,7 @@ function construirTarjetaHistorialGrupal(grupo) {
           <p>
             <strong>${escapeHtml(r.alumnoNombre)}</strong>
             ${typeof r.montoCobrado === "number" ? ` · cobrado S/ ${r.montoCobrado}` : ""}
-            ${typeof costoCanchaDe(r) === "number" ? ` · cancha S/ ${costoCanchaDe(r).toFixed(2)}` : ""}
+            ${typeof costoCanchaDe(r) === "number" ? ` · pista S/ ${costoCanchaDe(r).toFixed(2)}` : ""}
             <span class="badge ${r.estado === "confirmada" ? "badge-confirmada" : "badge-pendiente"}">${estadoLabel(r)}</span>${r.asistio === false ? ' <span class="badge badge-rechazada" title="No se cuenta ni se cobra">no asistió</span>' : ""}
           </p>
           <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
@@ -2004,12 +2004,12 @@ function construirTarjetaHistorialGrupal(grupo) {
             <div class="field">
               <label>Monto cobrado (S/)</label>
               <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}" ${r.paqueteId ? "disabled" : ""}>
-              ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvincúlala abajo si quieres cargarle un cobro aparte.</p>' : ""}
+              ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvincúlala abajo si querés cargarle un cobro aparte.</p>' : ""}
             </div>
             <div class="field">
-              <label>Costo de cancha de ESTE alumno (S/)</label>
+              <label>Costo de pista de ESTE alumno (S/)</label>
               <input type="number" min="0" step="0.01" data-campo="costoCanchaPagado" value="${typeof costoCanchaDe(r) === "number" ? costoCanchaDe(r).toFixed(2) : ""}">
-              <p class="field-hint">La parte que le toca a él (el total de la cancha dividido entre todos).</p>
+              <p class="field-hint">La parte que le toca a él (el total de la pista dividido entre todos).</p>
             </div>
             <div class="field">
               <label>Estado</label>
@@ -2101,7 +2101,7 @@ function construirTarjetaHistorialGrupal(grupo) {
       const costoCanchaRaw = form.querySelector('[data-campo="costoCanchaPagado"]').value;
       const estado = form.querySelector('[data-campo="estado"]').value;
       const fh = leerFechaHora(form, r);
-      if (!fh) { msg.textContent = "Elige la fecha de la clase."; msg.className = "form-msg error"; return; }
+      if (!fh) { msg.textContent = "Elegí la fecha de la clase."; msg.className = "form-msg error"; return; }
       if (fh.cambio && !confirmarMovimientoDeClase(r)) return;
       try {
         const cambios = {
@@ -2124,7 +2124,7 @@ function construirTarjetaHistorialGrupal(grupo) {
     fila.querySelector("[data-guardar-mover]").addEventListener("click", async () => {
       const clave = form.querySelector("[data-mover-sesion]").value;
       const destino = historialSesionesCache.find((s) => s.clave === clave);
-      if (!destino) { msg.textContent = "Elige a qué sesión unirlo."; msg.className = "form-msg error"; return; }
+      if (!destino) { msg.textContent = "Elegí a qué sesión unirlo."; msg.className = "form-msg error"; return; }
       try {
         await updateDoc(doc(db, "reservas", r.id), {
           pistaId: destino.pistaId, pistaNombre: destino.pistaNombre,
@@ -2144,7 +2144,7 @@ function construirTarjetaHistorialGrupal(grupo) {
     const totalRaw = card.querySelector('[data-campo="costoSesionTotal"]').value;
     const total = Number(totalRaw);
     if (totalRaw === "" || isNaN(total) || total < 0) {
-      msgDividir.textContent = "Pon el costo total de la sesión primero.";
+      msgDividir.textContent = "Poné el costo total de la sesión primero.";
       msgDividir.className = "form-msg error";
       return;
     }
@@ -2225,7 +2225,7 @@ document.getElementById("form-grupo").addEventListener("submit", async (e) => {
   const pistaNombre = `${pista?.nombre || ""} — ${pista?.distrito || ""}`;
   const duracionMin = Number(document.getElementById("gr-duracion").value) || 60;
   const canchaBeelup = pista && esPistaBeelup(pistaNombre) ? document.getElementById("gr-cancha-beelup").value : null;
-  if (!pista) { msg.textContent = "Elige una pista válida."; msg.className = "form-msg error"; return; }
+  if (!pista) { msg.textContent = "Elegí una pista válida."; msg.className = "form-msg error"; return; }
   try {
     const datosGrupo = {
       nombre, tipoClase, pistaId: pista.id, pistaNombre,
@@ -2290,7 +2290,7 @@ function renderGrupos() {
         <div class="field"><label>Monto por persona (S/)</label><input type="number" min="0" step="1" data-campo="montoCobrado" value="${g.montoCobrado}"></div>
         <div class="field"><label>Cupo máximo</label><input type="number" min="1" data-campo="cupoMaximo" value="${g.cupoMaximo}"></div>
         ${esPistaBeelup(g.pistaNombre) ? `
-        <div class="field"><label>Cancha (video Beelup)</label>
+        <div class="field"><label>Pista (video Beelup)</label>
           <select data-campo="canchaBeelup">${CANCHAS_BEELUP.map((c) => `<option value="${c}" ${c === (g.canchaBeelup || "2") ? "selected" : ""}>${c}</option>`).join("")}</select>
         </div>` : ""}
         <div class="field"><label>Duración (min)</label>
@@ -2492,7 +2492,7 @@ async function cargarAlumnos() {
       `Hola ${a.nombre}, ¿me actualizas tu disponibilidad acá? https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`,
       `${a.nombre}, cuando tengas un momento actualiza tu disponibilidad por acá: https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`,
       `Hola ${a.nombre}! Para armarte el horario necesito tu disponibilidad actualizada — https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`,
-      `${a.nombre}, ¿me confirmas tu disponibilidad por este link? https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`
+      `${a.nombre}, ¿me confirmás tu disponibilidad por este link? https://academiadepadel.pe/disponibilidad.html?alumno=${a.id}`
     ]);
     // Todos los alumnos tienen la opción, tengan o no ya disponibilidad
     // cargada (para actualizarla) y tengan o no un teléfono con el que se
@@ -2505,7 +2505,7 @@ async function cargarAlumnos() {
     // desde el panel no tienen login real hasta que activan por este link).
     const linkActivarCuenta = a.cuentaPropia ? "" : (telAlumno
       ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:8px; margin-left:8px;" href="https://wa.me/${telAlumno}?text=${encodeURIComponent(elegirMensaje([
-          `Hola ${a.nombre}! Ya puedes entrar a tu portal y ver tus clases, feedback y paquete — activa tu cuenta acá: https://academiadepadel.pe/activar-cuenta.html?alumno=${a.id}`,
+          `Hola ${a.nombre}! Ya podés entrar a tu portal y ver tus clases, feedback y paquete — activa tu cuenta acá: https://academiadepadel.pe/activar-cuenta.html?alumno=${a.id}`,
           `${a.nombre}, arma tu cuenta del portal para ver tu historial de clases: https://academiadepadel.pe/activar-cuenta.html?alumno=${a.id}`,
           `Hola ${a.nombre}, te paso el link para activar tu cuenta y ver tu progreso: https://academiadepadel.pe/activar-cuenta.html?alumno=${a.id}`,
           `${a.nombre}! Te dejo el link para entrar a tu portal: https://academiadepadel.pe/activar-cuenta.html?alumno=${a.id}`
@@ -2597,7 +2597,7 @@ async function cargarAlumnos() {
         await navigator.clipboard.writeText(mensajePedirDisponibilidad);
         btn.textContent = "Copiado — pégalo donde le escribas";
       } catch {
-        prompt("Copia el mensaje:", mensajePedirDisponibilidad);
+        prompt("Copiá el mensaje:", mensajePedirDisponibilidad);
       }
       setTimeout(() => { btn.textContent = textoOriginal; }, 2200);
     });
@@ -2674,14 +2674,14 @@ function renderLogrosRecientes(subieronNivel) {
         `🎾 ¡${alumno.nombre} subió a nivel ${progreso.nivel} — ${progreso.nombreNivel} — en Academia de Pádel GP! 💪`,
         `🏆 ${alumno.nombre} llegó a nivel ${progreso.nivel} (${progreso.nombreNivel}) en la academia. ¡Vamos con todo!`,
         `🎾 Otro nivel más para ${alumno.nombre}: nivel ${progreso.nivel} — ${progreso.nombreNivel} 🔥`,
-        `💪 ${alumno.nombre} avanzó a nivel ${progreso.nivel} (${progreso.nombreNivel}) — ¡se nota el progreso en cancha!`
+        `💪 ${alumno.nombre} avanzó a nivel ${progreso.nivel} (${progreso.nombreNivel}) — ¡se nota el progreso en pista!`
       ]);
       try {
         await navigator.clipboard.writeText(textoRedes);
         msg.textContent = "Copiado.";
         msg.className = "form-msg ok";
       } catch {
-        prompt("Copia el texto:", textoRedes);
+        prompt("Copiá el texto:", textoRedes);
       }
     });
     bloque.querySelector("[data-marcar-visto]").addEventListener("click", async () => {
@@ -2742,7 +2742,7 @@ function actualizarAvisoReferidoPaquete() {
   const aplicar = document.getElementById("pq-ref-aplicar").checked;
   document.getElementById("pq-ref-preview").textContent = monto > 0 && aplicar
     ? `Monto de lista S/ ${monto} → se cobra S/ ${montoConDescuento(monto)} (el sistema lo guarda ya con el descuento).`
-    : (monto > 0 ? `Se cobra S/ ${monto}, sin descuento.` : "Escribe el monto de lista: el descuento se calcula solo.");
+    : (monto > 0 ? `Se cobra S/ ${monto}, sin descuento.` : "Escribí el monto de lista: el descuento se calcula solo.");
 }
 
 // Tarifa de lista de Top Padel: al elegir cuántas personas hay en el grupo, llena el monto por alumno.
@@ -2795,7 +2795,7 @@ document.getElementById("form-paquete").addEventListener("submit", async (e) => 
   if (aplicarRef) monto = montoConDescuento(monto);
 
   if (!alumno) {
-    msg.textContent = "Elige un alumno (primero debe existir al menos uno registrado).";
+    msg.textContent = "Elegí un alumno (primero debe existir al menos uno registrado).";
     msg.className = "form-msg error";
     return;
   }
@@ -2916,7 +2916,7 @@ function construirFilaPaquete(p) {
     // dictada" (pestaña Alumnos y pagos), eligiendo ahí mismo el paquete
     // -- así queda un solo paso y no hay que acordarse de nada más.
     const seguro = confirm(
-      `Esto solo mueve el contador de ${p.alumnoNombre} a ${p.clasesUsadas + 1}/${p.clasesTotales} — no registra la clase (sin fecha, pista ni costo de cancha).\n\n` +
+      `Esto solo mueve el contador de ${p.alumnoNombre} a ${p.clasesUsadas + 1}/${p.clasesTotales} — no registra la clase (sin fecha, pista ni costo de pista).\n\n` +
       `Si es una clase que acabas de dictar, cancela esto y usá "① Nueva clase" en la pestaña Mis clases, eligiendo el paquete ahí mismo.\n\n` +
       `¿Seguro que querés ajustar solo el contador?`
     );
@@ -2962,7 +2962,7 @@ function linkRecordatorio(r) {
   const telefono = soloDigitos(r.alumnoTelefono);
   if (!telefono) return "";
   const texto = elegirMensaje([
-    `Hola ${r.alumnoNombre}, te recuerdo tu clase de pádel el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre}. ¡Nos vemos en la cancha!`,
+    `Hola ${r.alumnoNombre}, te recuerdo tu clase de pádel el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre}. ¡Nos vemos en la pista!`,
     `${r.alumnoNombre}, no te olvides: clase el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre} 🎾`,
     `Hola ${r.alumnoNombre}! Recordatorio rápido de tu clase: ${formatearFecha(r.fecha)}, ${r.hora} hrs, en ${r.pistaNombre}.`,
     `${r.alumnoNombre}, nos vemos el ${formatearFecha(r.fecha)} a las ${r.hora} hrs en ${r.pistaNombre} para tu clase.`
@@ -3210,11 +3210,11 @@ async function calcularRentabilidad(wrap, reservas) {
 
   wrap.innerHTML = `
     <div class="card clickable" data-detalle-rent="ingreso"><div class="card-icon">💵</div><h3>S/ ${ingresoTotal.toFixed(0)}</h3><p>Ingreso devengado (solo clases ya dictadas)</p></div>
-    <div class="card clickable" data-detalle-rent="costo"><div class="card-icon">🧾</div><h3>S/ ${costoTotal.toFixed(0)}</h3><p>Costo estimado (cancha + tu hora)</p></div>
+    <div class="card clickable" data-detalle-rent="costo"><div class="card-icon">🧾</div><h3>S/ ${costoTotal.toFixed(0)}</h3><p>Costo estimado (pista + tu hora)</p></div>
     <div class="card clickable" data-detalle-rent="margen"><div class="card-icon">${margenTotal >= 0 ? "📈" : "📉"}</div><h3>S/ ${margenTotal.toFixed(0)}</h3><p>Margen neto</p></div>
     <div class="card clickable" data-detalle-rent="margen"><div class="card-icon">%</div><h3>${margenPct}%</h3><p>Margen sobre ingreso</p></div>
     <div class="card clickable" data-detalle-rent="cobrado"><div class="card-icon">💰</div><h3>S/ ${cobradoEfectivoTotal.toFixed(0)}</h3><p>Cobrado en efectivo (incluye paquetes con clases pendientes)</p></div>
-    ${sinDatos ? '<p class="empty-state" style="grid-column:1/-1;">⚠ No cargaste costo de cancha ni tu costo por hora todavía, así que el costo estimado es S/0 y no refleja la realidad. Cárgalos en pistas.html y en "Mis datos" (o el costo de cancha específico al registrar cada clase suelta).</p>' : ""}
+    ${sinDatos ? '<p class="empty-state" style="grid-column:1/-1;">⚠ No cargaste costo de pista ni tu costo por hora todavía, así que el costo estimado es S/0 y no refleja la realidad. Cárgalos en pistas.html y en "Mis datos" (o el costo de pista específico al registrar cada clase suelta).</p>' : ""}
     ${pendienteDeDictar > 0.5 ? `<p class="field-hint" style="grid-column:1/-1;">De lo cobrado, S/ ${pendienteDeDictar.toFixed(0)} todavía son clases de paquete sin dictar — no cuentan como ingreso hasta que las des.</p>` : ""}
   `;
   wrap.querySelectorAll("[data-detalle-rent]").forEach((card) => {
@@ -3268,13 +3268,13 @@ function mostrarDetalleRentabilidad(tipo, cardEl) {
     wrap.innerHTML = `<p class="field-hint">Solo lo que ya ganaste por clases realmente dictadas, por día. Cada clase de un paquete vale lo que costó el paquete dividido entre sus clases. Un paquete pagado pero sin empezar no suma acá todavía.</p>${tablaIngresoPorDia(ingreso)}`;
   }
   else if (tipo === "costo") {
-    wrap.innerHTML = `<p class="field-hint"><span style="color:#b02a24; font-weight:700;">● Cancha</span> = plata que le pagas al club &nbsp; <span style="color:#157347; font-weight:700;">● Tu hora</span> = tu ingreso por dictar la clase, no un gasto real</p>${tablaIngresoPorDia(costo, "Total costo", (f) => f.concepto, (a, b) => (a.tipo === b.tipo ? 0 : a.tipo === "cancha" ? -1 : 1))}`;
+    wrap.innerHTML = `<p class="field-hint"><span style="color:#b02a24; font-weight:700;">● Pista</span> = plata que le pagás al club &nbsp; <span style="color:#157347; font-weight:700;">● Tu hora</span> = tu ingreso por dictar la clase, no un gasto real</p>${tablaIngresoPorDia(costo, "Total costo", (f) => f.concepto, (a, b) => (a.tipo === b.tipo ? 0 : a.tipo === "cancha" ? -1 : 1))}`;
   }
   else if (tipo === "margen") {
     wrap.innerHTML = `<p>Ingreso devengado <strong>S/ ${(ingresoTotal || 0).toFixed(0)}</strong> − Costo <strong>S/ ${(costoTotal || 0).toFixed(0)}</strong> = Margen <strong>S/ ${(margenTotal || 0).toFixed(0)}</strong> (${margenPct || 0}% sobre el ingreso devengado).</p>`;
   }
   else if (tipo === "cobrado") {
-    wrap.innerHTML = `<p class="field-hint">Plata que ya tienes en la mano, incluidos paquetes con clases todavía por dictar (S/ ${((cobradoEfectivoTotal || 0) - (ingresoTotal || 0)).toFixed(0)} de eso es a futuro). Los paquetes van en el día en que los activaste.</p>${tablaIngresoPorDia(cobrado, "Total cobrado", (f) => f.concepto, () => 0)}`;
+    wrap.innerHTML = `<p class="field-hint">Plata que ya tenés en la mano, incluidos paquetes con clases todavía por dictar (S/ ${((cobradoEfectivoTotal || 0) - (ingresoTotal || 0)).toFixed(0)} de eso es a futuro). Los paquetes van en el día en que los activaste.</p>${tablaIngresoPorDia(cobrado, "Total cobrado", (f) => f.concepto, () => 0)}`;
   }
   wrap.hidden = false;
 }
@@ -3387,7 +3387,7 @@ function renderLeadsJornadaGratis(wrap, reservas, paquetes) {
       `Hola ${r.alumnoNombre}, ¿qué te pareció la jornada "Conociendo el Pádel"? Te cuento los paquetes para seguir jugando.`,
       `${r.alumnoNombre}, ¿cómo te fue en la jornada gratis? Si te gustó, te paso los paquetes para que sigas jugando 🎾`,
       `Hola ${r.alumnoNombre}! Quería saber qué te pareció probar el pádel con nosotros — ¿seguimos con clases?`,
-      `${r.alumnoNombre}, cuéntame qué tal la jornada — tengo paquetes que te pueden interesar para continuar.`
+      `${r.alumnoNombre}, contame qué tal la jornada — tengo paquetes que te pueden interesar para continuar.`
     ]);
     const link = !convirtio && telefono
       ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Dar seguimiento</a>`
@@ -3426,7 +3426,7 @@ function renderRiesgoAbandono(wrap, reservas) {
     const texto = elegirMensaje([
       `Hola ${alumno.nombre}, hace tiempo no te vemos por la academia — ¿coordinamos tu próxima clase de pádel?`,
       `${alumno.nombre}, ¿cómo vas? Hace rato no jugamos — ¿te animas a coordinar una clase?`,
-      `Hola ${alumno.nombre}! Te extrañamos en la cancha, ¿vemos horario para tu próxima clase?`,
+      `Hola ${alumno.nombre}! Te extrañamos en la pista, ¿vemos horario para tu próxima clase?`,
       `${alumno.nombre}, ¿seguimos con las clases? Cuando quieras coordinamos un horario.`
     ]);
     const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Escribirle</a>` : "";
@@ -3457,7 +3457,7 @@ function renderPorRenovar(wrap, paquetes) {
       `Hola ${p.alumnoNombre}, ${estadoPaquete} "${p.tipo}" — ¿coordinamos la renovación?`,
       `${p.alumnoNombre}, ${estadoPaquete} "${p.tipo}". ¿Vemos la renovación para que sigas sin parar?`,
       `Hola ${p.alumnoNombre}! Tu paquete "${p.tipo}" está por acabarse — ¿renovamos?`,
-      `${p.alumnoNombre}, ${estadoPaquete} "${p.tipo}" — avísame si quieres renovar.`
+      `${p.alumnoNombre}, ${estadoPaquete} "${p.tipo}" — avísame si querés renovar.`
     ]);
     const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Ofrecer renovación</a>` : "";
     return `
@@ -3484,7 +3484,7 @@ function renderCobrosPendientes(wrap, paquetes) {
     const texto = elegirMensaje([
       `Hola ${p.alumnoNombre}, te recuerdo que el pago de tu paquete "${p.tipo}" (S/ ${p.monto}) está pendiente.`,
       `${p.alumnoNombre}, cuando puedas me pasas el pago de tu paquete "${p.tipo}" (S/ ${p.monto})? Gracias!`,
-      `Hola ${p.alumnoNombre}! Quedó pendiente el pago de "${p.tipo}" (S/ ${p.monto}) — me avisas cuando lo hagas.`,
+      `Hola ${p.alumnoNombre}! Quedó pendiente el pago de "${p.tipo}" (S/ ${p.monto}) — me avisás cuando lo hagas.`,
       `${p.alumnoNombre}, te escribo por el pago de tu paquete "${p.tipo}" (S/ ${p.monto}), sigue pendiente.`
     ]);
     const link = telefono ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" href="https://wa.me/${telefono}?text=${encodeURIComponent(texto)}">Cobrar</a>` : "";
@@ -3651,7 +3651,7 @@ document.getElementById("form-interesado-manual").addEventListener("submit", asy
 function renderTurnos() {
   const wrap = document.getElementById("lista-turnos");
   if (!turnosGrupalesCache.length) {
-    wrap.innerHTML = '<p class="empty-state">Todavía no creaste ninguna convocatoria — agrega una arriba para que aparezca en la web.</p>';
+    wrap.innerHTML = '<p class="empty-state">Todavía no creaste ninguna convocatoria — agregá una arriba para que aparezca en la web.</p>';
     return;
   }
   wrap.innerHTML = "";
@@ -3773,7 +3773,7 @@ function renderSugerenciasGrupo() {
     <div class="callout" style="margin-bottom:18px;">
       <span class="callout-icon" aria-hidden="true">💡</span>
       <div style="flex:1;">
-        <p><strong>Posibles grupos nuevos</strong> — varios interesados coinciden en el mismo horario. Verifica tu disponibilidad y la de la cancha en "Cruce de disponibilidad" antes de abrir el turno.</p>
+        <p><strong>Posibles grupos nuevos</strong> — varios interesados coinciden en el mismo horario. Verifica tu disponibilidad y la de la pista en "Cruce de disponibilidad" antes de abrir el turno.</p>
         <div id="sugerencias-grupo-lista"></div>
       </div>
     </div>`;
@@ -3792,9 +3792,9 @@ function renderSugerenciasGrupo() {
       const otros = s.personas.length - 1;
       const gente = otros > 0 ? `${otros} persona${otros === 1 ? "" : "s"} más` : "gente";
       const texto = elegirMensaje([
-        `Hola ${i.nombre}, tengo ${gente} interesada en jugar el ${s.dia.toLowerCase()} de ${s.franja} hrs — ¿confirmas que sigues interesado? Si me confirman todos, abro el grupo ya.`,
-        `${i.nombre}, ya casi cierro un grupo el ${s.dia.toLowerCase()} de ${s.franja} hrs con ${gente} — ¿sigues interesado? Confírmame y lo armamos.`,
-        `Hola ${i.nombre}! Tengo ${gente} para el ${s.dia.toLowerCase()} ${s.franja} hrs — si me confirmas, abrimos el grupo.`,
+        `Hola ${i.nombre}, tengo ${gente} interesada en jugar el ${s.dia.toLowerCase()} de ${s.franja} hrs — ¿confirmás que seguís interesado? Si me confirman todos, abro el grupo ya.`,
+        `${i.nombre}, ya casi cierro un grupo el ${s.dia.toLowerCase()} de ${s.franja} hrs con ${gente} — ¿seguís interesado? Confírmame y lo armamos.`,
+        `Hola ${i.nombre}! Tengo ${gente} para el ${s.dia.toLowerCase()} ${s.franja} hrs — si me confirmás, abrimos el grupo.`,
         `${i.nombre}, ¿va lo del ${s.dia.toLowerCase()} de ${s.franja} hrs? Tengo ${gente} esperando tu confirmación para abrir el grupo.`
       ]);
       return tel
@@ -3804,10 +3804,10 @@ function renderSugerenciasGrupo() {
     const chipsAlumnos = alumnosCoinciden.map((a) => {
       const tel = soloDigitos(a.whatsapp || a.telefono);
       const texto = elegirMensaje([
-        `Hola ${a.nombre}, estoy armando un grupo fijo el ${s.dia.toLowerCase()} de ${s.franja} hrs, justo tu horario — ¿te sumas?`,
+        `Hola ${a.nombre}, estoy armando un grupo fijo el ${s.dia.toLowerCase()} de ${s.franja} hrs, justo tu horario — ¿te sumás?`,
         `${a.nombre}, tengo la oportunidad de armar un grupo fijo el ${s.dia.toLowerCase()} ${s.franja} hrs — calza con tu disponibilidad, ¿te animas?`,
         `Hola ${a.nombre}! ¿Te interesaría un grupo fijo el ${s.dia.toLowerCase()} de ${s.franja} hrs? Justo es tu horario.`,
-        `${a.nombre}, ¿te sumas a un grupo el ${s.dia.toLowerCase()} ${s.franja} hrs? Encaja con tu disponibilidad.`
+        `${a.nombre}, ¿te sumás a un grupo el ${s.dia.toLowerCase()} ${s.franja} hrs? Encaja con tu disponibilidad.`
       ]);
       return tel
         ? `<a class="badge badge-pendiente" target="_blank" rel="noopener" style="text-decoration:none;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">${escapeHtml(a.nombre)}</a>`
@@ -3851,14 +3851,14 @@ function renderInteresados() {
   });
 
   if (!interesadosGrupoCache.length) {
-    wrap.innerHTML = '<p class="empty-state">Todavía nadie se anotó en "¿Eres nuevo en el pádel?".</p>';
+    wrap.innerHTML = '<p class="empty-state">Todavía nadie se anotó en "¿Sos nuevo en el pádel?".</p>';
     renderCrucePersonas();
     return;
   }
   if (!visibles.length) {
     wrap.innerHTML = filtroInteresados === "archivados"
-      ? '<p class="empty-state">No tienes interesados archivados.</p>'
-      : '<p class="empty-state">No hay interesados activos — mira en "Archivados" o "Todos".</p>';
+      ? '<p class="empty-state">No tenés interesados archivados.</p>'
+      : '<p class="empty-state">No hay interesados activos — mirá en "Archivados" o "Todos".</p>';
     renderCrucePersonas();
     return;
   }
@@ -3883,7 +3883,7 @@ function renderInteresados() {
       <div class="request-info">
         <p class="request-title">${escapeHtml(i.nombre)} <span class="badge ${BADGE_POR_ESTADO_INTERESADO[i.estado] || "badge-pendiente"}">${LABEL_ESTADO_INTERESADO[i.estado] || i.estado}</span>${i.origen === "link_directo" ? ' <span class="badge badge-confirmada">Vía link directo</span>' : ""}</p>
         <p>${linea2}</p>
-        ${i.canchaInteresada ? `<p class="court-meta">Cancha de preferencia: ${escapeHtml(i.canchaInteresada)}</p>` : ""}
+        ${i.canchaInteresada ? `<p class="court-meta">Pista de preferencia: ${escapeHtml(i.canchaInteresada)}</p>` : ""}
         <p class="court-meta">${escapeHtml(i.whatsapp)}${i.email ? " · " + escapeHtml(i.email) : ""}${i.instagram ? ` · <a href="https://instagram.com/${escapeHtml(i.instagram.replace(/^@/, ""))}" target="_blank" rel="noopener">@${escapeHtml(i.instagram.replace(/^@/, ""))}</a>` : ""}</p>
         ${i.notas ? `<p class="court-meta">📝 ${escapeHtml(i.notas)}</p>` : ""}
         <button class="btn btn-outline btn-small" type="button" data-toggle-notas style="margin-top:2px;">Editar notas</button>
@@ -3936,7 +3936,7 @@ function renderInteresados() {
           edad: null,
           nivel: NIVEL_INTERESADO_A_ALUMNO[i.nivel] || "Inicial",
           programa: i.turnoNombre || (i.origen === "link_directo" ? "Link de disponibilidad" : ""),
-          observaciones: [i.notas, i.canchaInteresada ? `Prefería la cancha ${i.canchaInteresada}.` : ""].filter(Boolean).join(" ") || "Interesado convertido.",
+          observaciones: [i.notas, i.canchaInteresada ? `Prefería la pista ${i.canchaInteresada}.` : ""].filter(Boolean).join(" ") || "Interesado convertido.",
           disponibilidad: i.disponibilidad || [],
           cuentaPropia: false,
           creadoEn: serverTimestamp()
@@ -4099,10 +4099,10 @@ function renderCruceGrid() {
       cell.textContent = texto;
       cell.addEventListener("click", () => {
         const faltan = personas.filter((p) => !estaDisponible(p.disponibilidad, dia, franja)).map((p) => p.nombre);
-        const partes = [`${dia}, ${franja}:`, profesorOk ? "tú estás libre" : "tú NO estás libre"];
+        const partes = [`${dia}, ${franja}:`, profesorOk ? "vos estás libre" : "vos NO estás libre"];
         partes.push(pistaFiltrada
-          ? (pistaOk ? `cancha libre en ${pistaFiltrada.nombre}` : `sin cancha libre en ${pistaFiltrada.nombre}`)
-          : (pistaOk ? "hay al menos una cancha libre" : "ninguna cancha libre"));
+          ? (pistaOk ? `pista libre en ${pistaFiltrada.nombre}` : `sin pista libre en ${pistaFiltrada.nombre}`)
+          : (pistaOk ? "hay al menos una pista libre" : "ninguna pista libre"));
         if (total > 0) {
           partes.push(disponibles.length ? `calzan: ${disponibles.map((p) => p.nombre).join(", ")}` : "nadie de los marcados calza");
           if (faltan.length) partes.push(`no calzan: ${faltan.join(", ")}`);
@@ -4368,7 +4368,7 @@ function wireJugadorCard(card, j) {
     catch (err) { msg.textContent = "No se pudo verificar: " + err.message; msg.className = "form-msg error"; }
   });
   card.querySelector("[data-dar-baja]")?.addEventListener("click", async () => {
-    if (!confirm(`¿Dar de baja a ${j.nombreCompleto}? Deja de aparecer en el directorio activo, pero no se borra.`)) return;
+    if (!confirm(`¿Dar de baja a ${j.nombreCompleto}? Dejá de aparecer en el directorio activo, pero no se borra.`)) return;
     try { await updateDoc(doc(db, "jugadores_comunidad", j.id), { activo: false }); }
     catch (err) { msg.textContent = "No se pudo dar de baja: " + err.message; msg.className = "form-msg error"; }
   });
@@ -4434,7 +4434,7 @@ function construirVariantesFaltaElCuarto(categoria, dia, fechaLarga, hora, lugar
     `¡Hola! Nos falta el cuarto para un partido de ${categoria} el ${dia} ${fechaLarga} a las ${hora} en ${lugar}. ¿Te prendés?`,
     `Hola! Armamos partido de ${categoria} el ${dia} ${fechaLarga}, ${hora} hrs, en ${lugar} — nos falta uno. ¿Te animas?`,
     `¡Hola! Buscamos un cuarto para jugar ${categoria} este ${dia} ${fechaLarga} a las ${hora} en ${lugar}. ¿Te sumas?`,
-    `Hola, tenemos partido de ${categoria} el ${dia} ${fechaLarga} (${hora} hrs) en ${lugar} y nos falta uno — ¿juegas?`
+    `Hola, tenemos partido de ${categoria} el ${dia} ${fechaLarga} (${hora} hrs) en ${lugar} y nos falta uno — ¿jugás?`
   ];
 }
 
@@ -4531,7 +4531,7 @@ document.getElementById("btn-copiar-mensaje-cuarto").addEventListener("click", a
     msg.textContent = "Mensaje copiado.";
     msg.className = "form-msg ok";
   } catch {
-    msg.textContent = "No se pudo copiar — selecciona y copia el texto a mano.";
+    msg.textContent = "No se pudo copiar — seleccioná y copia el texto a mano.";
     msg.className = "form-msg error";
   }
 });
@@ -4584,7 +4584,7 @@ function renderComunidadLeads() {
       `Hola ${j.nombreCompleto}, vi que te interesa tomar clases de pádel. Tenemos la jornada gratuita "¡Conociendo el Pádel!" para que la pruebes sin compromiso — ¿coordinamos?`,
       `${j.nombreCompleto}, soy Gabriel de Academia de Pádel GP — tenemos una jornada gratis para probar antes de decidir, ¿te animas?`,
       `Hola ${j.nombreCompleto}! Vi tu interés en pádel — te invito a "¡Conociendo el Pádel!", una clase de prueba gratis, sin compromiso.`,
-      `${j.nombreCompleto}, ¿quieres probar una clase de pádel gratis antes de inscribirte? Coordinamos cuando quieras.`
+      `${j.nombreCompleto}, ¿querés probar una clase de pádel gratis antes de inscribirte? Coordinamos cuando quieras.`
     ]);
     const card = document.createElement("div");
     card.className = "court-card";
@@ -4696,7 +4696,7 @@ document.getElementById("com-import-file").addEventListener("change", async (e) 
       document.getElementById("btn-guardar-import").hidden = true;
       return;
     }
-    msg.textContent = `${comunidadImportFilas.length} remitente(s) encontrados. Revisa y corrige antes de guardar.`;
+    msg.textContent = `${comunidadImportFilas.length} remitente(s) encontrados. Revisá y corrige antes de guardar.`;
     msg.className = "form-msg ok";
     // Limpia filtros que hayan quedado de una importación anterior.
     document.getElementById("com-import-buscar").value = "";

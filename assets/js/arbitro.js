@@ -1263,7 +1263,7 @@ function iniciarPartido() {
   const msg = document.getElementById("setupMsg");
   if (!c.a1 || !c.a2 || !c.b1 || !c.b2) {
     msg.className = "form-msg error";
-    msg.textContent = "Completa los 4 jugadores antes de iniciar.";
+    msg.textContent = "Completá los 4 jugadores antes de iniciar.";
     return;
   }
   const faltan = state.checklist.filter((v) => !v).length;
@@ -1349,7 +1349,7 @@ function init() {
 
   document.getElementById("btnCancha").addEventListener("click", (e) => {
     const oculta = document.getElementById("canchaBloque").classList.toggle("oculto");
-    e.currentTarget.textContent = oculta ? "🗺️ Mostrar cancha" : "🗺️ Ocultar cancha";
+    e.currentTarget.textContent = oculta ? "🗺️ Mostrar pista" : "🗺️ Ocultar pista";
   });
   document.querySelectorAll(".arbitro-tool-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -1393,7 +1393,7 @@ function init() {
   });
   document.getElementById("btnDescalificacionDirecta").addEventListener("click", () => {
     pedirEquipo(document.getElementById("btnDescalificacionDirecta"), (equipo) => {
-      if (!confirm(`¿Confirmas la descalificación directa de ${nomEq(equipo)} por falta muy grave? Esto termina el partido de inmediato.`)) return;
+      if (!confirm(`¿Confirmás la descalificación directa de ${nomEq(equipo)} por falta muy grave? Esto termina el partido de inmediato.`)) return;
       registrarDescalificacionDirecta(equipo);
     });
   });
@@ -1434,7 +1434,7 @@ function init() {
   });
   document.getElementById("btnCompartirLinkWhatsapp").addEventListener("click", () => {
     const url = document.getElementById("shareLink").value;
-    window.open(`https://wa.me/?text=${encodeURIComponent(`🎾 Sigue el partido en vivo: ${url}`)}`, "_blank");
+    window.open(`https://wa.me/?text=${encodeURIComponent(`🎾 Seguí el partido en vivo: ${url}`)}`, "_blank");
   });
   function wireCoachLink(copyBtnId, waBtnId, inputId, equipo) {
     document.getElementById(copyBtnId).addEventListener("click", async () => {
@@ -1500,7 +1500,7 @@ async function setupAuth() {
       cargarAlumnosParaAutocompletar();
       cargarPistasParaAutocompletar();
     } else {
-      bar.innerHTML = `No has iniciado sesión — el árbitro funciona igual, 100% local. Para marcador en vivo y multipista, <a href="arbitro-login.html">inicia sesión como árbitro</a>.`;
+      bar.innerHTML = `No has iniciado sesión — el árbitro funciona igual, 100% local. Para marcador en vivo y multipista, <a href="arbitro-login.html">iniciá sesión como árbitro</a>.`;
       document.getElementById("cardCompartir").hidden = true;
     }
   });

@@ -46,7 +46,7 @@ if (alumnoId) {
   camposInteresado.hidden = true;
   eyebrow.textContent = "Tu disponibilidad";
   heading.textContent = "Actualizá tu disponibilidad";
-  sub.textContent = "Marca los bloques en los que normalmente podrías jugar — tu profesor la usa para armar y confirmar tus clases.";
+  sub.textContent = "Marcá los bloques en los que normalmente podrías jugar — tu profesor la usa para armar y confirmar tus clases.";
   submitBtn.textContent = "Guardar disponibilidad";
   document.getElementById("dp-ok-texto").textContent = "Guardamos tu disponibilidad — tu profesor ya la ve actualizada.";
 }
