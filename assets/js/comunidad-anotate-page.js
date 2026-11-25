@@ -113,7 +113,7 @@ form.addEventListener("submit", async (e) => {
     formCard.hidden = true;
     okCard.hidden = false;
   } catch (err) {
-    msg.textContent = "No se pudo enviar (" + err.message + "). Escríbenos directo por WhatsApp.";
+    msg.textContent = "No se pudo enviar (" + err.message + "). Escribinos directo por WhatsApp.";
     msg.className = "form-msg error";
   } finally {
     submitBtn.disabled = false;

@@ -1,4 +1,4 @@
-// Página pública "Cuéntanos tu disponibilidad" (disponibilidad.html).
+// Página pública "Contanos tu disponibilidad" (disponibilidad.html).
 // Dos modos, misma página:
 //
 // 1) Sin "?alumno=" en la URL — el link que Gabriel manda a alguien que le
@@ -118,7 +118,7 @@ form.addEventListener("submit", async (e) => {
       formCard.hidden = true;
       okCard.hidden = false;
     } catch (err) {
-      msg.textContent = "No se pudo guardar (" + err.message + "). Avísale a tu profesor.";
+      msg.textContent = "No se pudo guardar (" + err.message + "). Avisale a tu profesor.";
       msg.className = "form-msg error";
     } finally {
       submitBtn.disabled = false;
@@ -143,7 +143,7 @@ form.addEventListener("submit", async (e) => {
   if (codigoInput && codigoInput.value.trim()) {
     const res = await adoptarCodigoManual(codigoInput.value);
     if (res === "invalido") {
-      msg.textContent = "Ese código de invitación no existe. Revísalo o déjalo en blanco.";
+      msg.textContent = "Ese código de invitación no existe. Revisalo o dejalo en blanco.";
       msg.className = "form-msg error";
       submitBtn.disabled = false;
       codigoInput.focus();
@@ -175,7 +175,7 @@ form.addEventListener("submit", async (e) => {
     formCard.hidden = true;
     okCard.hidden = false;
   } catch (err) {
-    msg.textContent = "No se pudo enviar (" + err.message + "). Escríbenos directo por WhatsApp.";
+    msg.textContent = "No se pudo enviar (" + err.message + "). Escribinos directo por WhatsApp.";
     msg.className = "form-msg error";
   } finally {
     submitBtn.disabled = false;

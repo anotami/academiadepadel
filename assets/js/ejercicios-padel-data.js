@@ -325,7 +325,7 @@ export const EJERCICIOS = [
     varianteFacil: "El profesor arma el primer intercambio para que el golpe trabajado salga con menos presión.",
     varianteDificil: "Se jugá el punto completo a competencia real, sumando puntaje.",
     errorFrecuente: "El alumno vuelve al golpe que ya domina apenas tiene oportunidad, evitando usar el golpe nuevo trabajado en la clase.",
-    correccion: "Antes de empezar el punto, recuérdale en voz alta que el primer intercambio debe salir con el golpe de la clase.",
+    correccion: "Antes de empezar el punto, recordale en voz alta que el primer intercambio debe salir con el golpe de la clase.",
     preguntaCierre: "¿Usaste el golpe trabajado hoy en el momento justo, o lo evitaste?"
   },
 
@@ -752,7 +752,7 @@ export const EJERCICIOS = [
     varianteFacil: "Se da más tiempo (hasta 20 segundos) para decidir entre punto y punto.",
     varianteDificil: "Se reduce a 10 segundos, exigiendo decisiones más rápidas.",
     errorFrecuente: "Las parejas usan el tiempo para comentar el punto anterior en vez de planear el siguiente.",
-    correccion: "Recuérdales que la pregunta a responder en esos segundos es \"qué vamos a intentar\", no \"qué salió mal\".",
+    correccion: "Recordales que la pregunta a responder en esos segundos es \"qué vamos a intentar\", no \"qué salió mal\".",
     preguntaCierre: "¿Lograron ejecutar lo que planearon en los 16 segundos?"
   },
   {

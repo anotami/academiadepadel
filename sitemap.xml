@@ -107,4 +107,37 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://academiadepadel.pe/sedes/x3/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/sedes/top-padel/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/sedes/club-padel-lima/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/sedes/benavides/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/clases/inicial/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/clases/intermedio/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/clases/particulares/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/clases/mujeres/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/clases/ninos/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/preguntas-frecuentes/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/sobre-gabriel/</loc>
+  </url>
 </urlset>

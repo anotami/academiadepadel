@@ -63,7 +63,7 @@
         <!-- Pendientes que deja el asistente al registrar clases/alumnos (los llena profesor-portal.js) -->
         <div class="portal-card" id="card-pendientes-asistente" hidden>
           <h2>Pendientes que te dejó el asistente</h2>
-          <p class="field-hint">Quedaron por resolver al registrar clases o alumnos. Márcalos como hechos cuando los termines.</p>
+          <p class="field-hint">Quedaron por resolver al registrar clases o alumnos. Marcalos como hechos cuando los termines.</p>
           <div id="lista-pendientes-asistente"></div>
         </div>
 
@@ -251,7 +251,7 @@
             </div>
             <div class="field">
               <label for="cd-cancha-pagada">Costo total de pista pagado (S/, opcional)</label>
-              <input type="number" id="cd-cancha-pagada" min="0" step="1" placeholder="Déjalo vacío para usar la tarifa de la pista">
+              <input type="number" id="cd-cancha-pagada" min="0" step="1" placeholder="Dejalo vacío para usar la tarifa de la pista">
               <p class="field-hint">El total de la sesión, no por persona — se divide solo entre los alumnos que elegiste arriba.</p>
             </div>
             <div class="field" id="cd-cancha-beelup-wrap" hidden>
@@ -266,7 +266,7 @@
               <label class="avail-slot" style="display:inline-flex;">
                 <input type="checkbox" id="cd-ya-la-di"> Ya la di: cerrarla ahora (asistieron todos)
               </label>
-              <p class="field-hint">Solo para clases que ya pasaron. Queda directo en ④ Cerrada, sin pasar por "Por cerrar". Si alguien faltó o querés dejar feedback, edítala después en el Historial.</p>
+              <p class="field-hint">Solo para clases que ya pasaron. Queda directo en ④ Cerrada, sin pasar por "Por cerrar". Si alguien faltó o querés dejar feedback, editala después en el Historial.</p>
             </div>
           </form>
           <button class="btn btn-primary btn-small" type="submit" form="form-clase-dictada" style="margin-top:10px;">Crear clase</button>
@@ -334,7 +334,7 @@
         <!-- Lista de espera -->
         <div class="portal-card">
           <h2>Lista de espera</h2>
-          <p class="field-hint">Alumnos que querían un horario ya ocupado. Avísales por WhatsApp si se libera.</p>
+          <p class="field-hint">Alumnos que querían un horario ya ocupado. Avisales por WhatsApp si se libera.</p>
           <div id="lista-esperas"><p class="empty-state">Cargando...</p></div>
         </div>
 
@@ -402,7 +402,7 @@
         <!-- Paquetes de clases -->
         <div class="portal-card">
           <h2>Paquetes de clases</h2>
-          <p class="field-hint">Actívalo cuando el alumno pague (coordinado por WhatsApp, como el resto del sitio). Solo los programas Junior/Adultos descuentan clases del paquete — las clínicas y ofertas se cobran aparte.</p>
+          <p class="field-hint">Activalo cuando el alumno pague (coordinado por WhatsApp, como el resto del sitio). Solo los programas Junior/Adultos descuentan clases del paquete — las clínicas y ofertas se cobran aparte.</p>
           <form id="form-paquete">
             <div class="form-grid">
               <div class="field">
@@ -512,7 +512,7 @@
         <!-- Interesados -->
         <div class="portal-card" id="mkt-interesados">
           <h2>Interesados</h2>
-          <p class="field-hint">Se llenan solos cuando alguien se anota desde "¿Sos nuevo en el pádel?" en la web. Si alguien te escribió directo por WhatsApp, mándale el link de abajo para que complete su disponibilidad solo — aparece acá igual.</p>
+          <p class="field-hint">Se llenan solos cuando alguien se anota desde "¿Sos nuevo en el pádel?" en la web. Si alguien te escribió directo por WhatsApp, mandale el link de abajo para que complete su disponibilidad solo — aparece acá igual.</p>
           <button class="btn btn-outline btn-small" type="button" id="btn-copiar-link-disp" style="margin-bottom:14px;">Copiar mensaje con el link de disponibilidad</button>
           <p class="form-msg" id="copiar-link-disp-msg"></p>
           <form id="form-interesado-manual" class="form-grid" style="margin-bottom:14px;">
@@ -549,7 +549,7 @@
                   <button class="btn btn-outline btn-small" type="button" id="im-disp-ninguno">Limpiar todo</button>
                 </div>
               </div>
-              <p class="field-hint">Si te escribió por WhatsApp con sus horarios libres, márcalos acá para cruzarlos en "Cruce de disponibilidad" (pestaña "Grupos nuevos").</p>
+              <p class="field-hint">Si te escribió por WhatsApp con sus horarios libres, marcalos acá para cruzarlos en "Cruce de disponibilidad" (pestaña "Grupos nuevos").</p>
               <div class="availability-grid" id="im-disponibilidad"></div>
             </div>
             <button class="btn btn-outline btn-small" type="submit">Agregar interesado</button>
@@ -604,7 +604,7 @@
         <!-- Turnos -->
         <div class="portal-card" id="mkt-turnos">
           <h2>Convocatorias</h2>
-          <p class="field-hint">Una convocatoria NO es una clase: es una oferta pública con cupos (ej. "Clínica gratuita 20 nov", "Mañanas entre semana") que aparece en "¿Sos nuevo en el pádel?" de la web. De ahí salen interesados; la clase recién nace cuando los contactas. Abrí o cerrá convocatorias según la demanda real.</p>
+          <p class="field-hint">Una convocatoria NO es una clase: es una oferta pública con cupos (ej. "Clínica gratuita 20 nov", "Mañanas entre semana") que aparece en "¿Sos nuevo en el pádel?" de la web. De ahí salen interesados; la clase recién nace cuando los contactás. Abrí o cerrá convocatorias según la demanda real.</p>
 
           <div id="sugerencias-grupo"></div>
 
@@ -703,7 +703,7 @@
         <!-- Jugadores -->
         <div class="portal-card" id="mkt-jugadores">
           <h2>Jugadores</h2>
-          <p class="field-hint">Directorio de la comunidad — se llena solo desde <a href="comunidad-anotate.html" target="_blank" rel="noopener">comunidad-anotate.html</a>, o impórtalo de tu grupo de WhatsApp más abajo. Los teléfonos nunca son públicos, solo los ves acá.</p>
+          <p class="field-hint">Directorio de la comunidad — se llena solo desde <a href="comunidad-anotate.html" target="_blank" rel="noopener">comunidad-anotate.html</a>, o importalo de tu grupo de WhatsApp más abajo. Los teléfonos nunca son públicos, solo los ves acá.</p>
           <div id="com-contadores" class="cards grid-3" style="margin:14px 0;"></div>
           <div class="form-grid" style="margin-bottom:10px;">
             <div class="field field-full">
@@ -746,7 +746,7 @@
         <!-- Falta el cuarto -->
         <div class="portal-card" id="mkt-falta-cuarto">
           <h2>Falta el cuarto</h2>
-          <p class="field-hint">Arma el mensaje, elegí a quién mandárselo y ábrelo directo en WhatsApp. Nada se envía solo desde acá.</p>
+          <p class="field-hint">Armá el mensaje, elegí a quién mandárselo y abrilo directo en WhatsApp. Nada se envía solo desde acá.</p>
           <span class="paso-titulo"><span class="paso-badge">1</span>Armar mensaje</span>
           <div class="form-grid">
             <div class="field">
@@ -789,7 +789,7 @@
           <p class="form-msg" id="fc-copiar-msg"></p>
 
           <span class="paso-titulo"><span class="paso-badge">2</span>Elegir candidatos</span>
-          <p class="field-hint">Primero los verificados. Marca a quiénes les escribís y guarda la convocatoria para no repetir siempre a los mismos. Cada botón "WhatsApp" manda una redacción distinta del aviso (si no editaste el mensaje a mano) — igual, evita escribirles a todos de corrido; espácialo un poco para que no se vea como un envío masivo.</p>
+          <p class="field-hint">Primero los verificados. Marca a quiénes les escribís y guarda la convocatoria para no repetir siempre a los mismos. Cada botón "WhatsApp" manda una redacción distinta del aviso (si no editaste el mensaje a mano) — igual, evita escribirles a todos de corrido; espacialo un poco para que no se vea como un envío masivo.</p>
           <div id="fc-candidatos"><p class="empty-state">Elegí categoría y hora para ver candidatos.</p></div>
 
           <span class="paso-titulo"><span class="paso-badge">3</span>Guardar convocatoria</span>
@@ -804,7 +804,7 @@
         <div class="portal-card" id="mkt-import">
           <h2>Importar desde WhatsApp</h2>
           <p class="field-hint">
-            Exporta el chat de tu grupo (WhatsApp → Grupo → Más opciones → Exportar chat → "Sin archivos multimedia") y súbelo acá.
+            Exporta el chat de tu grupo (WhatsApp → Grupo → Más opciones → Exportar chat → "Sin archivos multimedia") y subilo acá.
             Detecta automáticamente teléfonos de contactos no guardados, y categoría/género si están en el nombre o el mensaje (ej. "Juan Pérez 4ta M") —
             revisá y corrige cada fila antes de guardar, la detección es aproximada. Esto NO es lo mismo que el consentimiento explícito del
             formulario público: son contactos de un grupo que ya administrás, así que si alguno te pide que lo saques, dalo de baja en "Jugadores".

@@ -25,7 +25,7 @@ const formSignup = document.getElementById("form-signup");
 const signupMsg = document.getElementById("signup-msg");
 
 function mostrarSinConexion(el) {
-  el.textContent = "No se pudo conectar (revisá tu internet) — inténtalo de nuevo en un momento.";
+  el.textContent = "No se pudo conectar (revisá tu internet) — intentalo de nuevo en un momento.";
   el.className = "form-msg error";
 }
 

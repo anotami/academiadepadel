@@ -1,0 +1,42 @@
+/* Páginas de sede (/sedes/<nombre>/). Se apoya en style.css: tokens, .section, .card, .amenities, .map-embed, .faq-item. */
+.breadcrumb { font-size: .85rem; color: var(--ink-soft); margin: 0 0 14px; }
+.breadcrumb a { color: var(--ink-soft); text-decoration: underline; text-underline-offset: 2px; }
+.sede-hero { padding: 28px 0 40px; }
+.sede-hero-grid { display: grid; gap: 24px; align-items: center; }
+.sede-hero h1 { font-size: clamp(1.7rem, 5.5vw, 2.5rem); line-height: 1.12; margin: 6px 0 12px; }
+.sede-lead { font-size: 1.05rem; color: var(--ink-soft); margin: 0 0 18px; }
+.sede-cta { display: flex; flex-wrap: wrap; gap: 10px; }
+.sede-hero-foto { margin: 0; }
+.sede-hero-foto img { width: 100%; height: auto; display: block; border-radius: var(--radius); box-shadow: var(--shadow); aspect-ratio: 5 / 3; object-fit: cover; }
+.sede-bloques { display: grid; gap: 16px; }
+.sede-bloques .card h2 { font-size: 1.15rem; margin: 0 0 8px; }
+.sede-bloques .card p { margin: 0 0 8px; }
+.sede-mapa { max-width: 860px; margin: 0 auto; }
+.sede-mapa-links { text-align: center; margin: 12px 0 4px; }
+@media (min-width: 760px) {
+  .sede-hero { padding: 48px 0 56px; }
+  .sede-hero-grid { grid-template-columns: 1.1fr 1fr; gap: 40px; }
+  .sede-bloques { grid-template-columns: repeat(3, 1fr); }
+}
+.sede-mas { text-align: center; font-size: .95rem; color: var(--ink-soft); margin: 26px 0 0; }
+.sede-mas a { color: var(--court); font-weight: 700; }
+.sede-llegar { max-width: 860px; margin: 18px auto 0; }
+.sede-llegar h3 { margin: 0 0 6px; font-size: 1.05rem; }
+.sede-llegar p { margin: 0 0 8px; }
+/* páginas de clases */
+.sede-lista { margin: 0; padding-left: 1.15rem; }
+.sede-lista li { margin: 0 0 8px; }
+.sede-bloques-2 { grid-template-columns: 1fr; }
+.sede-sedes { grid-template-columns: 1fr 1fr; }
+.sede-enlace { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: inherit; }
+.sede-enlace span { color: var(--ink-soft); font-size: .9rem; }
+.sede-enlace:hover { border-color: var(--court); }
+.sede-relacionados { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 8px; text-align: center; }
+.sede-relacionados a { color: var(--court); font-weight: 700; }
+.sede-hero .container > .sede-cta { margin-top: 4px; }
+@media (min-width: 760px) { .sede-bloques-2 { grid-template-columns: repeat(2, 1fr); } .sede-sedes { grid-template-columns: repeat(4, 1fr); } }
+ul.sede-lista { list-style: disc; }
+ol.sede-lista { list-style: decimal; }
+.sede-foto-clinica { margin: 0; }
+.sede-foto-clinica img { width: 100%; height: auto; display: block; border-radius: 12px; }
+.sede-foto-clinica figcaption { font-size: .85rem; color: var(--ink-soft); margin-top: 8px; }

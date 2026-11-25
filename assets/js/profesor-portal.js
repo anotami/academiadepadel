@@ -247,7 +247,7 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
       .map((r) => r.alumnoId));
     const repetidos = alumnosSeleccionados.filter((a) => idsYaCargados.has(a.id));
     if (repetidos.length) {
-      msg.textContent = `${repetidos.map((a) => a.nombre).join(", ")} ya ${repetidos.length === 1 ? "tiene" : "tienen"} esa clase cargada en esa pista, fecha y hora. Edítala en "2 Mis clases" → "④ Historial de clases" en vez de crearla otra vez.`;
+      msg.textContent = `${repetidos.map((a) => a.nombre).join(", ")} ya ${repetidos.length === 1 ? "tiene" : "tienen"} esa clase cargada en esa pista, fecha y hora. Editala en "2 Mis clases" → "④ Historial de clases" en vez de crearla otra vez.`;
       msg.className = "form-msg error";
       return;
     }
@@ -295,7 +295,7 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
     const nombres = alumnosSeleccionados.map((a) => a.nombre).join(", ");
     msg.textContent = yaLaDi
       ? `Clase creada y cerrada para ${nombres}. Ya está en ④ Cerrada (Historial).`
-      : `Clase creada para ${nombres}. Cuando su hora llegue, ciérrala en "Hoy" → "③ Clases por cerrar" marcando asistencia y feedback.`;
+      : `Clase creada para ${nombres}. Cuando su hora llegue, cerrala en "Hoy" → "③ Clases por cerrar" marcando asistencia y feedback.`;
     msg.className = "form-msg ok";
   } catch (err) {
     msg.textContent = "No se pudo crear la clase: " + err.message;
@@ -530,7 +530,7 @@ function renderReferidos() {
     const est = ESTADOS_REFERIDO[r.estado] || ESTADOS_REFERIDO.nuevo;
     const tel = soloDigitos(r.invitadoWhatsapp);
     const hint = {
-      nuevo: `Cuando pague su primer paquete, aplícale ${REFERIDOS.textoBeneficioInvitadoTercera} y márcalo abajo.`,
+      nuevo: `Cuando pague su primer paquete, aplicale ${REFERIDOS.textoBeneficioInvitadoTercera} y marcalo abajo.`,
       convertido: `Ya pagó: falta regalarle ${REFERIDOS.textoBeneficioInvitador} a ${escapeHtml(r.invitadorNombre || "")}.`,
       beneficio_entregado: r.beneficio ? escapeHtml(r.beneficio) : "",
       descartado: ""
@@ -646,7 +646,7 @@ function actualizarCiclo(parcial) {
     </button>`;
   const htmlCiclo = (conAviso) => `${conAviso ? aviso : ""}
     <div class="ciclo-pasos">
-      ${paso(1, "Nueva clase", "Cárgala aquí", null, ["clases", "card-nueva-clase"])}
+      ${paso(1, "Nueva clase", "Cargala aquí", null, ["clases", "card-nueva-clase"])}
       ${paso(2, "Por dar", "Confirmadas, aún no empiezan", cargado ? porDar : "…", ["clases", "card-por-dar"])}
       ${paso(3, "Por cerrar", "Falta asistencia y feedback", cargado ? porCerrar : "…", ["hoy", "card-por-cerrar"], cargado ? (porCerrar > 0 ? "alerta" : "ok") : "")}
       ${paso(4, "Cerradas", "Ya terminadas y registradas", cargado ? cerradas : "…", ["clases", "card-historial"])}
@@ -714,7 +714,7 @@ function construirTareasGuia() {
   if (pend.length) {
     tareas.push({
       titulo: pend.length === 1 ? `El asistente te dejó un pendiente: ${pend[0].titulo}` : `El asistente te dejó ${pend.length} pendientes`,
-      detalle: pend.length === 1 ? (pend[0].detalle || "Márcalo como hecho cuando lo termines.") : `El primero: ${pend[0].titulo}`,
+      detalle: pend.length === 1 ? (pend[0].detalle || "Marcalo como hecho cuando lo termines.") : `El primero: ${pend[0].titulo}`,
       boton: "Ver pendientes", destino: ["hoy", "card-pendientes-asistente"]
     });
   }
@@ -748,7 +748,7 @@ function construirTareasGuia() {
   const invitadosNuevos = referidosCache.filter((r) => r.estado === "nuevo");
   if (invitadosNuevos.length) {
     tareas.push({
-      titulo: invitadosNuevos.length === 1 ? `Escribile a ${invitadosNuevos[0].invitadoNombre}, invitado por ${invitadosNuevos[0].invitadorNombre}` : `Escríbeles a ${invitadosNuevos.length} invitados`,
+      titulo: invitadosNuevos.length === 1 ? `Escribile a ${invitadosNuevos[0].invitadoNombre}, invitado por ${invitadosNuevos[0].invitadorNombre}` : `Escribiles a ${invitadosNuevos.length} invitados`,
       detalle: `Les corresponde ${REFERIDOS.textoBeneficioInvitadoTercera}.`,
       boton: "Ver invitaciones", destino: ["captacion", "mkt-referidos"]
     });
@@ -756,7 +756,7 @@ function construirTareasGuia() {
   const nuevos = interesadosGrupoCache.filter((i) => i.estado === "nuevo");
   if (nuevos.length) {
     tareas.push({
-      titulo: nuevos.length === 1 ? `Escribile a ${nuevos[0].nombre}, interesado nuevo` : `Escríbeles a ${nuevos.length} interesados nuevos`,
+      titulo: nuevos.length === 1 ? `Escribile a ${nuevos[0].nombre}, interesado nuevo` : `Escribiles a ${nuevos.length} interesados nuevos`,
       detalle: "Se anotaron en la web y todavía no los contactaste.",
       boton: "Ver interesados", destino: ["captacion", "mkt-interesados"]
     });
@@ -1339,7 +1339,7 @@ function mensajeAvisoFeedback(nombre, feedback) {
   const objetivoTxt = feedback.siguienteObjetivo || "";
   const materialTxt = feedback.materialUrl ? `\n📸 Fotos/videos de la clase: ${feedback.materialUrl}` : "";
   return elegirMensaje([
-    `Hola ${nombre}! Así quedó tu clase de hoy${temasTxt ? `: trabajamos ${temasTxt}` : ""}.${objetivoTxt ? ` Para la próxima, enfócate en ${objetivoTxt}.` : ""}${materialTxt}`,
+    `Hola ${nombre}! Así quedó tu clase de hoy${temasTxt ? `: trabajamos ${temasTxt}` : ""}.${objetivoTxt ? ` Para la próxima, enfocate en ${objetivoTxt}.` : ""}${materialTxt}`,
     `${nombre}, resumen de la clase de hoy${temasTxt ? ` — trabajamos ${temasTxt}` : ""}.${objetivoTxt ? ` Lo que sigue: ${objetivoTxt}.` : ""}${materialTxt}`,
     `Hola ${nombre}! Buena clase hoy${temasTxt ? ` (${temasTxt})` : ""}.${objetivoTxt ? ` Para mejorar: ${objetivoTxt}.` : ""}${materialTxt}`,
     `${nombre}, dejo el resumen de hoy${temasTxt ? `: ${temasTxt}` : ""}.${objetivoTxt ? ` Próximo foco: ${objetivoTxt}.` : ""}${materialTxt}`
@@ -1374,10 +1374,10 @@ function linkPedirOpinion(nombre, telefono) {
   if (!tel) return "";
   const texto = elegirMensaje([
     `Hola ${nombre}, ¿cómo te fue en la clase de hoy? Contame en tu portal (academiadepadel.pe) cómo te sentiste, me ayuda un montón para planear la siguiente 🎾`,
-    `${nombre}, antes de que se te pase: entrá a tu portal y déjame tu feedback de la clase de hoy, así ajusto lo que sigue 👍`,
+    `${nombre}, antes de que se te pase: entrá a tu portal y dejame tu feedback de la clase de hoy, así ajusto lo que sigue 👍`,
     `Hola ${nombre}! Un favor rápido: contame en tu portal qué tal la clase de hoy, son dos minutos nomás 🙌`,
     `${nombre}, ¿tenés un minuto? Me ayudaría mucho que me cuentes en tu portal cómo sentiste la clase de hoy.`,
-    `Hola ${nombre}, me interesa tu opinión sobre la clase de hoy — entrá a tu portal y déjame unas líneas cuando puedas 🎾`
+    `Hola ${nombre}, me interesa tu opinión sobre la clase de hoy — entrá a tu portal y dejame unas líneas cuando puedas 🎾`
   ]);
   return `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:10px;" href="https://wa.me/${tel}?text=${encodeURIComponent(texto)}">Pedir su opinión por WhatsApp</a>`;
 }
@@ -1629,7 +1629,7 @@ function camposFechaHoraHtml(r) {
           <label>Hora</label>
           <select data-campo="hora">${horas.map((h) => `<option ${h === r.hora ? "selected" : ""}>${h}</option>`).join("")}</select>
         </div>
-        <p class="field-hint field-full" style="margin-top:-4px;">Para pasar esta clase a otro día u hora. Mueve solo a ${escapeHtml(r.alumnoNombre || "este alumno")}: si la clase tiene más alumnos, muévelos uno por uno.</p>`;
+        <p class="field-hint field-full" style="margin-top:-4px;">Para pasar esta clase a otro día u hora. Mueve solo a ${escapeHtml(r.alumnoNombre || "este alumno")}: si la clase tiene más alumnos, movelos uno por uno.</p>`;
 }
 
 // Devuelve { fecha, hora, cambio } o null si falta la fecha.
@@ -1802,12 +1802,12 @@ function construirTarjetaHistorial(r) {
         <div class="field">
           <label>Monto cobrado (S/)</label>
           <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}" ${r.paqueteId ? "disabled" : ""}>
-          ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvincúlala abajo si querés cargarle un cobro aparte.</p>' : ""}
+          ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvinculala abajo si querés cargarle un cobro aparte.</p>' : ""}
         </div>
         <div class="field">
           <label>Costo de pista de ESTA clase (S/)</label>
           <input type="number" min="0" step="0.01" data-campo="costoCanchaPagado" value="${typeof costoCanchaDe(r) === "number" ? costoCanchaDe(r).toFixed(2) : ""}">
-          <p class="field-hint">Si fue grupal, pon aquí la parte que le toca a este alumno (el total de la pista dividido entre todos), no el total de la sesión.</p>
+          <p class="field-hint">Si fue grupal, poné aquí la parte que le toca a este alumno (el total de la pista dividido entre todos), no el total de la sesión.</p>
         </div>
         <div class="field">
           <label>Estado</label>
@@ -2017,7 +2017,7 @@ function construirTarjetaHistorialGrupal(grupo) {
             <div class="field">
               <label>Monto cobrado (S/)</label>
               <input type="number" min="0" step="1" data-campo="montoCobrado" value="${typeof r.montoCobrado === "number" ? r.montoCobrado : ""}" ${r.paqueteId ? "disabled" : ""}>
-              ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvincúlala abajo si querés cargarle un cobro aparte.</p>' : ""}
+              ${r.paqueteId ? '<p class="field-hint">Ya está cobrada dentro del paquete — desvinculala abajo si querés cargarle un cobro aparte.</p>' : ""}
             </div>
             <div class="field">
               <label>Costo de pista de ESTE alumno (S/)</label>
@@ -2252,7 +2252,7 @@ document.getElementById("form-grupo").addEventListener("submit", async (e) => {
     document.getElementById("gr-cancha-beelup").value = "2";
     document.getElementById("gr-duracion").value = "60";
     actualizarVisibilidadCanchaBeelupGrupo();
-    msg.textContent = "Clase semanal fija creada — ahora asígnale alumnos desde \"Tus alumnos\".";
+    msg.textContent = "Clase semanal fija creada — ahora asignale alumnos desde \"Tus alumnos\".";
     msg.className = "form-msg ok";
   } catch (err) {
     msg.textContent = "No se pudo crear: " + err.message;
@@ -2290,7 +2290,7 @@ function renderGrupos() {
       <p class="court-meta">${escapeHtml(g.dia)} · ${escapeHtml(g.hora)} hrs · ${escapeHtml(g.pistaNombre)}</p>
       <p class="court-meta">${escapeHtml(g.tipoClase)} · S/ ${g.montoCobrado} por persona · ${g.duracionMin ?? 60} min${esPistaBeelup(g.pistaNombre) ? ` · Cancha ${escapeHtml(g.canchaBeelup || "2")}` : ""}</p>
       <p><span class="badge ${miembros.length >= g.cupoMaximo ? "badge-pendiente" : "badge-confirmada"}">${miembros.length}/${g.cupoMaximo} cupos</span></p>
-      <p>${miembros.length ? miembros.map((a) => `<span class="badge badge-confirmada">${escapeHtml(a.nombre)}</span>`).join(" ") : '<span class="court-meta">Sin alumnos todavía — asígnalos desde "Tus alumnos".</span>'}</p>
+      <p>${miembros.length ? miembros.map((a) => `<span class="badge badge-confirmada">${escapeHtml(a.nombre)}</span>`).join(" ") : '<span class="court-meta">Sin alumnos todavía — asignalos desde "Tus alumnos".</span>'}</p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
         <button class="btn btn-outline btn-small" type="button" data-toggle-activo>${g.activo === false ? "Reactivar" : "Pausar"}</button>
         <button class="btn btn-outline btn-small" type="button" data-toggle-editar>Editar</button>
@@ -2310,7 +2310,7 @@ function renderGrupos() {
           <select data-campo="duracionMin">${DURACIONES_CLASE.map((d) => `<option value="${d}" ${d === (g.duracionMin ?? 60) ? "selected" : ""}>${d}</option>`).join("")}</select>
         </div>
         <button class="btn btn-primary btn-small" type="button" data-guardar>Guardar</button>
-        <p class="field-hint">Cambiar día/hora/pista acá NO mueve las clases que ya se generaron — reprográmalas desde "Mis clases" si hace falta.</p>
+        <p class="field-hint">Cambiar día/hora/pista acá NO mueve las clases que ya se generaron — reprogramalas desde "Mis clases" si hace falta.</p>
       </div>
       <p class="form-msg"></p>`;
     const form = card.querySelector("[data-editar-form]");
@@ -2401,7 +2401,7 @@ async function generarReservasDeGrupos() {
       // un choque. Solo es choque si la cancha la ocupa otra clase y el grupo todavía no está.
       const hayMiembrosYa = enEsaFecha.some((r) => g.miembroIds.includes(r.alumnoId)) || canceladasDelGrupo.some((r) => r.fecha === fecha);
       if (!hayMiembrosYa && enEsaFecha.some((r) => !g.miembroIds.includes(r.alumnoId))) {
-        conflictos.push(`"${g.nombre}" el ${formatearFecha(fecha)}: la pista ya tiene otra clase confirmada — revísalo en "Mis clases".`);
+        conflictos.push(`"${g.nombre}" el ${formatearFecha(fecha)}: la pista ya tiene otra clase confirmada — revisalo en "Mis clases".`);
         continue;
       }
       let numeroClaseSesion = null;
@@ -2515,7 +2515,7 @@ async function cargarAlumnos() {
     // pueda armar un link de WhatsApp directo (si no, copia el mensaje).
     const linkPedirDisponibilidad = telAlumno
       ? `<a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener" style="margin-top:8px; margin-left:8px;" href="https://wa.me/${telAlumno}?text=${encodeURIComponent(mensajePedirDisponibilidad)}">Pedir disponibilidad</a>`
-      : `<button class="btn btn-outline btn-small" type="button" data-copiar-pedir-disp style="margin-top:8px; margin-left:8px;" title="No tiene un teléfono válido para abrir WhatsApp directo — copia el mensaje y pégalo donde le escribas.">Pedir disponibilidad (copiar mensaje)</button>`;
+      : `<button class="btn btn-outline btn-small" type="button" data-copiar-pedir-disp style="margin-top:8px; margin-left:8px;" title="No tiene un teléfono válido para abrir WhatsApp directo — copia el mensaje y pegalo donde le escribas.">Pedir disponibilidad (copiar mensaje)</button>`;
     // Por defecto se ofrece activar cuenta a todo alumno que no esté
     // marcado explícitamente como cuentaPropia:true (los que tú das de alta
     // desde el panel no tienen login real hasta que activan por este link).
@@ -2611,7 +2611,7 @@ async function cargarAlumnos() {
       const textoOriginal = btn.textContent;
       try {
         await navigator.clipboard.writeText(mensajePedirDisponibilidad);
-        btn.textContent = "Copiado — pégalo donde le escribas";
+        btn.textContent = "Copiado — pegalo donde le escribas";
       } catch {
         prompt("Copiá el mensaje:", mensajePedirDisponibilidad);
       }
@@ -3230,7 +3230,7 @@ async function calcularRentabilidad(wrap, reservas) {
     <div class="card clickable" data-detalle-rent="margen"><div class="card-icon">${margenTotal >= 0 ? "📈" : "📉"}</div><h3>S/ ${margenTotal.toFixed(0)}</h3><p>Margen neto</p></div>
     <div class="card clickable" data-detalle-rent="margen"><div class="card-icon">%</div><h3>${margenPct}%</h3><p>Margen sobre ingreso</p></div>
     <div class="card clickable" data-detalle-rent="cobrado"><div class="card-icon">💰</div><h3>S/ ${cobradoEfectivoTotal.toFixed(0)}</h3><p>Cobrado en efectivo (incluye paquetes con clases pendientes)</p></div>
-    ${sinDatos ? '<p class="empty-state" style="grid-column:1/-1;">⚠ No cargaste costo de pista ni tu costo por hora todavía, así que el costo estimado es S/0 y no refleja la realidad. Cárgalos en pistas.html y en "Mis datos" (o el costo de pista específico al registrar cada clase suelta).</p>' : ""}
+    ${sinDatos ? '<p class="empty-state" style="grid-column:1/-1;">⚠ No cargaste costo de pista ni tu costo por hora todavía, así que el costo estimado es S/0 y no refleja la realidad. Cargalos en pistas.html y en "Mis datos" (o el costo de pista específico al registrar cada clase suelta).</p>' : ""}
     ${pendienteDeDictar > 0.5 ? `<p class="field-hint" style="grid-column:1/-1;">De lo cobrado, S/ ${pendienteDeDictar.toFixed(0)} todavía son clases de paquete sin dictar — no cuentan como ingreso hasta que las des.</p>` : ""}
   `;
   wrap.querySelectorAll("[data-detalle-rent]").forEach((card) => {
@@ -3609,10 +3609,10 @@ function poblarSelectTurnoManual() {
 
 document.getElementById("btn-copiar-link-disp").addEventListener("click", async () => {
   const msg = document.getElementById("copiar-link-disp-msg");
-  const texto = "Hola! Para armar tu clase cuéntame tu disponibilidad acá: https://academiadepadel.pe/disponibilidad.html — así cruzo mejor los horarios.";
+  const texto = "Hola! Para armar tu clase contame tu disponibilidad acá: https://academiadepadel.pe/disponibilidad.html — así cruzo mejor los horarios.";
   try {
     await navigator.clipboard.writeText(texto);
-    msg.textContent = "Copiado — pégalo en WhatsApp.";
+    msg.textContent = "Copiado — pegalo en WhatsApp.";
     msg.className = "form-msg ok";
   } catch {
     msg.textContent = texto;
@@ -3809,7 +3809,7 @@ function renderSugerenciasGrupo() {
       const gente = otros > 0 ? `${otros} persona${otros === 1 ? "" : "s"} más` : "gente";
       const texto = elegirMensaje([
         `Hola ${i.nombre}, tengo ${gente} interesada en jugar el ${s.dia.toLowerCase()} de ${s.franja} hrs — ¿confirmás que seguís interesado? Si me confirman todos, abro el grupo ya.`,
-        `${i.nombre}, ya casi cierro un grupo el ${s.dia.toLowerCase()} de ${s.franja} hrs con ${gente} — ¿seguís interesado? Confírmame y lo armamos.`,
+        `${i.nombre}, ya casi cierro un grupo el ${s.dia.toLowerCase()} de ${s.franja} hrs con ${gente} — ¿seguís interesado? Confirmame y lo armamos.`,
         `Hola ${i.nombre}! Tengo ${gente} para el ${s.dia.toLowerCase()} ${s.franja} hrs — si me confirmás, abrimos el grupo.`,
         `${i.nombre}, ¿va lo del ${s.dia.toLowerCase()} de ${s.franja} hrs? Tengo ${gente} esperando tu confirmación para abrir el grupo.`
       ]);
@@ -3831,7 +3831,7 @@ function renderSugerenciasGrupo() {
     }).join(" ");
     card.innerHTML = `
       <p><strong>${escapeHtml(s.dia)} · ${escapeHtml(s.franja)}</strong> — ${alumnosCoinciden.length} alumno${alumnosCoinciden.length === 1 ? "" : "s"} y ${s.personas.length} interesado${s.personas.length === 1 ? "" : "s"} coinciden</p>
-      <p class="court-meta" style="margin:4px 0 2px;">Pídeles que confirmen (toca el nombre para abrir WhatsApp):</p>
+      <p class="court-meta" style="margin:4px 0 2px;">Pediles que confirmen (toca el nombre para abrir WhatsApp):</p>
       <p style="margin:0 0 6px;">${chips}</p>
       ${chipsAlumnos ? `<p class="court-meta" style="margin:4px 0 2px;">Alumnos que ya tienen clase y también calzan en ese horario:</p><p style="margin:0 0 6px;">${chipsAlumnos}</p>` : ""}
       <button class="btn btn-outline btn-small" type="button" data-prefill-turno>Prellenar convocatoria con este horario</button>`;
@@ -4547,7 +4547,7 @@ document.getElementById("btn-copiar-mensaje-cuarto").addEventListener("click", a
     msg.textContent = "Mensaje copiado.";
     msg.className = "form-msg ok";
   } catch {
-    msg.textContent = "No se pudo copiar — seleccioná y copia el texto a mano.";
+    msg.textContent = "No se pudo copiar — seleccioná y copiá el texto a mano.";
     msg.className = "form-msg error";
   }
 });
@@ -4712,7 +4712,7 @@ document.getElementById("com-import-file").addEventListener("change", async (e) 
       document.getElementById("btn-guardar-import").hidden = true;
       return;
     }
-    msg.textContent = `${comunidadImportFilas.length} remitente(s) encontrados. Revisá y corrige antes de guardar.`;
+    msg.textContent = `${comunidadImportFilas.length} remitente(s) encontrados. Revisá y corregí antes de guardar.`;
     msg.className = "form-msg ok";
     // Limpia filtros que hayan quedado de una importación anterior.
     document.getElementById("com-import-buscar").value = "";

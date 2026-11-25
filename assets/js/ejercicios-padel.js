@@ -190,7 +190,7 @@ function renderEjercicioCard(item) {
           <strong>Corrección</strong>
           ${item.correccion}
         </div>
-        <p class="ejercicio-pregunta">💬 Pregúntale al cerrar: "${item.preguntaCierre}"</p>
+        <p class="ejercicio-pregunta">💬 Preguntale al cerrar: "${item.preguntaCierre}"</p>
       </details>
     </div>
   </article>`;
