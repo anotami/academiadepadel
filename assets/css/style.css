@@ -37,6 +37,7 @@ h1, h2, h3 { font-family: "Sora", "Manrope", sans-serif; line-height: 1.15; marg
 p { margin: 0 0 1em; color: var(--ink-soft); }
 a { color: inherit; }
 img { max-width: 100%; display: block; }
+picture { display: contents; }
 ul { padding: 0; margin: 0; list-style: none; }
 
 .container {
@@ -318,6 +319,9 @@ h1 {
   margin-bottom: 18px;
   letter-spacing: -0.02em;
 }
+/* Un solo H1 por página: este texto lo leen buscadores y lectores de pantalla; .h1-visual da a un H2 el aspecto de un H1. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.h1-visual { font-size: clamp(2.1rem, 4vw, 3rem); margin-bottom: 18px; letter-spacing: -0.02em; }
 h1 .hl {
   background: linear-gradient(180deg, transparent 55%, var(--accent) 55%);
 }

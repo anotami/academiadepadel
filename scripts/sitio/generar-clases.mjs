@@ -164,13 +164,9 @@ ${c.relacionados.map(([h, t]) => `        <li><a href="${h}">${esc(t)} →</a></
 `;
 }
 
-const sm = path.join(raiz, "sitemap.xml"); let x = readFileSync(sm, "utf8");
 for (const c of CLASES) {
   const dir = path.join(raiz, "clases", c.slug); mkdirSync(dir, { recursive: true });
   const html = pagina(c);
   if (/\[COMPLETAR/.test(html.replace(/<!--[\s\S]*?-->/g, ""))) { console.error(`✘ ${c.slug}: [COMPLETAR] visible`); process.exit(1); }
   writeFileSync(path.join(dir, "index.html"), html); console.log(`✔  clases/${c.slug}/index.html`);
-  const loc = `<loc>${canonico(c)}</loc>`;
-  if (!x.includes(loc)) x = x.replace("</urlset>", `  <url>\n    ${loc}\n  </url>\n</urlset>`);
 }
-writeFileSync(sm, x);

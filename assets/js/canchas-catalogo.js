@@ -98,7 +98,7 @@ function tarjeta(c) {
   if (c.logo && !c.foto) {
     media = `<div class="cancha-media-logo-wrap"><img class="cancha-media-logo" src="${c.logo.src}" alt="${c.logo.alt}" loading="lazy"></div>`;
   } else if (c.foto) {
-    media = `<img class="cancha-media-foto" src="${c.foto.src}" alt="${c.foto.alt}" loading="lazy" width="300" height="180"><span class="cancha-foto-credito">Foto: Google Maps</span>`;
+    media = `<picture><source srcset="${c.foto.src.replace(/\.(jpe?g|png)$/i, ".webp")}" type="image/webp"><img class="cancha-media-foto" src="${c.foto.src}" alt="${c.foto.alt}" loading="lazy" width="300" height="180"></picture><span class="cancha-foto-credito">Foto: Google Maps</span>`;
   } else {
     media = `<svg viewBox="0 0 120 80" class="cancha-media-svg" aria-hidden="true">
         <rect width="120" height="80" rx="10" fill="#14495a"/>
