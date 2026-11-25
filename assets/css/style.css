@@ -1754,6 +1754,7 @@ span.disp-toggle.on { background: var(--court); }
   border-radius: 999px;
 }
 .badge-pendiente { background: #fff3cd; color: #8a6400; }
+.badge-clase-num { background: var(--ink, #0f2a37); color: #fff; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .badge-confirmada { background: #d9f3e3; color: #157347; }
 .badge-rechazada { background: #fde2e1; color: #b02a24; }
 

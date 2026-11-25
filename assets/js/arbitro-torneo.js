@@ -120,7 +120,7 @@ function guardarRonda(rondaIdx) {
     p.equipoA.forEach((j1) => p.equipoA.forEach((j2) => { if (j1 !== j2) bumpHistorial(j1, j2); }));
     p.equipoB.forEach((j1) => p.equipoB.forEach((j2) => { if (j1 !== j2) bumpHistorial(j1, j2); }));
   });
-  if (!ok) { alert("Completa el marcador de todas las pistas de esta ronda."); return; }
+  if (!ok) { alert("Completá el marcador de todas las pistas de esta ronda."); return; }
   save();
   render();
 }
@@ -219,7 +219,7 @@ function init() {
     const nombres = document.getElementById("t-jugadores").value
       .split("\n").map((s) => s.trim()).filter(Boolean);
     const msg = document.getElementById("torneoMsg");
-    if (nombres.length < 4) { msg.className = "form-msg error"; msg.textContent = "Ingresa al menos 4 jugadores."; return; }
+    if (nombres.length < 4) { msg.className = "form-msg error"; msg.textContent = "Ingresá al menos 4 jugadores."; return; }
     state.jugadores = nombres;
     state.numPistas = Math.max(1, Number(document.getElementById("t-pistas").value) || 1);
     msg.textContent = "";

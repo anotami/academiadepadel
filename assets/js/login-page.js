@@ -71,7 +71,7 @@ passwordInput.addEventListener("input", () => {
 });
 
 function mostrarSinConexion(el) {
-  el.textContent = "No se pudo conectar (revisa tu internet) — inténtalo de nuevo en un momento.";
+  el.textContent = "No se pudo conectar (revisá tu internet) — intentalo de nuevo en un momento.";
   el.className = "form-msg error";
 }
 
@@ -129,17 +129,17 @@ document.getElementById("btn-olvide-clave").addEventListener("click", async () =
   }
   const email = document.getElementById("login-email").value.trim();
   if (!email) {
-    loginMsg.textContent = "Escribe tu correo arriba y vuelve a tocar \"¿Olvidaste tu contraseña?\".";
+    loginMsg.textContent = "Escribí tu correo arriba y volvé a tocar \"¿Olvidaste tu contraseña?\".";
     loginMsg.className = "form-msg error";
     return;
   }
   try {
     await fb.sendPasswordResetEmail(fb.auth, email);
-    loginMsg.textContent = `Te enviamos un correo a ${email} con un link para crear una contraseña nueva. Revisa también spam.`;
+    loginMsg.textContent = `Te enviamos un correo a ${email} con un link para crear una contraseña nueva. Revisá también spam.`;
     loginMsg.className = "form-msg ok";
   } catch (err) {
     // No confirmamos ni negamos si el correo existe, para no filtrar esa info.
-    loginMsg.textContent = `Si ${email} tiene una cuenta, te llegará un correo para restablecer la contraseña. Revisa también spam.`;
+    loginMsg.textContent = `Si ${email} tiene una cuenta, te llegará un correo para restablecer la contraseña. Revisá también spam.`;
     loginMsg.className = "form-msg ok";
   }
 });
@@ -216,7 +216,7 @@ formSignup.addEventListener("submit", async (e) => {
     // Mensaje genérico a propósito: no decimos si el correo ya tenía cuenta
     // ni mostramos el error crudo de Firebase, para no filtrar esa info a
     // quien esté probando direcciones de correo al azar.
-    signupMsg.textContent = "No pudimos crear tu cuenta con esos datos. Revisa el correo y la contraseña, o inicia sesión si ya tienes una cuenta.";
+    signupMsg.textContent = "No pudimos crear tu cuenta con esos datos. Revisá el correo y la contraseña, o iniciá sesión si ya tenés una cuenta.";
     signupMsg.className = "form-msg error";
   }
 });

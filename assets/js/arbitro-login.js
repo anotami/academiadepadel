@@ -25,7 +25,7 @@ const formSignup = document.getElementById("form-signup");
 const signupMsg = document.getElementById("signup-msg");
 
 function mostrarSinConexion(el) {
-  el.textContent = "No se pudo conectar (revisa tu internet) — inténtalo de nuevo en un momento.";
+  el.textContent = "No se pudo conectar (revisá tu internet) — inténtalo de nuevo en un momento.";
   el.className = "form-msg error";
 }
 
@@ -92,7 +92,7 @@ formSignup.addEventListener("submit", async (e) => {
   } catch (err) {
     signupMsg.textContent = err.code === "auth/email-already-in-use"
       ? "Ese correo ya tiene una cuenta. Prueba iniciar sesión."
-      : "No pudimos crear tu cuenta: " + (err.message || "intenta de nuevo.");
+      : "No pudimos crear tu cuenta: " + (err.message || "intentá de nuevo.");
     signupMsg.className = "form-msg error";
   }
 });

@@ -32,7 +32,7 @@ function pintar() {
   });
   $("ti-resumen").innerHTML = Object.values(por).sort((a, b) => b.n - a.n).map((g) =>
     `<tr><td><strong>${escapeHtml(g.sigla)}</strong></td><td>${escapeHtml(g.tienda)}</td><td>${g.n}</td><td>${soles(g.costo / g.n)}</td><td>${Math.round((g.venta / g.costo - 1) * 100)}%</td></tr>`).join("")
-    || `<tr><td colspan="5">Aún no hay datos: carga el CSV interno abajo.</td></tr>`;
+    || `<tr><td colspan="5">Aún no hay datos: cargá el CSV interno abajo.</td></tr>`;
 
   const sel = $("ti-filtro-tienda");
   const actual = sel.value;

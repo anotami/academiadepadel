@@ -306,7 +306,7 @@ async function guardarTag() {
     limpiarSeleccion();
   } catch (e) {
     msg.className = "form-msg error";
-    msg.textContent = "No se pudo guardar (revisa tu conexión).";
+    msg.textContent = "No se pudo guardar (revisá tu conexión).";
   }
 }
 

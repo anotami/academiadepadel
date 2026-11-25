@@ -2,7 +2,7 @@
 // página pública del informe (informe-page.js). Sin dependencias de Firebase.
 
 export const METRICAS = [
-  { k: "tiempo_en_cancha_min", label: "Tiempo en cancha (ejercicios)", unidad: "min", pct: false },
+  { k: "tiempo_en_cancha_min", label: "Tiempo en pista (ejercicios)", unidad: "min", pct: false },
   { k: "metros", label: "Metros recorridos", unidad: "m", pct: false },
   { k: "metros_por_min", label: "Ritmo", unidad: "m/min", pct: false },
   { k: "sprints", label: "Arranques rápidos (más de 3 m/s)", unidad: "", pct: false },
@@ -29,11 +29,11 @@ export function proximaClase(m) {
   if (fondo >= 50) return `Subir a la red y quedarse con la pala arriba. Con un ${fondo} % de la clase en el fondo, lo que más te va a sumar es animarte a subir y no quedarte a mitad de camino.`;
   if (pala >= 15) return `Pala arriba en la red. Una de cada ${Math.max(2, Math.round(100 / pala))} veces la tuviste abajo: entre golpe y golpe, pala delante y arriba.`;
   if (trans >= 15) return `Terminar de subir. Pasaste un ${trans} % de la clase en tierra de nadie: cuando decidas subir, subí hasta la red.`;
-  return "Llegar primero con los pies. Ya te parás bien en la cancha; ahora el trabajo es moverte antes para no tener que estirar el brazo.";
+  return "Llegar primero con los pies. Ya te parás bien en la pista; ahora el trabajo es moverte antes para no tener que estirar el brazo.";
 }
 
 export const TAREAS = [
-  "Mirar los clips antes de entrar a la cancha",
+  "Mirar los clips antes de entrar a la pista",
   "En cada ejercicio de red, chequear la pala entre golpe y golpe",
   "Cuando subas, terminar de subir: nada de quedarse en tierra de nadie"
 ];

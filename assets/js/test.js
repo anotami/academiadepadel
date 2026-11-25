@@ -5,7 +5,7 @@
     {
       text: "¿Cuántas veces has jugado pádel en tu vida?",
       image: "assets/img/court/paddles-court.jpg",
-      alt: "Palas de pádel sobre la cancha",
+      alt: "Palas de pádel sobre la pista",
       options: [
         { label: "Nunca", points: 0 },
         { label: "Entre 1 y 10 veces", points: 1 },
@@ -23,7 +23,7 @@
       ]
     },
     {
-      text: "¿Conoces golpes como la bandeja, la víbora o el remate?",
+      text: "¿Conocés golpes como la bandeja, la víbora o el remate?",
       image: "assets/img/court/paddle-bouquet.jpg",
       alt: "Varias palas de pádel de distintos modelos",
       options: [
@@ -33,7 +33,7 @@
       ]
     },
     {
-      text: "Cuando juegas un partido recreativo...",
+      text: "Cuando jugás un partido recreativo...",
       image: "assets/img/court/aerial-court.jpg",
       alt: "Vista aérea de dos jugadores en un partido de pádel",
       options: [
@@ -52,7 +52,7 @@
       image: "assets/img/court/grip-detail.jpg",
       alt: "Jugador ajustando el agarre de la pala",
       level: "Iniciación",
-      desc: "Recién vas a empezar, o casi no tienes experiencia en cancha — es el punto de partida perfecto para aprender bien desde el primer golpe.",
+      desc: "Recién vas a empezar, o casi no tenés experiencia en pista — es el punto de partida perfecto para aprender bien desde el primer golpe.",
       argRange: "8ª–7ª",
       argNames: "Iniciación · Principiante",
       plans: [
@@ -68,7 +68,7 @@
       image: "assets/img/court/paddle-bouquet.jpg",
       alt: "Varias palas de pádel de distintos modelos",
       level: "Intermedio",
-      desc: "Ya tienes algo de cancha, pero te conviene afirmar fundamentos antes de jugar con más soltura y consistencia.",
+      desc: "Ya tenés algo de pista, pero te conviene afirmar fundamentos antes de jugar con más soltura y consistencia.",
       argRange: "6ª–5ª",
       argNames: "Principiante avanzado · Intermedio",
       plans: [
@@ -84,7 +84,7 @@
       image: "assets/img/court/net-ball.jpg",
       alt: "Pelota de pádel golpeando la red en plena jugada",
       level: "Consolidación",
-      desc: "Ya sostienes peloteos y piensas la táctica del punto. Te conviene pulir golpes específicos y consolidar con clases regulares.",
+      desc: "Ya sostenés peloteos y pensás la táctica del punto. Te conviene pulir golpes específicos y consolidar con clases regulares.",
       argRange: "4ª",
       argNames: "Intermedio alto",
       plans: [

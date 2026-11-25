@@ -11,7 +11,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
-import { planificar, usarGeneradorDeIds, SERVER_TS, norm, OPERACIONES } from "./logica.mjs";
+import { planificar, usarGeneradorDeIds, SERVER_TS, norm, OPERACIONES, numerosParaCreadas, claveClase, codigoClase } from "./logica.mjs";
 import { firebaseConfig } from "../../assets/js/firebase-config.js";
 
 const [, , comando, ...resto] = process.argv;
@@ -57,6 +57,31 @@ async function cargarEstado({ fs, db, uid, nombre }) {
 
 const hashDe = (plan) => createHash("sha256").update(plan.lineas.join("\n") + JSON.stringify(plan.pendientes || [])).digest("hex").slice(0, 10);
 
+// Numera las clases nuevas del plan (C-0001…): reserva el bloque en el contador con una transacción (nunca se repite un número,
+// aunque el panel esté cargando clases a la vez) y reutiliza el número si la clase ya existía.
+async function asignarNumerosDeClase(ctx, plan, e) {
+  const creadas = plan.acciones.filter((a) => a.tipo === "crear" && a.col === "reservas");
+  if (!creadas.length) return;
+  const { cantidad } = numerosParaCreadas(e.reservas, creadas, 1);
+  let primero = 1;
+  if (cantidad) {
+    try {
+      primero = await ctx.fs.runTransaction(ctx.db, async (tx) => {
+        const ref = ctx.fs.doc(ctx.db, "contadores", "clases");
+        const s = await tx.get(ref); const ultimo = s.exists() ? Number(s.data().ultimo) || 0 : 0;
+        tx.set(ref, { ultimo: ultimo + cantidad, actualizadoEn: ctx.fs.serverTimestamp() });
+        return ultimo + 1;
+      });
+    } catch (err) {
+      console.error(`⚠ No se pudo reservar números de clase (${err.message}). ¿Publicaste la regla de contadores? Las clases se crean igual, sin número: después usá "Numerar clases existentes" en el panel.`);
+      return;
+    }
+  }
+  const { porClave } = numerosParaCreadas(e.reservas, creadas, primero);
+  creadas.forEach((a) => { const n = porClave[claveClase(a.datos)]; a.datos.claseNum = n; a.datos.claseCodigo = codigoClase(n); });
+  console.log(`Numeración: ${cantidad} clase(s) nueva(s)` + (cantidad ? ` desde ${codigoClase(primero)}` : "") + ".");
+}
+
 // Deja un pendiente visible en el panel (tarjeta "Pendientes del asistente" con botón Hecho).
 async function dejarPendiente(ctx, { titulo, detalle = "", destino = "clases" }) {
   const ref = ctx.fs.doc(ctx.fs.collection(ctx.db, "pendientes_asistente"));
@@ -71,6 +96,7 @@ function mostrarPlan(plan) {
   plan.acciones.forEach((a) => n[a.tipo]++);
   console.log(`\nResumen: ${n.crear} por crear · ${n.actualizar} por modificar · ${n.borrar} por borrar` + (plan.borra ? "  ⚠ INCLUYE BORRADOS" : ""));
   if (plan.pendientes?.length) console.log(`Al aplicar quedarán ${plan.pendientes.length} pendiente(s) visibles en tu panel:\n` + plan.pendientes.map((p) => "  ☐ " + p.titulo).join("\n"));
+  if (plan.acciones.some((a) => a.tipo === "crear" && a.col === "reservas")) console.log("Numeración: cada clase nueva recibe su N° (C-0001…) al aplicar; los alumnos de una misma clase comparten el número.");
   console.log(`ID DEL PLAN: ${hashDe(plan)}`);
 }
 
@@ -98,7 +124,7 @@ async function main() {
     } else if (resto[0] === "clases") {
       const desde = flag("--desde") || "0000-00-00"; const t = norm(flag("--alumno") || "");
       e.reservas.filter((r) => r.fecha >= desde && norm(r.alumnoNombre).includes(t)).sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora))
-        .forEach((r) => console.log(`${r.fecha} ${r.hora} · ${r.alumnoNombre} · ${r.pistaNombre} · ${r.tipoClase || ""} · ${r.estado}${r.registrada ? " · cerrada" : ""}${r.paqueteId ? " · paquete" : typeof r.montoCobrado === "number" ? " · S/" + r.montoCobrado : ""}`));
+        .forEach((r) => console.log(`${r.claseCodigo || "sin N°"} · ${r.fecha} ${r.hora} · ${r.alumnoNombre} · ${r.pistaNombre} · ${r.tipoClase || ""} · ${r.estado}${r.registrada ? " · cerrada" : ""}${r.paqueteId ? " · paquete" : typeof r.montoCobrado === "number" ? " · S/" + r.montoCobrado : ""}`));
     } else uso();
     return ctx;
   }
@@ -129,6 +155,7 @@ async function main() {
     if (plan.errores.length) { mostrarPlan(plan); console.error("\nHay errores: no se aplicó nada."); process.exitCode = 4; return ctx; }
     if (flag("--plan") !== id) { mostrarPlan(plan); console.error(`\nEl plan no coincide con el confirmado (${flag("--plan") || "ninguno"}). Vuelve a simular y confirmar. No se aplicó nada.`); process.exitCode = 5; return ctx; }
     if (plan.borra && !resto.includes("--borrados")) { console.error("El plan incluye borrados: agrega --borrados para confirmarlo. No se aplicó nada."); process.exitCode = 6; return ctx; }
+    await asignarNumerosDeClase(ctx, plan, e);
     const dir = process.env.GP_RESPALDOS || path.join(homedir(), "respaldos-academia");
     mkdirSync(dir, { recursive: true });
     const archivo = path.join(dir, `${new Date().toISOString().replace(/[:.]/g, "-")}_${id}.json`);

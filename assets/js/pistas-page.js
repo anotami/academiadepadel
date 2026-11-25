@@ -33,7 +33,7 @@ onAuthStateChanged(auth, async (user) => {
       await signInAnonymously(auth);
     } catch (err) {
       document.getElementById("lista-pistas").innerHTML =
-        '<p class="empty-state">No se pudo cargar (revisa tu conexión) — recarga la página.</p>';
+        '<p class="empty-state">No se pudo cargar (revisá tu conexión) — recargá la página.</p>';
     }
     return; // onAuthStateChanged se vuelve a disparar con la cuenta anónima
   }
@@ -127,14 +127,14 @@ function construirFormularioNuevaPista() {
     <h2>Agregar una pista nueva</h2>
     <div class="form-grid">
       <div class="field"><label>Nombre</label><input type="text" data-campo="nombre" required></div>
-      <div class="field"><label>Cancha (opcional)</label><input type="text" data-campo="cancha" placeholder="Ej: Cancha 2"></div>
+      <div class="field"><label>Pista (opcional)</label><input type="text" data-campo="cancha" placeholder="Ej: Pista 2"></div>
       <div class="field"><label>Distrito</label><input type="text" data-campo="distrito" required></div>
       <div class="field"><label>Dirección</label><input type="text" data-campo="direccion" required></div>
       <div class="field"><label>Teléfono</label><input type="text" data-campo="telefono"></div>
       <div class="field"><label>Horario (texto libre)</label><input type="text" data-campo="horario" placeholder="Ej: Lunes a domingo, 6:00 - 22:00"></div>
       <div class="field"><label>Precio (público, el que ve el alumno)</label><input type="text" data-campo="precio" placeholder="Ej: S/ 90 - S/ 130 / hr"></div>
-      <div class="field"><label>Tu costo sin luz, por hora (S/, solo lo ves tú)</label><input type="number" min="0" step="1" data-campo="costoHoraSinLuz" placeholder="Ej: 80"></div>
-      <div class="field"><label>Tu costo con luz, por hora (S/, solo lo ves tú)</label><input type="number" min="0" step="1" data-campo="costoHoraConLuz" placeholder="Ej: 100"></div>
+      <div class="field"><label>Tu costo sin luz, por hora (S/, solo lo ves vos)</label><input type="number" min="0" step="1" data-campo="costoHoraSinLuz" placeholder="Ej: 80"></div>
+      <div class="field"><label>Tu costo con luz, por hora (S/, solo lo ves vos)</label><input type="number" min="0" step="1" data-campo="costoHoraConLuz" placeholder="Ej: 100"></div>
       <div class="field"><label>Web / redes</label><input type="text" data-campo="web" placeholder="Ej: sitio.com | @usuario"></div>
       <div class="field">
         <label>Estado</label>

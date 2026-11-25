@@ -41,7 +41,7 @@ HORARIOS_COMUNIDAD.forEach((h) => {
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     signInAnonymously(auth).catch(() => {
-      msg.textContent = "No se pudo conectar — revisa tu conexión y recarga la página.";
+      msg.textContent = "No se pudo conectar — revisá tu conexión y recargá la página.";
       msg.className = "form-msg error";
     });
   }
@@ -84,12 +84,12 @@ form.addEventListener("submit", async (e) => {
     return;
   }
   if (!consentimientoOk) {
-    msg.textContent = "Tienes que aceptar que te contactemos por WhatsApp para poder anotarte.";
+    msg.textContent = "Tenés que aceptar que te contactemos por WhatsApp para poder anotarte.";
     msg.className = "form-msg error";
     return;
   }
   if (Date.now() - cargadaEn < 1500) {
-    msg.textContent = "Revisa el formulario y vuelve a enviarlo.";
+    msg.textContent = "Revisá el formulario y volvé a enviarlo.";
     msg.className = "form-msg error";
     return;
   }

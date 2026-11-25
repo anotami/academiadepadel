@@ -46,7 +46,7 @@ function mostrarBienvenida(r) {
   banner.className = "ref-banner";
   banner.setAttribute("role", "status");
   banner.innerHTML = `
-    <span class="ref-banner-texto">🎁 <strong></strong> te invitó: tienes <strong></strong>. Tu código: <strong class="ref-banner-codigo"></strong></span>
+    <span class="ref-banner-texto">🎁 <strong></strong> te invitó: tenés <strong></strong>. Tu código: <strong class="ref-banner-codigo"></strong></span>
     <a class="btn btn-whatsapp btn-small" target="_blank" rel="noopener">Reclamar por WhatsApp</a>
     <button class="ref-banner-cerrar" type="button" aria-label="Cerrar">×</button>`;
   const fuertes = banner.querySelectorAll("strong");

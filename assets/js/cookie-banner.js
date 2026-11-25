@@ -11,7 +11,7 @@
   const banner = document.createElement("div");
   banner.className = "cookie-banner";
   banner.innerHTML = `
-    <p>Usamos cookies de analítica para entender cómo se usa el sitio. Puedes aceptarlas o seguir solo con lo esencial. <a href="privacidad.html">Más info</a>.</p>
+    <p>Usamos cookies de analítica para entender cómo se usa el sitio. Podés aceptarlas o seguir solo con lo esencial. <a href="privacidad.html">Más info</a>.</p>
     <div class="cookie-banner-acciones">
       <button type="button" class="btn btn-outline btn-small" id="cookieRechazar">Solo esenciales</button>
       <button type="button" class="btn btn-primary btn-small" id="cookieAceptar">Aceptar</button>

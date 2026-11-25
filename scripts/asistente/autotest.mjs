@@ -1,5 +1,5 @@
 // Pruebas sin conexión: node autotest.mjs
-import { planificar } from "./logica.mjs";
+import { planificar, numerosParaCreadas, claveClase, codigoClase } from "./logica.mjs";
 
 const base = () => ({
   profesor: { id: "prof", nombre: "Gabriel" },
@@ -96,6 +96,18 @@ p = plan([{ op: "clase.modificar", alumno: "Karla", fecha: "2026-11-10", cambios
 ok(!p.errores.length && acc(p, "costos_reservas", "crear")[0]?.datos.costoCanchaPagado === 55 && !acc(p, "reservas", "actualizar").some((a) => "costoCanchaPagado" in a.cambios && a.cambios.costoCanchaPagado !== null), "modificar el costo de cancha va a la colección privada", p.errores.join());
 p = plan([{ op: "inventada" }]);
 ok(p.errores.length === 1, "operación desconocida se rechaza");
+
+// numeración de clases (C-0001)
+const cr = (id, o = {}) => ({ tipo: "crear", col: "reservas", id, datos: { pistaId: "p1", fecha: "2026-12-01", hora: "07:00", ...o } });
+let nm = numerosParaCreadas([], [cr("a"), cr("b"), cr("c", { hora: "09:00" })], 10);
+ok(nm.cantidad === 2 && nm.porClave[claveClase(cr("a").datos)] === 10 && nm.porClave[claveClase(cr("c", { hora: "09:00" }).datos)] === 11, "numeración: 3 reservas en 2 clases = 2 números (los de un grupo comparten)", JSON.stringify(nm));
+nm = numerosParaCreadas([{ pistaId: "p1", fecha: "2026-12-01", hora: "07:00", claseNum: 7, estado: "confirmada" }], [cr("a")], 50);
+ok(nm.cantidad === 0 && nm.porClave[claveClase(cr("a").datos)] === 7, "numeración: un alumno agregado a una clase ya numerada hereda su número y no gasta uno nuevo", JSON.stringify(nm));
+nm = numerosParaCreadas([{ pistaId: "p1", fecha: "2026-12-01", hora: "07:00", claseNum: 7, estado: "cancelada" }], [cr("a")], 50);
+ok(nm.cantidad === 1 && nm.porClave[claveClase(cr("a").datos)] === 50, "numeración: una clase cancelada no cuenta como la misma clase");
+nm = numerosParaCreadas([], [cr("x", { fecha: "2026-12-05" }), cr("y", { fecha: "2026-12-02" })], 1);
+ok(nm.porClave[claveClase(cr("y", { fecha: "2026-12-02" }).datos)] === 1, "numeración: de la clase más vieja a la más nueva");
+ok(codigoClase(3) === "C-0003" && codigoClase(1520) === "C-1520", "numeración: formato C-0001");
 
 console.log(fallos ? `\n${fallos} FALLOS` : "\nTodas las pruebas pasan.");
 process.exit(fallos ? 1 : 0);
