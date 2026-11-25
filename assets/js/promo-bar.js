@@ -3,8 +3,7 @@
 
   var MENSAJES = [
     { href: "test.html", html: "🎯 ¿No sabes tu nivel de pádel? <strong>Descúbrelo en 30 segundos</strong> y te decimos tu plan ideal →" },
-    { href: "index.html#contacto", html: "🎾 ¿No tienes pala? <strong>Te la prestamos sin costo</strong> en tus primeras clases." },
-    { href: "index.html#ofertas", html: "👥 <strong>Cupo Fundador:</strong> 1 clase de regalo en tu paquete, solo para los primeros 10 alumnos." }
+    { href: "index.html#contacto", html: "🎾 ¿No tienes pala? <strong>Te la prestamos sin costo</strong> en tus primeras clases." }
   ];
 
   var bar = document.getElementById("promoBar");
