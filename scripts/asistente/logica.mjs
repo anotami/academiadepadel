@@ -18,6 +18,24 @@ const soles = (n) => `S/ ${Math.round(n * 100) / 100}`;
 const fechaValida = (f) => /^\d{4}-\d{2}-\d{2}$/.test(f || "") && !Number.isNaN(Date.parse(f + "T00:00:00Z"));
 const fechaCorta = (f) => f.split("-").reverse().join("/");
 
+// ---------- Numeración de clases (C-0001) ----------
+// Cada clase (pista + fecha + hora) lleva un número; los alumnos de una misma clase comparten el suyo.
+// `acciones` = acciones "crear reservas" del plan. Reutiliza el número si la clase ya existe en `reservasExistentes`;
+// las clases nuevas reciben números correlativos desde `primerLibre`, de la más vieja a la más nueva.
+export const claveClase = (r) => `${r.pistaId}|${r.fecha}|${r.hora}`;
+export const codigoClase = (n) => "C-" + String(n).padStart(4, "0");
+export function numerosParaCreadas(reservasExistentes, acciones, primerLibre) {
+  const existentes = new Map();
+  reservasExistentes.forEach((r) => { if (Number.isInteger(r.claseNum) && r.estado === "confirmada" && !existentes.has(claveClase(r))) existentes.set(claveClase(r), r.claseNum); });
+  const sesiones = new Map();
+  acciones.forEach((a) => { const k = claveClase(a.datos); if (!sesiones.has(k)) sesiones.set(k, a.datos); });
+  const porClave = {}; let n = primerLibre, cantidad = 0;
+  [...sesiones.entries()].sort((x, y) => (x[1].fecha + x[1].hora).localeCompare(y[1].fecha + y[1].hora)).forEach(([k]) => {
+    if (existentes.has(k)) porClave[k] = existentes.get(k); else { porClave[k] = n++; cantidad++; }
+  });
+  return { porClave, cantidad };
+}
+
 // ---------- Estado en memoria ----------
 // estado = { profesor:{id,nombre}, alumnos:[], pistas:[], paquetes:[], reservas:[] }  (cada uno con id)
 export function clonarEstado(e) { return JSON.parse(JSON.stringify(e)); }

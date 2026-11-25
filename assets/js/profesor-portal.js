@@ -17,6 +17,8 @@ import { escapeHtml } from "./utils.js?v=1";
 import { temaDelDia } from "./historias-data.js?v=4";
 import { iniciarLibretaTienda } from "./libreta-tienda.js?v=2";
 import { iniciarTiendaInterno } from "./tienda-interno.js?v=1";
+import { numeroParaSesion, formatoCodigo } from "./numeracion-clases.js?v=1";
+import { iniciarControlClases } from "./control-clases.js?v=1";
 import { REFERIDOS, REGEX_CODIGO, generarCodigo, linkInvitacion, mensajeInvitacion } from "./referidos-config.js?v=1";
 
 let currentUid = null;
@@ -81,6 +83,7 @@ onAuthStateChanged(auth, async (user) => {
   cargarPendientesAsistente();
   iniciarLibretaTienda();
   iniciarTiendaInterno();
+  iniciarControlClases(user.uid);
   cargarHistorialClases(user.uid);
   cargarGrupos();
   generarReservasDeGrupos();
@@ -249,6 +252,7 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
       return;
     }
 
+    const numeroClase = await numeroParaSesion({ profesorId: currentUid, pistaId, fecha, hora });
     for (const alumno of alumnosSeleccionados) {
       const paqueteId = paqueteElegidoPorAlumno[alumno.id];
       const datos = {
@@ -258,6 +262,7 @@ document.getElementById("form-clase-dictada").addEventListener("submit", async (
         fecha, hora, estado: "confirmada",
         modalidad,
         duracionMin,
+        ...numeroClase,
         creadoEn: serverTimestamp()
       };
       if (canchaBeelup) datos.canchaBeelup = canchaBeelup;
@@ -932,6 +937,7 @@ async function confirmar(reservaId, reserva) {
   }
   const cambiosConfirmar = { estado: "confirmada", duracionMin: reserva.duracionMin ?? 60 };
   if (esPistaBeelup(reserva.pistaNombre) && !reserva.canchaBeelup) cambiosConfirmar.canchaBeelup = "2";
+  if (!Number.isInteger(reserva.claseNum)) Object.assign(cambiosConfirmar, await numeroParaSesion({ profesorId: reserva.profesorId || currentUid, pistaId: reserva.pistaId, fecha: reserva.fecha, hora: reserva.hora }));
   await updateDoc(doc(db, "reservas", reservaId), cambiosConfirmar);
 
   if (esProgramaRegular(reserva.tipoClase)) {
@@ -1033,6 +1039,9 @@ async function rechazar(reservaId) {
 // dictada": se crea una reserva por alumno, pero es una sola clase en
 // cancha. Las agrupa para mostrarlas juntas en vez de una tarjeta repetida
 // por alumno. Preserva el orden en que aparece cada sesión por primera vez.
+// Etiqueta con el número de clase (C-0001), si ya lo tiene.
+function badgeNumero(r) { return r && r.claseCodigo ? `<span class="badge badge-clase-num" title="Número de clase">${escapeHtml(r.claseCodigo)}</span> ` : ""; }
+
 function agruparPorSesion(reservas) {
   const grupos = [];
   const indicePorClave = new Map();
@@ -1111,7 +1120,7 @@ function construirTarjetaFutura(r) {
   card.className = "request-card";
   card.innerHTML = `
     <div class="request-info">
-      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)}</p>
+      <p class="request-title">${badgeNumero(r)}${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)}</p>
       <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs ${r.alumnoTelefono ? "· " + r.alumnoTelefono : ""}</p>
       <div class="field-full" data-reprogramar-form hidden style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
         <div class="field"><label>Nueva fecha</label><input type="date" data-campo="fecha" value="${r.fecha}"></div>
@@ -1175,7 +1184,7 @@ function construirTarjetaFuturaGrupal(grupo) {
   card.className = "request-card";
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos)</p>
+      <p class="request-title">${badgeNumero(base)}${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos)</p>
       <p>${base.pistaNombre} · ${formatearFecha(base.fecha)} · ${base.hora} hrs</p>
       <div style="margin:10px 0;">
         ${grupo.map((r) => `
@@ -1378,7 +1387,7 @@ function construirTarjetaRegistro(r) {
   card.className = "request-card";
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)}</p>
+      <p class="request-title">${badgeNumero(r)}${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)}</p>
       <p>${r.pistaNombre} · ${formatearFecha(r.fecha)} · ${r.hora} hrs</p>
       <label class="avail-slot" style="display:inline-flex; margin:8px 0;">
         <input type="checkbox" checked data-campo="asistio"> Asistió a la clase
@@ -1442,7 +1451,7 @@ function construirTarjetaRegistroGrupal(grupo) {
   card.className = "request-card";
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos)</p>
+      <p class="request-title">${badgeNumero(base)}${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos)</p>
       <p>${base.pistaNombre} · ${formatearFecha(base.fecha)} · ${base.hora} hrs</p>
       ${grupo.map((r) => `
         <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:12px;" data-fila="${r.id}">
@@ -1677,7 +1686,11 @@ function construirFormAgregarAlumno(base) {
     const montoCobrado = Number(form.querySelector('[data-campo="monto"]').value) || 0;
     if (!alumno) { msg.textContent = "Elegí un alumno."; msg.className = "form-msg error"; return; }
     try {
+      const numeroClase = Number.isInteger(base.claseNum)
+        ? { claseNum: base.claseNum, claseCodigo: base.claseCodigo || formatoCodigo(base.claseNum) }
+        : await numeroParaSesion({ profesorId: currentUid, pistaId: base.pistaId, fecha: base.fecha, hora: base.hora });
       await addDoc(collection(db, "reservas"), {
+        ...numeroClase,
         alumnoId: alumno.id, alumnoNombre: alumno.nombre, alumnoTelefono: alumno.telefono || "",
         profesorId: currentUid, profesorNombre: currentPerfil.nombre,
         tipoClase: base.tipoClase, pistaId: base.pistaId, pistaNombre: base.pistaNombre,
@@ -1770,7 +1783,7 @@ function construirTarjetaHistorial(r) {
   const estadoLabel = { confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado;
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)} ${badgeCiclo(esFutura, !!r.registrada, r.asistio === false)}</p>
+      <p class="request-title">${badgeNumero(r)}${r.tipoClase ? r.tipoClase + " — " : ""}${escapeHtml(r.alumnoNombre)} ${badgeCiclo(esFutura, !!r.registrada, r.asistio === false)}</p>
       <p>${r.pistaNombre || ""} · ${formatearFecha(r.fecha)} · ${r.hora} hrs
         ${r.modalidad ? "· " + r.modalidad : ""}
         ${typeof r.montoCobrado === "number" ? `· cobrado S/ ${r.montoCobrado}` : ""}
@@ -1957,7 +1970,7 @@ function construirTarjetaHistorialGrupal(grupo) {
   const estadoLabel = (r) => ({ confirmada: "confirmada", cancelada: "cancelada", rechazada: "rechazada", pendiente: "pendiente" }[r.estado] || r.estado);
   card.innerHTML = `
     <div class="request-info" style="flex:1 1 100%;">
-      <p class="request-title">${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos) ${badgeCiclo(esFutura, grupo.every((x) => x.registrada))}</p>
+      <p class="request-title">${badgeNumero(base)}${base.tipoClase ? base.tipoClase + " — " : ""}Grupal (${grupo.length} alumnos) ${badgeCiclo(esFutura, grupo.every((x) => x.registrada))}</p>
       <p>${base.pistaNombre || ""} · ${formatearFecha(base.fecha)} · ${base.hora} hrs ${base.modalidad ? "· " + base.modalidad : ""}</p>
       ${!esFutura ? `<p>${videoClaseHtml(base)}</p>` : ""}
       <div class="form-grid" style="margin-top:8px;">
@@ -2391,6 +2404,7 @@ async function generarReservasDeGrupos() {
         conflictos.push(`"${g.nombre}" el ${formatearFecha(fecha)}: la pista ya tiene otra clase confirmada — revísalo en "Mis clases".`);
         continue;
       }
+      let numeroClaseSesion = null;
       for (const alumnoId of g.miembroIds) {
         if (enEsaFecha.some((r) => r.alumnoId === alumnoId)) continue;
         if (canceladasDelGrupo.some((r) => r.fecha === fecha && r.alumnoId === alumnoId)) continue;
@@ -2408,6 +2422,8 @@ async function generarReservasDeGrupos() {
             creadoEn: serverTimestamp()
           };
           if (g.canchaBeelup) datosReserva.canchaBeelup = g.canchaBeelup;
+          if (!numeroClaseSesion) numeroClaseSesion = await numeroParaSesion({ profesorId: currentUid, pistaId: g.pistaId, fecha, hora: g.hora });
+          Object.assign(datosReserva, numeroClaseSesion);
           await addDoc(collection(db, "reservas"), datosReserva);
           creadas++;
         } catch {

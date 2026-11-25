@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=65">
+<link rel="stylesheet" href="assets/css/style.css?v=66">
 </head>
 <body>
 
@@ -175,6 +175,38 @@
           <h2>Ciclo de una clase</h2>
           <div data-ciclo></div>
         </div>
+
+        <!-- Control de clases: número, sede, alumnos y pago de cada clase -->
+        <details class="portal-card" id="card-control-clases">
+          <summary><h2 style="display:inline;">🔢 Control de clases</h2></summary>
+          <p class="field-hint">Cada clase lleva un número (C-0001, C-0002…). Acá revisás que todas estén cargadas con su alumno, sede y pago, y ves qué números faltan.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0;">
+            <button class="btn btn-small" type="button" id="cc-revisar">Revisar clases</button>
+            <button class="btn btn-outline btn-small" type="button" id="cc-numerar" hidden>Numerar clases existentes…</button>
+            <button class="btn btn-outline btn-small" type="button" id="cc-csv" hidden>Descargar CSV</button>
+          </div>
+          <p class="form-msg" id="cc-msg"></p>
+          <div id="cc-preview" hidden style="border:1px solid var(--border); border-radius:10px; padding:12px; margin:8px 0;">
+            <p id="cc-preview-detalle"></p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+              <button class="btn btn-small" type="button" id="cc-confirmar-num">Confirmar numerado</button>
+              <button class="btn btn-outline btn-small" type="button" id="cc-cancelar-num">Cancelar</button>
+            </div>
+          </div>
+          <p id="cc-resumen"></p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;">
+            <select id="cc-filtro" aria-label="Filtrar"><option value="todas">Todas</option><option value="problemas">Con algo por revisar</option><option value="sin-numero">Sin número</option><option value="sin-pago">Sin pago cargado</option><option value="sin-sede">Sin sede</option></select>
+            <select id="cc-mes" aria-label="Mes"><option value="">Todos los meses</option></select>
+            <input type="search" id="cc-buscar" placeholder="Buscar por N°, alumno o sede" aria-label="Buscar" style="max-width:240px;">
+          </div>
+          <p class="field-hint" id="cc-cuenta"></p>
+          <div class="table-scroll" style="overflow-x:auto;">
+            <table class="detalle-table">
+              <thead><tr><th>N°</th><th>Fecha</th><th>Sede</th><th>Alumnos y pago</th><th>Estado</th><th>Por revisar</th></tr></thead>
+              <tbody id="cc-filas"></tbody>
+            </table>
+          </div>
+        </details>
 
         <!-- ① Nueva clase -->
         <div class="portal-card" id="card-nueva-clase">
@@ -1024,7 +1056,7 @@
 
 <script src="assets/js/main.js?v=14"></script>
 <script type="module" src="assets/js/portal-tabs.js?v=1"></script>
-<script type="module" src="assets/js/profesor-portal.js?v=99"></script>
+<script type="module" src="assets/js/profesor-portal.js?v=100"></script>
 <script type="module" src="assets/js/informes-profesor.js?v=7"></script>
 <script type="module" src="assets/js/jornadas-profesor.js?v=5"></script>
 </body>

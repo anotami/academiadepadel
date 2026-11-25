@@ -19,7 +19,14 @@ export async function reservarNumeros(cantidad = 1) {
 }
 
 // Campos a guardar en la reserva para una sesión: reutiliza el número si ya hay otra reserva de esa misma clase, y si no pide uno nuevo.
-export async function numeroParaSesion({ profesorId, pistaId, fecha, hora }) {
+// Si no se puede reservar el número (por ejemplo, la regla de contadores todavía no está publicada), NO bloquea la carga de la clase:
+// devuelve {} y la clase queda "Sin número" en el control de clases, para numerarla después.
+export async function numeroParaSesion(datos) {
+  try { return await numeroParaSesionEstricto(datos); }
+  catch (e) { console.warn("No se pudo numerar la clase:", e.message); return {}; }
+}
+
+async function numeroParaSesionEstricto({ profesorId, pistaId, fecha, hora }) {
   const snap = await getDocs(query(collection(db, "reservas"),
     where("profesorId", "==", profesorId), where("fecha", "==", fecha), where("hora", "==", hora)));
   const existente = snap.docs.map((d) => d.data()).find((r) => r.pistaId === pistaId && Number.isInteger(r.claseNum));
