@@ -40,3 +40,19 @@ ol.sede-lista { list-style: decimal; }
 .sede-foto-clinica { margin: 0; }
 .sede-foto-clinica img { width: 100%; height: auto; display: block; border-radius: 12px; }
 .sede-foto-clinica figcaption { font-size: .85rem; color: var(--ink-soft); margin-top: 8px; }
+/* guías */
+.guia-cuerpo { max-width: 760px; }
+.guia-cuerpo h2 { font-size: 1.35rem; margin: 30px 0 10px; }
+.guia-meta { font-size: .9rem; color: var(--ink-soft); margin: 0 0 18px; }
+.guia-meta a { color: var(--court); font-weight: 700; }
+.guia-foto { width: 100%; height: auto; border-radius: var(--radius); box-shadow: var(--shadow); aspect-ratio: 3 / 2; object-fit: cover; }
+.guia-fuente { font-size: .88rem; color: var(--ink-soft); border-left: 3px solid var(--accent-dark); padding-left: 12px; margin-top: 24px; }
+.guias-grid { grid-template-columns: 1fr; }
+.guia-tarjeta { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit; }
+.guia-tarjeta h2 { font-size: 1.1rem; margin: 0; }
+.guia-tarjeta p { margin: 0; font-size: .93rem; }
+.guia-tarjeta:hover { border-color: var(--court); }
+.guia-etiqueta { font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--court); }
+.guia-leer { margin-top: auto; font-weight: 700; color: var(--court); }
+@media (min-width: 760px) { .guias-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .guias-grid { grid-template-columns: repeat(3, 1fr); } }
