@@ -1,5 +1,5 @@
 import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebase/rules-unit-testing";
-import { arrayUnion, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, deleteDoc, collection, query, where, serverTimestamp } from "firebase/firestore";
+import { arrayUnion, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, deleteDoc, collection, query, where, serverTimestamp, runTransaction } from "firebase/firestore";
 import { readFileSync } from "node:fs";
 
 const env = await initializeTestEnvironment({ projectId: "demo-gp", firestore: { rules: readFileSync(new URL("../../firestore.rules", import.meta.url), "utf8") } });
@@ -124,6 +124,18 @@ await t("alumno NO lee los proveedores de la tienda", "fail", () => getDocs(coll
 await t("anónimo NO lee los proveedores de la tienda", "fail", () => getDocs(collection(anon, "tienda_interno")));
 await t("alumno NO escribe proveedores de la tienda", "fail", () => setDoc(doc(alu1, "tienda_interno/GP-PAL-001"), { costo: 1 }));
 await t("profesor escribe y lee los proveedores de la tienda", "ok", () => setDoc(doc(prof, "tienda_interno/GP-PAL-001"), { costo: 300, tienda: "x" }));
+// numeración de clases: contador seguro + número en la reserva
+const reservarNum = (db, n) => runTransaction(db, async (tx) => { const r = doc(db, "contadores/clases"); const sn = await tx.get(r); const u = sn.exists() ? sn.data().ultimo : 0; tx.set(r, { ultimo: u + n }); return u + 1; });
+await t("profesor reserva un número de clase con transacción", "ok", () => reservarNum(prof, 1));
+await t("dos números reservados a la vez nunca se repiten", "ok", async () => { const [x, y] = await Promise.all([reservarNum(prof, 1), reservarNum(prof, 1)]); if (x === y) throw new Error("repetidos " + x); });
+await t("el contador NO puede retroceder", "fail", () => setDoc(doc(prof, "contadores/clases"), { ultimo: 0 }));
+await t("el contador NO se puede borrar", "fail", () => deleteDoc(doc(prof, "contadores/clases")));
+await t("alumno NO lee el contador de clases", "fail", () => getDoc(doc(alu1, "contadores/clases")));
+await t("alumno NO escribe el contador de clases", "fail", () => reservarNum(alu1, 1));
+await t("anónimo NO lee el contador de clases", "fail", () => getDoc(doc(anon, "contadores/clases")));
+await t("profesor numera una reserva (claseNum/claseCodigo)", "ok", () => updateDoc(doc(prof, "reservas/r1"), { claseNum: 7, claseCodigo: "C-0007" }));
+await t("alumno NO puede cambiar el número de su clase", "fail", () => updateDoc(doc(alu1, "reservas/r1"), { claseNum: 99, claseCodigo: "C-0099" }));
+await t("alumno crea su pedido sin número y queda pendiente", "ok", () => addDoc(collection(alu1, "reservas"), { alumnoId: "alu1", estado: "pendiente", fecha: "2026-12-01", hora: "10:00" }));
 await t("alumno lee los partidos publicados", "ok", () => getDocs(collection(alu1, "partidos")));
 await t("anónimo NO lee los partidos (traen teléfonos)", "fail", () => getDocs(collection(anon, "partidos")));
 await t("alumno publica SU partido", "ok", () => addDoc(collection(alu1, "partidos"), { alumnoId: "alu1", alumnoNombre: "Ana", fecha: "2026-12-05" }));

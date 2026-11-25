@@ -560,6 +560,15 @@ service cloud.firestore {
       allow read, write: if esProfesor();
     }
 
+    // Correlativo de la numeración de clases (C-0001, C-0002…): solo el profesor, y nunca puede retroceder
+    // (así un error no reinicia la cuenta ni repite números).
+    match /contadores/{id} {
+      allow read: if esProfesor();
+      allow create: if esProfesor() && request.resource.data.ultimo is int && request.resource.data.ultimo >= 0;
+      allow update: if esProfesor() && request.resource.data.ultimo is int && request.resource.data.ultimo >= resource.data.ultimo;
+      allow delete: if false;
+    }
+
     // Proveedores, costos y enlaces de origen de la tienda: solo el profesor.
     match /tienda_interno/{codigo} {
       allow read, write: if esProfesor();
