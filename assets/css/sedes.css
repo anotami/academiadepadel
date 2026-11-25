@@ -23,3 +23,17 @@
 .sede-llegar { max-width: 860px; margin: 18px auto 0; }
 .sede-llegar h3 { margin: 0 0 6px; font-size: 1.05rem; }
 .sede-llegar p { margin: 0 0 8px; }
+/* páginas de clases */
+.sede-lista { margin: 0; padding-left: 1.15rem; }
+.sede-lista li { margin: 0 0 8px; }
+.sede-bloques-2 { grid-template-columns: 1fr; }
+.sede-sedes { grid-template-columns: 1fr 1fr; }
+.sede-enlace { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: inherit; }
+.sede-enlace span { color: var(--ink-soft); font-size: .9rem; }
+.sede-enlace:hover { border-color: var(--court); }
+.sede-relacionados { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 8px; text-align: center; }
+.sede-relacionados a { color: var(--court); font-weight: 700; }
+.sede-hero .container > .sede-cta { margin-top: 4px; }
+@media (min-width: 760px) { .sede-bloques-2 { grid-template-columns: repeat(2, 1fr); } .sede-sedes { grid-template-columns: repeat(4, 1fr); } }
+ul.sede-lista { list-style: disc; }
+ol.sede-lista { list-style: decimal; }
