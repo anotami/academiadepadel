@@ -22,7 +22,7 @@ async function crearCuenta(email, password, perfil) {
     log(`✔ Cuenta creada: ${email}`);
   } catch (err) {
     if (err.code === "auth/email-already-in-use") {
-      log(`– ${email} ya existía, se omite (si quieres recrearla bórrala antes en Firebase Auth).`);
+      log(`– ${email} ya existía, se omite (si quieres recrearla borrala antes en Firebase Auth).`);
     } else {
       log(`✘ Error con ${email}: ${err.message}`);
     }

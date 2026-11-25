@@ -170,7 +170,7 @@ form.addEventListener("submit", async (e) => {
     $("jor-whatsapp-ok").href = `https://wa.me/${WHATSAPP_NUMBER}?text=${textoWa}`;
     mostrarExito();
   } catch (err) {
-    msg.textContent = "No se pudo completar (" + err.message + "). Escríbenos directo por WhatsApp.";
+    msg.textContent = "No se pudo completar (" + err.message + "). Escribinos directo por WhatsApp.";
     msg.className = "form-msg error";
   } finally {
     submitBtn.disabled = false;

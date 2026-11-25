@@ -142,7 +142,7 @@ async function pintar() {
   $("h-hecha").checked = (() => { try { return localStorage.getItem(claveHecha(fecha)) === "1"; } catch { return false; } })();
   $("h-link").value = h.link;
   $("h-sticker").value = h.sticker;
-  $("h-dm").value = `¡Hola! Gracias por escribir 🙌 Para armar tu clase (grupal o individual) cuéntanos tu disponibilidad aquí: ${h.link}  — te respondemos con horarios y sede.`;
+  $("h-dm").value = `¡Hola! Gracias por escribir 🙌 Para armar tu clase (grupal o individual) contanos tu disponibilidad aquí: ${h.link}  — te respondemos con horarios y sede.`;
 
   const grid = $("h-grid"); grid.replaceChildren();
   h.laminas.forEach((_, i) => {
@@ -245,7 +245,7 @@ $("h-hecha").addEventListener("change", (e) => { try { localStorage.setItem(clav
 $("h-todas").addEventListener("click", async () => {
   const canvases = [...document.querySelectorAll("#h-grid canvas")];
   for (let i = 0; i < canvases.length; i++) { descargar(await aBlob(canvases[i]), nombreArchivo(actual, i)); await new Promise((r) => setTimeout(r, 350)); }
-  $("h-msg").textContent = "Descargadas. Súbelas en orden y pon el sticker de enlace en la última.";
+  $("h-msg").textContent = "Descargadas. Subilas en orden y poné el sticker de enlace en la última.";
   $("h-msg").className = "form-msg ok";
 });
 document.querySelectorAll("[data-copiar]").forEach((b) => b.addEventListener("click", async () => {

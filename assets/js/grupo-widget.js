@@ -96,7 +96,7 @@ function renderTurnos(turnos) {
       <strong>${t.nombre}</strong>
       ${t.fecha ? `<span class="turno-fecha">${formatearFechaLarga(t.fecha)}</span>` : ""}
       <span>${t.horarioTexto}</span>
-      <span class="badge ${lleno ? "badge-pendiente" : "badge-confirmada"}">${lleno ? "Casi lleno — anótate igual" : `Quedan ${Math.max(t.cupoTotal - cupoUsado, 0)} cupos`}</span>
+      <span class="badge ${lleno ? "badge-pendiente" : "badge-confirmada"}">${lleno ? "Casi lleno — anotate igual" : `Quedan ${Math.max(t.cupoTotal - cupoUsado, 0)} cupos`}</span>
     `;
     card.addEventListener("click", () => {
       turnosGrid.querySelectorAll(".turno-card").forEach((c) => c.classList.remove("seleccionada"));
@@ -126,7 +126,7 @@ if (confirmarBtn) {
     if (codigoInput && codigoInput.value.trim()) {
       const res = await adoptarCodigoManual(codigoInput.value);
       if (res === "invalido") {
-        estadoMsg.textContent = "Ese código de invitación no existe. Revísalo o déjalo en blanco.";
+        estadoMsg.textContent = "Ese código de invitación no existe. Revisalo o dejalo en blanco.";
         confirmarBtn.disabled = false;
         codigoInput.focus();
         return;
@@ -161,7 +161,7 @@ if (confirmarBtn) {
       window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(mensaje), "_blank", "noopener");
       estadoMsg.textContent = "¡Listo! Te escribimos por WhatsApp para confirmar tu cupo.";
     } catch (err) {
-      estadoMsg.textContent = "No se pudo enviar (" + err.message + "). Escríbenos directo por WhatsApp.";
+      estadoMsg.textContent = "No se pudo enviar (" + err.message + "). Escribinos directo por WhatsApp.";
     } finally {
       confirmarBtn.disabled = false;
     }
