@@ -37,3 +37,6 @@
 @media (min-width: 760px) { .sede-bloques-2 { grid-template-columns: repeat(2, 1fr); } .sede-sedes { grid-template-columns: repeat(4, 1fr); } }
 ul.sede-lista { list-style: disc; }
 ol.sede-lista { list-style: decimal; }
+.sede-foto-clinica { margin: 0; }
+.sede-foto-clinica img { width: 100%; height: auto; display: block; border-radius: 12px; }
+.sede-foto-clinica figcaption { font-size: .85rem; color: var(--ink-soft); margin-top: 8px; }
