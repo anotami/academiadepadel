@@ -56,7 +56,7 @@
       argRange: "8ª–7ª",
       argNames: "Iniciación · Principiante",
       plans: [
-        { tag: "Recomendado", title: "¡Conociendo el Pádel!", text: "Jornada grupal gratuita para probar el pádel desde cero, sin compromiso.", link: "index.html#ofertas" },
+        { tag: "Recomendado", title: "¡Conociendo el Pádel!", text: "Jornada grupal gratuita para probar el pádel desde cero, sin compromiso.", link: "jornada.html" },
         { tag: "Siguiente paso", title: "Clínicas · Nivel inicial", text: "Sesiones temáticas de S/70 para afirmar tus primeros golpes.", link: "index.html#clinicas" }
       ],
       waText: "Hola, hice el test de nivel en la web y me salió nivel Iniciación ({score}/8), equivalente a 8ª–7ª en el sistema argentino. Quiero reservar mi clase de prueba / la jornada gratuita ¡Conociendo el Pádel!"
