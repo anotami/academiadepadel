@@ -26,3 +26,8 @@ con schema `Service`, `BreadcrumbList` y `FAQPage`. El contenido sale de lo ya p
 ## Sobre Gabriel y Preguntas frecuentes
 `node scripts/sitio/generar-info.mjs` genera `sobre-gabriel/` y `preguntas-frecuentes/`. Todo sale de lo ya publicado en la home
 (`#quien-soy` y `#faq`): si cambiás esos textos en `index.html`, volvé a correr el generador.
+
+## Sitemap y reconstrucción
+`node scripts/sitio/sitemap.mjs` regenera `sitemap.xml` con las páginas públicas (sin `noindex`) y la fecha real del último cambio de cada una (git).
+Quedan afuera a propósito `evento.html`, `jornada.html` y `links.html`. Después de cambiar datos o textos: correr `generar-sedes`, `generar-clases`,
+`generar-info`, luego `sitemap` y por último `chequeos`.

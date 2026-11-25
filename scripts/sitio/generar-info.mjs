@@ -197,13 +197,9 @@ const gab = { slug: "sobre-gabriel", titulo: "Gabriel Pizarro, profesor de páde
     </div>
   </section>` };
 
-const sm = path.join(raiz, "sitemap.xml"); let x = readFileSync(sm, "utf8");
 for (const p of [faq, gab]) {
   mkdirSync(path.join(raiz, p.slug), { recursive: true });
   const html = cuerpo(p);
   if (/\[COMPLETAR/.test(html.replace(/<!--[\s\S]*?-->/g, ""))) { console.error(`✘ ${p.slug}: [COMPLETAR] visible`); process.exit(1); }
   writeFileSync(path.join(raiz, p.slug, "index.html"), html); console.log(`✔  ${p.slug}/index.html`);
-  const loc = `<loc>${MARCA.dominio}/${p.slug}/</loc>`;
-  if (!x.includes(loc)) x = x.replace("</urlset>", `  <url>\n    ${loc}\n  </url>\n</urlset>`);
 }
-writeFileSync(sm, x);

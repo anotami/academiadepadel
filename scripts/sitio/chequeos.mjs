@@ -75,7 +75,8 @@ for (const [d, rs] of descs) if (rs.length > 1) for (const r of rs) marca(r, "er
 
 // sitemap: ¿están todas las públicas?
 const sm = existsSync(path.join(raiz, "sitemap.xml")) ? leer("sitemap.xml") : "";
-for (const r of publicas) if (!sm.includes("academiadepadel.pe" + url(r) + "<")) marca(r, "aviso", "no está en sitemap.xml");
+const FUERA_SITEMAP = new Set(["evento.html", "jornada.html", "links.html"]); // utilitarias, ver scripts/sitio/sitemap.mjs
+for (const r of publicas) if (!FUERA_SITEMAP.has(r) && !sm.includes("academiadepadel.pe" + url(r) + "<")) marca(r, "aviso", "no está en sitemap.xml");
 
 const errores = hallazgos.filter((x) => x.nivel === "error"), avisos = hallazgos.filter((x) => x.nivel === "aviso");
 if (json) { console.log(JSON.stringify({ publicas: publicas.length, privadas: privadas.length, errores, avisos, cancha: totalCancha, tu: totalTu }, null, 2)); process.exit(errores.length ? 1 : 0); }

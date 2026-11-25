@@ -189,11 +189,3 @@ for (const s of SEDES) {
   writeFileSync(path.join(dir, "index.html"), html); generadas.push(s);
   console.log(`${tieneCompletar(s) ? "⚠ noindex (tiene [COMPLETAR])" : "✔"}  sedes/${s.slug}/index.html`);
 }
-
-// sitemap: solo las sedes completas
-const sm = path.join(raiz, "sitemap.xml"); let x = readFileSync(sm, "utf8");
-for (const s of generadas) {
-  const loc = `<loc>${canonico(s)}</loc>`;
-  if (!tieneCompletar(s) && !x.includes(loc)) x = x.replace("</urlset>", `  <url>\n    ${loc}\n  </url>\n</urlset>`);
-}
-writeFileSync(sm, x);
