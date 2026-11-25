@@ -20,3 +20,6 @@
 }
 .sede-mas { text-align: center; font-size: .95rem; color: var(--ink-soft); margin: 26px 0 0; }
 .sede-mas a { color: var(--court); font-weight: 700; }
+.sede-llegar { max-width: 860px; margin: 18px auto 0; }
+.sede-llegar h3 { margin: 0 0 6px; font-size: 1.05rem; }
+.sede-llegar p { margin: 0 0 8px; }

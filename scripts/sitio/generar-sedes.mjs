@@ -139,7 +139,11 @@ ${s.amenidades.map((a) => `          <li class="amenity-badge">${a}</li>`).join(
         </div>
       </div>
       <p class="sede-mapa-links"><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query=${mapa}">Abrir en Google Maps →</a></p>
-      <!-- [COMPLETAR: cómo llegar a ${esc(s.nombre)} (referencias, transporte)] -->
+      <div class="card sede-llegar">
+        <h3>Cómo llegar</h3>
+        <p>Abrí la ubicación en Google Maps y te lleva desde donde estés, a pie, en auto o en transporte público.</p>
+        <p><a class="btn btn-outline btn-small" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&amp;destination=${mapa}">Cómo llegar con Google Maps</a></p>
+      </div>
     </div>
   </section>
 
@@ -161,7 +165,6 @@ ${preguntas(s).map(([n, r]) => `        <details class="faq-item"><summary>${esc
       <span>${MARCA.nombre}</span>
     </div>
     <p>Lima, Perú · <a href="${waLink("Hola, quiero más información sobre las clases")}" target="_blank" rel="noopener">WhatsApp ${MARCA.telefono}</a> · <a href="${MARCA.instagram}" target="_blank" rel="noopener">Instagram @academiapadelgp</a></p>
-    <!-- [COMPLETAR: URL de TikTok] -->
     <p class="footer-copy">© ${new Date().getFullYear()} academiadepadel.pe. Todos los derechos reservados. · <a href="../../privacidad.html">Privacidad</a> · <a href="../../tienda/">Tienda</a></p>
   </div>
 </footer>

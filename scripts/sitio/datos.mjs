@@ -6,7 +6,7 @@ export const MARCA = {
   whatsapp: "51957085531",
   telefono: "+51 957 085 531",
   instagram: "https://www.instagram.com/academiapadelgp/",
-  tiktok: "[COMPLETAR: URL de TikTok]",
+  tiktok: null, // la academia todavía no tiene TikTok
   ciudad: "Lima",
   pais: "PE"
 };
@@ -38,8 +38,8 @@ export const SEDES = [
     titulo: "Clases de pádel en Benavides, Miraflores", h1: "Clases de pádel en Peru Padel Center - Benavides, Miraflores",
     descripcion: "Clases de pádel en Peru Padel Center - Benavides, Miraflores: pista techada en pleno Miraflores. Consultá la disponibilidad por WhatsApp.",
     intro: "Pista techada en pleno Miraflores, en la sucursal de Benavides de Peru Padel Center.",
-    horarios: "[COMPLETAR: horarios generales en Peru Padel Center - Benavides]", amenidades: AMENIDADES, costo: "aparte", foto: "peru-padel-center-benavides",
-    fotoAlt: "Pista techada de Peru Padel Center - Benavides, en Miraflores", pendiente: true }
+    horarios: "De 6:00 a 21:00.", amenidades: AMENIDADES, costo: "aparte", foto: "peru-padel-center-benavides",
+    fotoAlt: "Pista techada de Peru Padel Center - Benavides, en Miraflores" }
 ];
 
 // Niveles / tipos de clase. Inicial, intermedio y particulares están confirmados; mujeres y niños se confirman en la Etapa b.
@@ -47,6 +47,6 @@ export const CLASES = [
   { slug: "inicial", nombre: "Inicial" },
   { slug: "intermedio", nombre: "Intermedio" },
   { slug: "particulares", nombre: "Clases particulares" },
-  { slug: "mujeres", nombre: "Mujeres", pendiente: true },
-  { slug: "ninos", nombre: "Niños", pendiente: true }
+  { slug: "mujeres", nombre: "Mujeres" },
+  { slug: "ninos", nombre: "Niños" }
 ];
