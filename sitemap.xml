@@ -107,4 +107,13 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://academiadepadel.pe/sedes/x3/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/sedes/top-padel/</loc>
+  </url>
+  <url>
+    <loc>https://academiadepadel.pe/sedes/club-padel-lima/</loc>
+  </url>
 </urlset>

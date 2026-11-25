@@ -13,3 +13,8 @@ node scripts/sitio/chequeos.mjs          # informe
 node scripts/sitio/chequeos.mjs --json   # para scripts
 python3 scripts/sitio/webp.py            # necesita Pillow
 ```
+
+## Páginas de sede
+`node scripts/sitio/generar-sedes.mjs` genera `sedes/<sede>/index.html` desde `datos.mjs` (4 sedes), con schema `SportsActivityLocation`,
+`BreadcrumbList` y `FAQPage`. Si una sede tiene algún `[COMPLETAR]` en los datos, su página sale con `noindex` y no entra al sitemap.
+Para completar una sede, editá su entrada en `datos.mjs` y volvé a correr el generador.
