@@ -18,7 +18,7 @@ const html = (dir = "") => readdirSync(path.join(raiz, dir), { withFileTypes: tr
 });
 const url = (r) => r === "index.html" ? "/" : r.endsWith("/index.html") ? "/" + r.slice(0, -"index.html".length) : "/" + r;
 const fecha = (r) => { try { return execFileSync("git", ["log", "-1", "--format=%cs", "--", r], { cwd: raiz, encoding: "utf8" }).trim() || null; } catch { return null; } };
-const peso = (u) => u === "/" ? 0 : u.startsWith("/sedes/") ? 1 : u.startsWith("/clases/") ? 2 : (u === "/sobre-gabriel/" || u === "/preguntas-frecuentes/") ? 3 : u.startsWith("/canchas") ? 6 : 4;
+const peso = (u) => u === "/" ? 0 : u.startsWith("/sedes/") ? 1 : u.startsWith("/clases/") ? 2 : (u === "/sobre-gabriel/" || u === "/preguntas-frecuentes/") ? 3 : u.startsWith("/guias/") ? 3.5 : u.startsWith("/canchas") ? 6 : 4;
 
 const paginas = html().filter((r) => !/noindex/i.test(readFileSync(path.join(raiz, r), "utf8")) && !FUERA.has(r))
   .map((r) => ({ u: url(r), f: fecha(r) })).sort((a, b) => peso(a.u) - peso(b.u) || a.u.localeCompare(b.u));

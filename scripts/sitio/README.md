@@ -31,3 +31,7 @@ con schema `Service`, `BreadcrumbList` y `FAQPage`. El contenido sale de lo ya p
 `node scripts/sitio/sitemap.mjs` regenera `sitemap.xml` con las páginas públicas (sin `noindex`) y la fecha real del último cambio de cada una (git).
 Quedan afuera a propósito `evento.html`, `jornada.html` y `links.html`. Después de cambiar datos o textos: correr `generar-sedes`, `generar-clases`,
 `generar-info`, luego `sitemap` y por último `chequeos`.
+
+## Guías
+`node scripts/sitio/generar-guias.mjs` genera `guias/` (índice) y las guías nuevas del arreglo `GUIAS` (una por semana). El índice lee el título y la descripción
+de las guías ya publicadas, así que nunca queda desfasado. Cada guía nueva se arma con material ya publicado y validado en el sitio (por ejemplo, el banco de ejercicios).
