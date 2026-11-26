@@ -111,7 +111,7 @@ ${foto ? `      <div class="sede-hero-foto">${foto}</div>\n` : ""}    </div>
       <div class="card">
         <h2>Horarios generales</h2>
         <p>${esc(s.horarios)}</p>
-        <p>Coordinamos el día y la hora exacta con vos por WhatsApp, según el programa y la disponibilidad de la pista — sin turnos fijos cerrados.</p>
+        <p>Coordinamos el día y la hora exacta con vos por WhatsApp, según el programa y la disponibilidad de la pista — sin horarios fijos cerrados.</p>
       </div>
       <div class="card">
         <h2>Costo de la pista</h2>
