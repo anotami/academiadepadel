@@ -165,7 +165,7 @@ ${preguntas(s).map(([n, r]) => `        <details class="faq-item"><summary>${esc
       <span>${MARCA.nombre}</span>
     </div>
     <p>Lima, Perú · <a href="${waLink("Hola, quiero más información sobre las clases")}" target="_blank" rel="noopener">WhatsApp ${MARCA.telefono}</a> · <a href="${MARCA.instagram}" target="_blank" rel="noopener">Instagram @academiapadelgp</a></p>
-    <p class="footer-copy">© ${new Date().getFullYear()} academiadepadel.pe. Todos los derechos reservados. · <a href="../../privacidad.html">Privacidad</a> · <a href="../../tienda/">Tienda</a></p>
+    <p class="footer-copy">© ${new Date().getFullYear()} academiadepadel.pe. Todos los derechos reservados. · <a href="../../privacidad.html">Privacidad</a> · <a href="https://padelacademia.pe/">Tienda</a></p>
   </div>
 </footer>
 
